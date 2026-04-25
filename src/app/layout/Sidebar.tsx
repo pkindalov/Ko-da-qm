@@ -20,9 +20,10 @@ interface SidebarProps {
   setTab: (tab: Tab) => void;
   lang: Language;
   onTweaksToggle: () => void;
+  onLogout: () => void;
 }
 
-export function Sidebar({ tab, setTab, lang, onTweaksToggle }: SidebarProps) {
+export function Sidebar({ tab, setTab, lang, onTweaksToggle, onLogout }: SidebarProps) {
   const L = lang === 'en';
 
   return (
@@ -51,6 +52,13 @@ export function Sidebar({ tab, setTab, lang, onTweaksToggle }: SidebarProps) {
         style={{ color: 'var(--text2)' }}
       >
         <span className="nav-icon">⚙</span> Tweaks
+      </button>
+      <button
+        className="nav-item"
+        onClick={onLogout}
+        style={{ color: 'var(--danger)' }}
+      >
+        <span className="nav-icon">🚪</span> {L ? 'Log out' : 'Изход'}
       </button>
     </nav>
   );

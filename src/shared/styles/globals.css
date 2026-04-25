@@ -184,3 +184,12 @@ a{color:inherit;text-decoration:none}
 @media(max-width:400px){
   .grid-2{grid-template-columns:1fr}
 }
+
+/* Auth */
+.auth-page{min-height:100dvh;display:flex;align-items:center;justify-content:center;padding:24px}
+.auth-card{background:var(--surface);border-radius:var(--r);border:1.5px solid var(--border);padding:36px;width:100%;max-width:400px;box-shadow:var(--shadow-lg)}
+.auth-logo{font-size:26px;font-weight:900;color:var(--primary);text-align:center;letter-spacing:-0.5px}
+.auth-sub{color:var(--text2);font-size:14px;text-align:center;margin-top:4px;font-weight:600}
+.auth-error{color:var(--danger);font-size:13px;font-weight:600}
+.auth-switch{margin-top:20px;text-align:center;font-size:13px;font-weight:600;color:var(--text2)}
+.auth-switch a{color:var(--primary);font-weight:700}
