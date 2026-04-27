@@ -25,7 +25,6 @@ export function useAppData() {
       supabase.from('products').select('*').eq('user_id', user.id),
     ]);
 
-    // Profile — create row with defaults if this is a new user
     if (profileRes.data) {
       setProfileState({
         name: profileRes.data.name,
@@ -43,7 +42,7 @@ export function useAppData() {
       });
     }
 
-    // Fridge — seed defaults if empty
+    // Only replace defaults when the user has saved data in DB
     if (fridgeRes.data && fridgeRes.data.length > 0) {
       setFridgeState(fridgeRes.data.map(r => ({
         id: r.id,
@@ -51,14 +50,8 @@ export function useAppData() {
         emoji: r.emoji,
         category: r.category,
       })));
-    } else if (fridgeRes.data?.length === 0) {
-      setFridgeState(DEFAULT_FRIDGE);
-      await supabase.from('fridge_items').insert(
-        DEFAULT_FRIDGE.map(item => ({ ...item, user_id: user.id }))
-      );
     }
 
-    // Recipes — seed defaults if empty
     if (recipesRes.data && recipesRes.data.length > 0) {
       setRecipesState(recipesRes.data.map(r => ({
         id: r.id,
@@ -72,54 +65,22 @@ export function useAppData() {
         requiredIngredients: r.required_ingredients ?? [],
         isAI: r.is_ai,
       })));
-    } else if (recipesRes.data?.length === 0) {
-      setRecipesState(DEFAULT_RECIPES);
-      await supabase.from('recipes').insert(
-        DEFAULT_RECIPES.map(item => ({
-          id: item.id,
-          user_id: user.id,
-          name: item.name,
-          name_en: item.nameEn ?? null,
-          emoji: item.emoji,
-          ingredients: item.ingredients,
-          steps: item.steps,
-          time: item.time,
-          tags: item.tags,
-          required_ingredients: item.requiredIngredients,
-          is_ai: item.isAI,
-        }))
-      );
     }
 
-    // Products — seed defaults if empty
     if (productsRes.data && productsRes.data.length > 0) {
-      setProductsState(productsRes.data.map(r => ({
+      const dbProducts = productsRes.data.map(r => ({
         id: r.id,
         name: r.name,
         nameEn: r.name_en ?? undefined,
         category: r.category,
         status: r.status,
         emoji: r.emoji,
-      })));
-    } else if (productsRes.data?.length === 0) {
-      setProductsState(DEFAULT_PRODUCTS);
-      await supabase.from('products').insert(
-        DEFAULT_PRODUCTS.map(item => ({
-          id: item.id,
-          user_id: user.id,
-          name: item.name,
-          name_en: item.nameEn ?? null,
-          category: item.category,
-          status: item.status,
-          emoji: item.emoji,
-        }))
-      );
+      }));
+      setProductsState([...DEFAULT_PRODUCTS, ...dbProducts]);
     }
 
     setLoading(false);
   }
-
-  // Optimistic setters: update state immediately, sync to Supabase in background
 
   const setProfile = useCallback((next: Profile) => {
     setProfileState(next);
@@ -138,65 +99,105 @@ export function useAppData() {
 
   const setFridge = useCallback((next: FridgeItem[]) => {
     setFridgeState(next);
-    supabase.auth.getUser().then(({ data: { user } }) => {
+    supabase.auth.getUser().then(async ({ data: { user } }) => {
       if (!user) return;
-      supabase.from('fridge_items').delete().eq('user_id', user.id).then(() => {
-        if (next.length > 0) {
-          supabase.from('fridge_items').insert(
-            next.map(item => ({ ...item, user_id: user.id }))
-          );
-        }
-      });
+      if (next.length === 0) {
+        await supabase.from('fridge_items').delete().eq('user_id', user.id);
+        return;
+      }
+      await supabase.from('fridge_items').upsert(
+        next.map(item => ({ id: item.id, user_id: user.id, name: item.name, emoji: item.emoji, category: item.category })),
+        { onConflict: 'id,user_id' }
+      );
+      supabase.from('fridge_items')
+        .delete()
+        .eq('user_id', user.id)
+        .not('id', 'in', `(${next.map(i => i.id).join(',')})`);
     });
   }, []);
 
   const setRecipes = useCallback((next: Recipe[]) => {
     setRecipesState(next);
-    supabase.auth.getUser().then(({ data: { user } }) => {
+    supabase.auth.getUser().then(async ({ data: { user } }) => {
       if (!user) return;
-      supabase.from('recipes').delete().eq('user_id', user.id).then(() => {
-        if (next.length > 0) {
-          supabase.from('recipes').insert(
-            next.map(item => ({
-              id: item.id,
-              user_id: user.id,
-              name: item.name,
-              name_en: item.nameEn ?? null,
-              emoji: item.emoji,
-              ingredients: item.ingredients,
-              steps: item.steps,
-              time: item.time,
-              tags: item.tags,
-              required_ingredients: item.requiredIngredients,
-              is_ai: item.isAI,
-            }))
-          );
-        }
-      });
+      if (next.length === 0) {
+        await supabase.from('recipes').delete().eq('user_id', user.id);
+        return;
+      }
+      await supabase.from('recipes').upsert(
+        next.map(item => ({
+          id: item.id,
+          user_id: user.id,
+          name: item.name,
+          name_en: item.nameEn ?? null,
+          emoji: item.emoji,
+          ingredients: item.ingredients,
+          steps: item.steps,
+          time: item.time,
+          tags: item.tags,
+          required_ingredients: item.requiredIngredients,
+          is_ai: item.isAI,
+        })),
+        { onConflict: 'id,user_id' }
+      );
+      supabase.from('recipes')
+        .delete()
+        .eq('user_id', user.id)
+        .not('id', 'in', `(${next.map(i => i.id).join(',')})`);
     });
   }, []);
 
   const setProducts = useCallback((next: Product[]) => {
     setProductsState(next);
-    supabase.auth.getUser().then(({ data: { user } }) => {
+    // Default products have short text IDs (p1, p2…) — they are JS-only, never persisted.
+    // Only save user-created products, which have proper UUID ids.
+    const defaultIds = new Set(DEFAULT_PRODUCTS.map(p => p.id));
+    const userProducts = next.filter(p => !defaultIds.has(p.id));
+
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      const user = session?.user;
       if (!user) return;
-      supabase.from('products').delete().eq('user_id', user.id).then(() => {
-        if (next.length > 0) {
-          supabase.from('products').insert(
-            next.map(item => ({
-              id: item.id,
-              user_id: user.id,
-              name: item.name,
-              name_en: item.nameEn ?? null,
-              category: item.category,
-              status: item.status,
-              emoji: item.emoji,
-            }))
-          );
-        }
-      });
+
+      if (userProducts.length === 0) {
+        await supabase.from('products').delete().eq('user_id', user.id);
+        return;
+      }
+
+      const { error: upsertError } = await supabase.from('products').upsert(
+        userProducts.map(item => ({
+          id: item.id,
+          user_id: user.id,
+          name: item.name,
+          name_en: item.nameEn ?? null,
+          category: item.category,
+          status: item.status,
+          emoji: item.emoji,
+        }))
+      );
+      if (upsertError) { console.error('products upsert error:', upsertError); return; }
+
+      const { error: deleteError } = await supabase.from('products')
+        .delete()
+        .eq('user_id', user.id)
+        .not('id', 'in', `(${userProducts.map(i => i.id).join(',')})`);
+      if (deleteError) console.error('products cleanup delete error:', deleteError);
     });
   }, []);
 
-  return { loading, profile, setProfile, fridge, setFridge, recipes, setRecipes, products, setProducts };
+  const addProduct = useCallback(async (newProduct: Omit<Product, 'id'>) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    const { data, error } = await supabase.from('products').insert({
+      user_id: user.id,
+      name: newProduct.name,
+      name_en: newProduct.nameEn ?? null,
+      category: newProduct.category,
+      status: newProduct.status,
+      emoji: newProduct.emoji,
+    }).select('id').single();
+    if (error) { console.error('addProduct error:', error); return; }
+    setProductsState(prev => [...prev, { ...newProduct, id: data.id }]);
+  }, []);
+
+  return { loading, profile, setProfile, fridge, setFridge, recipes, setRecipes, products, setProducts, addProduct };
 }

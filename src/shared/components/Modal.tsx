@@ -15,7 +15,7 @@ export function Modal({ open, onClose, title, children }: ModalProps) {
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="modal fade-in">
+      <div className="modal fade-in" onClick={(e) => e.stopPropagation()}>
         <button className="modal-close" onClick={onClose}>✕</button>
         <div className="modal-title">{title}</div>
         {children}

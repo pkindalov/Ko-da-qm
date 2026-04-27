@@ -16,7 +16,7 @@ import type { Tab } from '../shared/types';
 export function AppShell() {
   const [tab, setTab] = useLocalStorage<Tab>('kdq_tab', 'home');
   const [tweaks, setTweaks] = useLocalStorage('kdq_tweaks', DEFAULT_TWEAKS);
-  const { loading, profile, setProfile, fridge, setFridge, recipes, setRecipes, products, setProducts } = useAppData();
+  const { loading, profile, setProfile, fridge, setFridge, recipes, setRecipes, products, setProducts, addProduct } = useAppData();
   const [tweaksOpen, setTweaksOpen] = useState(false);
 
   useEffect(() => {
@@ -44,7 +44,7 @@ export function AppShell() {
     home: <HomeScreen profile={profile} recipes={recipes} fridge={fridge} setTab={setTab} lang={tweaks.lang} />,
     fridge: <FridgeScreen fridge={fridge} setFridge={setFridge} profile={profile} recipes={recipes} lang={tweaks.lang} />,
     recipes: <RecipesScreen recipes={recipes} setRecipes={setRecipes} profile={profile} lang={tweaks.lang} />,
-    products: <ProductsScreen products={products} setProducts={setProducts} lang={tweaks.lang} />,
+    products: <ProductsScreen products={products} setProducts={setProducts} addProduct={addProduct} lang={tweaks.lang} />,
     profile: <ProfileScreen profile={profile} setProfile={setProfile} lang={tweaks.lang} />,
   };
 

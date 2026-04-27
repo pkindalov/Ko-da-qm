@@ -8,6 +8,7 @@ import type { Product, ProductStatus, Language } from '../../../shared/types';
 interface ProductsScreenProps {
   products: Product[];
   setProducts: (products: Product[]) => void;
+  addProduct: (product: Omit<Product, 'id'>) => Promise<void>;
   lang: Language;
 }
 
@@ -18,12 +19,13 @@ const STATUS_FILTERS = [
   { id: 'allergic', label: 'Алергия',       labelEn: 'Allergy' },
 ];
 
-export function ProductsScreen({ products, setProducts, lang }: ProductsScreenProps) {
+export function ProductsScreen({ products, setProducts, addProduct, lang }: ProductsScreenProps) {
   const L = lang === 'en';
   const [search, setSearch] = useState('');
   const [catFilter, setCatFilter] = useState('all');
   const [addOpen, setAddOpen] = useState(false);
   const [newP, setNewP] = useState({ name: '', emoji: '📦', category: 'other' as Product['category'], status: 'liked' as ProductStatus });
+  const [editP, setEditP] = useState<Product | null>(null);
 
   const filtered = products.filter((p) => {
     const n = L && p.nameEn ? p.nameEn : p.name;
@@ -36,9 +38,19 @@ export function ProductsScreen({ products, setProducts, lang }: ProductsScreenPr
     setProducts(products.map((p) => (p.id === id ? { ...p, status: newStatus } : p)));
   };
 
-  const addProduct = () => {
+  const deleteProduct = (id: string) => {
+    setProducts(products.filter((p) => p.id !== id));
+  };
+
+  const saveEdit = () => {
+    if (!editP || !editP.name.trim()) return;
+    setProducts(products.map((p) => (p.id === editP.id ? editP : p)));
+    setEditP(null);
+  };
+
+  const handleAdd = async () => {
     if (!newP.name.trim()) return;
-    setProducts([...products, { id: 'p' + Date.now(), ...newP }]);
+    await addProduct(newP);
     setNewP({ name: '', emoji: '📦', category: 'other', status: 'liked' });
     setAddOpen(false);
   };
@@ -92,6 +104,8 @@ export function ProductsScreen({ products, setProducts, lang }: ProductsScreenPr
               ))}
             </div>
             <Badge type={statusBadge(p.status)}>{statusLabel(p.status)}</Badge>
+            <button className="btn btn-ghost btn-sm" onClick={() => setEditP(p)} title={L ? 'Edit' : 'Редактирай'}>✏</button>
+            <button className="btn btn-ghost btn-sm" onClick={() => deleteProduct(p.id)} title={L ? 'Delete' : 'Изтрий'} style={{ color: 'var(--danger)' }}>✕</button>
           </div>
         ))}
         {filtered.length === 0 && (
@@ -102,6 +116,44 @@ export function ProductsScreen({ products, setProducts, lang }: ProductsScreenPr
           />
         )}
       </div>
+
+      <Modal open={!!editP} onClose={() => setEditP(null)} title={L ? 'Edit Product' : 'Редактирай продукт'}>
+        {editP && (
+          <>
+            <div style={{ display: 'flex', gap: 10, marginBottom: 12 }}>
+              <div style={{ flex: 1 }}>
+                <label className="input-label">{L ? 'Product name' : 'Продукт'}</label>
+                <input className="input-field" value={editP.name} onChange={(e) => setEditP({ ...editP, name: e.target.value })} autoFocus />
+              </div>
+              <div style={{ width: 70 }}>
+                <label className="input-label">Emoji</label>
+                <input className="input-field" value={editP.emoji} onChange={(e) => setEditP({ ...editP, emoji: e.target.value })}
+                  style={{ textAlign: 'center', fontSize: 20 }} />
+              </div>
+            </div>
+            <div style={{ marginBottom: 14 }}>
+              <label className="input-label">{L ? 'Category' : 'Категория'}</label>
+              <select className="input-field" value={editP.category} onChange={(e) => setEditP({ ...editP, category: e.target.value as Product['category'] })}>
+                {CATEGORIES.map((c) => (
+                  <option key={c.id} value={c.id}>{c.emoji} {L ? c.labelEn : c.label}</option>
+                ))}
+              </select>
+            </div>
+            <div style={{ marginBottom: 20 }}>
+              <label className="input-label">{L ? 'My relationship with this food' : 'Моето отношение'}</label>
+              <div className="chip-group">
+                <span className={`chip${editP.status === 'liked' ? ' selected' : ''}`} onClick={() => setEditP({ ...editP, status: 'liked' })}>✓ {L ? 'I like it' : 'Харесвам'}</span>
+                <span className={`chip${editP.status === 'disliked' ? ' sel-warn' : ''}`} onClick={() => setEditP({ ...editP, status: 'disliked' })}>✗ {L ? 'I dislike it' : 'Не харесвам'}</span>
+                <span className={`chip${editP.status === 'allergic' ? ' sel-danger' : ''}`} onClick={() => setEditP({ ...editP, status: 'allergic' })}>⚠ {L ? 'Allergic' : 'Алергия'}</span>
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button className="btn btn-primary" style={{ flex: 1 }} onClick={saveEdit}>{L ? 'Save' : 'Запази'}</button>
+              <button className="btn btn-ghost" onClick={() => setEditP(null)}>{L ? 'Cancel' : 'Отказ'}</button>
+            </div>
+          </>
+        )}
+      </Modal>
 
       <Modal open={addOpen} onClose={() => setAddOpen(false)} title={L ? 'Add Product' : 'Добави продукт'}>
         <div style={{ display: 'flex', gap: 10, marginBottom: 12 }}>
@@ -133,7 +185,7 @@ export function ProductsScreen({ products, setProducts, lang }: ProductsScreenPr
           </div>
         </div>
         <div style={{ display: 'flex', gap: 10 }}>
-          <button className="btn btn-primary" style={{ flex: 1 }} onClick={addProduct}>{L ? 'Save' : 'Запази'}</button>
+          <button className="btn btn-primary" style={{ flex: 1 }} onClick={handleAdd}>{L ? 'Save' : 'Запази'}</button>
           <button className="btn btn-ghost" onClick={() => setAddOpen(false)}>{L ? 'Cancel' : 'Отказ'}</button>
         </div>
       </Modal>
