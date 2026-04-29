@@ -97,23 +97,24 @@ export function useAppData() {
     });
   }, []);
 
-  const setFridge = useCallback((next: FridgeItem[]) => {
-    setFridgeState(next);
-    supabase.auth.getUser().then(async ({ data: { user } }) => {
-      if (!user) return;
-      if (next.length === 0) {
-        await supabase.from('fridge_items').delete().eq('user_id', user.id);
-        return;
-      }
-      await supabase.from('fridge_items').upsert(
-        next.map(item => ({ id: item.id, user_id: user.id, name: item.name, emoji: item.emoji, category: item.category })),
-        { onConflict: 'id,user_id' }
-      );
-      supabase.from('fridge_items')
-        .delete()
-        .eq('user_id', user.id)
-        .not('id', 'in', `(${next.map(i => i.id).join(',')})`);
-    });
+  const addFridgeItem = useCallback(async (newItem: Omit<FridgeItem, 'id'>) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    const { data, error } = await supabase.from('fridge_items').insert({
+      user_id: user.id,
+      name: newItem.name,
+      emoji: newItem.emoji,
+      category: newItem.category,
+    }).select('id').single();
+    if (error) { console.error('addFridgeItem error:', error); return; }
+    setFridgeState(prev => [...prev, { ...newItem, id: data.id }]);
+  }, []);
+
+  const removeFridgeItem = useCallback(async (id: string) => {
+    setFridgeState(prev => prev.filter(f => f.id !== id));
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    await supabase.from('fridge_items').delete().eq('id', id).eq('user_id', user.id);
   }, []);
 
   const setRecipes = useCallback((next: Recipe[]) => {
@@ -199,5 +200,5 @@ export function useAppData() {
     setProductsState(prev => [...prev, { ...newProduct, id: data.id }]);
   }, []);
 
-  return { loading, profile, setProfile, fridge, setFridge, recipes, setRecipes, products, setProducts, addProduct };
+  return { loading, profile, setProfile, fridge, addFridgeItem, removeFridgeItem, recipes, setRecipes, products, setProducts, addProduct };
 }

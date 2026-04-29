@@ -28,14 +28,22 @@ export function RecipesScreen({ recipes, setRecipes, profile, lang }: RecipesScr
   const [dbOpen, setDbOpen] = useState(false);
   const [filterSafe, setFilterSafe] = useState(false);
   const [dbSearch, setDbSearch] = useState('');
-  const [dbResults, setDbResults] = useState<ReturnType<typeof searchDatabase>>([]);
+  const [dbResults, setDbResults] = useState<Awaited<ReturnType<typeof searchDatabase>>>([]);
+  const [dbLoading, setDbLoading] = useState(false);
   const [newR, setNewR] = useState<NewRecipeForm>({ name: '', emoji: '🍽', time: '', ingredients: '', steps: '' });
 
   const blocked = [...profile.allergies, ...profile.dislikes];
   const isSafe = (r: Recipe) =>
     !r.requiredIngredients?.some((i) => blocked.some((b) => i.toLowerCase().includes(b)));
 
-  const runDbSearch = () => setDbResults(searchDatabase(dbSearch, blocked));
+  const runDbSearch = async () => {
+    setDbLoading(true);
+    try {
+      setDbResults(await searchDatabase(dbSearch, blocked));
+    } finally {
+      setDbLoading(false);
+    }
+  };
 
   const importFromDb = (r: Recipe) => {
     if (!recipes.find((x) => x.id === r.id || x.name === r.name)) {
@@ -244,7 +252,9 @@ export function RecipesScreen({ recipes, setRecipes, profile, lang }: RecipesScr
             </div>
           )}
         </div>
-        <button className="btn btn-primary btn-full" onClick={runDbSearch}>🔍 {L ? 'Search' : 'Търси'}</button>
+        <button className="btn btn-primary btn-full" onClick={runDbSearch} disabled={dbLoading}>
+          {dbLoading ? (L ? 'Searching...' : 'Търси...') : `🔍 ${L ? 'Search' : 'Търси'}`}
+        </button>
         {dbSearch.length > 0 && dbResults.length === 0 && (
           <EmptyState icon="🔍" title={L ? 'No results' : 'Няма резултати'} subtitle={L ? 'Try another keyword' : 'Опитай друга дума'} />
         )}

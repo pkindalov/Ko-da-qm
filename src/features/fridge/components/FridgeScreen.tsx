@@ -2,37 +2,55 @@ import { useState } from 'react';
 import { Modal } from '../../../shared/components/Modal';
 import { Badge } from '../../../shared/components/Badge';
 import { EmptyState } from '../../../shared/components/EmptyState';
-import { matchFromFridge } from '../utils/matchFromFridge';
+import { matchFromFridge, type MatchedRecipe } from '../utils/matchFromFridge';
+import { searchByFridge } from '../utils/searchTheMealDB';
 import type { FridgeItem, Profile, Recipe, Language } from '../../../shared/types';
 
 const FRIDGE_EMOJIS = ['🥚', '🧀', '🍞', '🧈', '🥛', '🍚', '🍗', '🥔', '🍎', '🍅', '🥕', '🥦', '🧅', '🫙', '📦'];
 
 interface FridgeScreenProps {
   fridge: FridgeItem[];
-  setFridge: (fridge: FridgeItem[]) => void;
+  addFridgeItem: (item: Omit<FridgeItem, 'id'>) => Promise<void>;
+  removeFridgeItem: (id: string) => Promise<void>;
   profile: Profile;
   recipes: Recipe[];
   lang: Language;
 }
 
-export function FridgeScreen({ fridge, setFridge, profile, recipes, lang }: FridgeScreenProps) {
+export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, profile, recipes, lang }: FridgeScreenProps) {
   const L = lang === 'en';
   const [newItem, setNewItem] = useState('');
   const [newEmoji, setNewEmoji] = useState('📦');
   const [addOpen, setAddOpen] = useState(false);
-  const [suggestions, setSuggestions] = useState<ReturnType<typeof matchFromFridge> | null>(null);
+  const [suggestions, setSuggestions] = useState<MatchedRecipe[] | null>(null);
+  const [loadingSuggestions, setLoadingSuggestions] = useState(false);
 
-  const removeItem = (id: string) => setFridge(fridge.filter((f) => f.id !== id));
+  const removeItem = (id: string) => removeFridgeItem(id);
 
-  const addItem = () => {
+  const addItem = async () => {
     if (!newItem.trim()) return;
-    setFridge([...fridge, { id: 'f' + Date.now(), name: newItem.trim(), emoji: newEmoji, category: 'other' }]);
+    await addFridgeItem({ name: newItem.trim(), emoji: newEmoji, category: 'other' });
     setNewItem('');
     setNewEmoji('📦');
     setAddOpen(false);
   };
 
   const blocked = [...profile.allergies, ...profile.dislikes];
+
+  const handleWhatCanICook = async () => {
+    setLoadingSuggestions(true);
+    setSuggestions(null);
+    try {
+      const online = await searchByFridge(fridge, blocked);
+      if (online.length > 0) {
+        setSuggestions(online);
+      } else {
+        setSuggestions(await matchFromFridge(fridge, blocked));
+      }
+    } finally {
+      setLoadingSuggestions(false);
+    }
+  };
 
   const matchingRecipes = recipes.filter((r) => {
     const safe = !r.requiredIngredients?.some((i) => blocked.some((b) => i.toLowerCase().includes(b)));
@@ -99,10 +117,10 @@ export function FridgeScreen({ fridge, setFridge, profile, recipes, lang }: Frid
       </p>
       <button
         className="btn btn-primary btn-full"
-        onClick={() => setSuggestions(matchFromFridge(fridge, blocked))}
-        disabled={fridge.length === 0}
+        onClick={handleWhatCanICook}
+        disabled={fridge.length === 0 || loadingSuggestions}
       >
-        🔍 {L ? 'What can I cook?' : 'Какво мога да готвя?'}
+        {loadingSuggestions ? (L ? 'Searching...' : 'Търси...') : `🔍 ${L ? 'What can I cook?' : 'Какво мога да готвя?'}`}
       </button>
 
       {suggestions !== null && (
