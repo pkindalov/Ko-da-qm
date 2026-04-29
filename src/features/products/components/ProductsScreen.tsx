@@ -3,6 +3,8 @@ import { Modal } from '../../../shared/components/Modal';
 import { Badge } from '../../../shared/components/Badge';
 import { EmptyState } from '../../../shared/components/EmptyState';
 import { CATEGORIES } from '../../../shared/constants/categories';
+import { filterProducts } from '../utils/productFilters';
+import { statusBadge, statusLabel } from '../utils/productStatus';
 import type { Product, ProductStatus, Language } from '../../../shared/types';
 
 interface ProductsScreenProps {
@@ -27,12 +29,7 @@ export function ProductsScreen({ products, setProducts, addProduct, lang }: Prod
   const [newP, setNewP] = useState({ name: '', emoji: '📦', category: 'other' as Product['category'], status: 'liked' as ProductStatus });
   const [editP, setEditP] = useState<Product | null>(null);
 
-  const filtered = products.filter((p) => {
-    const n = L && p.nameEn ? p.nameEn : p.name;
-    const matchSearch = n.toLowerCase().includes(search.toLowerCase());
-    const matchCat = catFilter === 'all' || p.category === catFilter || catFilter === p.status;
-    return matchSearch && matchCat;
-  });
+  const filtered = filterProducts(products, search, catFilter, lang);
 
   const toggleStatus = (id: string, newStatus: ProductStatus) => {
     setProducts(products.map((p) => (p.id === id ? { ...p, status: newStatus } : p)));
@@ -55,15 +52,6 @@ export function ProductsScreen({ products, setProducts, addProduct, lang }: Prod
     setAddOpen(false);
   };
 
-  const statusLabel = (s: ProductStatus) =>
-    s === 'liked'
-      ? (L ? '✓ Safe' : '✓ Харесвам')
-      : s === 'disliked'
-        ? (L ? '✗ Dislike' : '✗ Не харесвам')
-        : (L ? '⚠ Allergy' : '⚠ Алергия');
-
-  const statusBadge = (s: ProductStatus): 'safe' | 'dislike' | 'allergy' =>
-    s === 'liked' ? 'safe' : s === 'disliked' ? 'dislike' : 'allergy';
 
   return (
     <div className="fade-in">
@@ -103,7 +91,7 @@ export function ProductsScreen({ products, setProducts, addProduct, lang }: Prod
                 </button>
               ))}
             </div>
-            <Badge type={statusBadge(p.status)}>{statusLabel(p.status)}</Badge>
+            <Badge type={statusBadge(p.status)}>{statusLabel(p.status, lang)}</Badge>
             <button className="btn btn-ghost btn-sm" onClick={() => setEditP(p)} title={L ? 'Edit' : 'Редактирай'}>✏</button>
             <button className="btn btn-ghost btn-sm" onClick={() => deleteProduct(p.id)} title={L ? 'Delete' : 'Изтрий'} style={{ color: 'var(--danger)' }}>✕</button>
           </div>

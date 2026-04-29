@@ -1,5 +1,7 @@
 import { Badge } from '../../../shared/components/Badge';
 import { EmptyState } from '../../../shared/components/EmptyState';
+import { isSafe } from '../../../shared/utils/recipeUtils';
+import { getGreeting } from '../../../shared/utils/greeting';
 import type { Profile, Recipe, FridgeItem, Language, Tab } from '../../../shared/types';
 
 interface HomeScreenProps {
@@ -14,17 +16,8 @@ export function HomeScreen({ profile, recipes, fridge, setTab, lang }: HomeScree
   const L = lang === 'en';
 
   const blocked = [...profile.allergies, ...profile.dislikes];
-  const safeRecipes = recipes.filter(
-    (r) => !r.requiredIngredients.some((i) => blocked.some((b) => i.toLowerCase().includes(b))),
-  );
-
-  const hour = new Date().getHours();
-  const greeting =
-    hour < 12
-      ? L ? 'Good morning' : 'Добро утро'
-      : hour < 18
-        ? L ? 'Good afternoon' : 'Добър обяд'
-        : L ? 'Good evening' : 'Добър вечер';
+  const safeRecipes = recipes.filter((r) => isSafe(r, blocked));
+  const greeting = getGreeting(new Date().getHours(), lang);
 
   return (
     <div className="fade-in">

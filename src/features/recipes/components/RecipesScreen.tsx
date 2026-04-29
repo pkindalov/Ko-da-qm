@@ -3,6 +3,8 @@ import { Modal } from '../../../shared/components/Modal';
 import { Badge } from '../../../shared/components/Badge';
 import { EmptyState } from '../../../shared/components/EmptyState';
 import { searchDatabase } from '../../fridge/utils/matchFromFridge';
+import { isSafe } from '../../../shared/utils/recipeUtils';
+import { parseRecipeForm } from '../utils/recipeForm';
 import type { Recipe, Profile, Language } from '../../../shared/types';
 
 interface RecipesScreenProps {
@@ -33,8 +35,6 @@ export function RecipesScreen({ recipes, setRecipes, profile, lang }: RecipesScr
   const [newR, setNewR] = useState<NewRecipeForm>({ name: '', emoji: '🍽', time: '', ingredients: '', steps: '' });
 
   const blocked = [...profile.allergies, ...profile.dislikes];
-  const isSafe = (r: Recipe) =>
-    !r.requiredIngredients?.some((i) => blocked.some((b) => i.toLowerCase().includes(b)));
 
   const runDbSearch = async () => {
     setDbLoading(true);
@@ -56,24 +56,13 @@ export function RecipesScreen({ recipes, setRecipes, profile, lang }: RecipesScr
 
   const filtered = recipes.filter((r) => {
     const n = L && r.nameEn ? r.nameEn : r.name;
-    return n.toLowerCase().includes(search.toLowerCase()) && (!filterSafe || isSafe(r));
+    return n.toLowerCase().includes(search.toLowerCase()) && (!filterSafe || isSafe(r, blocked));
   });
 
   const saveRecipe = () => {
-    if (!newR.name.trim()) return;
-    const ingredientLines = newR.ingredients.split('\n').filter(Boolean);
-    const r: Recipe = {
-      id: 'r' + Date.now(),
-      name: newR.name,
-      emoji: newR.emoji || '🍽',
-      ingredients: ingredientLines,
-      steps: newR.steps.split('\n').filter(Boolean),
-      time: parseInt(newR.time) || 15,
-      tags: [],
-      isAI: false,
-      requiredIngredients: ingredientLines.map((i) => i.split(' ').slice(1).join(' ') || i),
-    };
-    setRecipes([...recipes, r]);
+    const parsed = parseRecipeForm(newR);
+    if (!parsed) return;
+    setRecipes([...recipes, { ...parsed, id: 'r' + Date.now() }]);
     setNewR({ name: '', emoji: '🍽', time: '', ingredients: '', steps: '' });
     setAddOpen(false);
   };
@@ -81,7 +70,7 @@ export function RecipesScreen({ recipes, setRecipes, profile, lang }: RecipesScr
   if (detail) {
     const r = recipes.find((x) => x.id === detail);
     if (!r) { setDetail(null); return null; }
-    const safe = isSafe(r);
+    const safe = isSafe(r, blocked);
 
     return (
       <div className="fade-in">
@@ -186,7 +175,7 @@ export function RecipesScreen({ recipes, setRecipes, profile, lang }: RecipesScr
       ) : (
         <div className="grid-2">
           {filtered.map((r) => {
-            const safe = isSafe(r);
+            const safe = isSafe(r, blocked);
             return (
               <div key={r.id} className="recipe-card" onClick={() => setDetail(r.id)}>
                 {r.isAI && <div style={{ position: 'absolute', top: 12, right: 12 }}><Badge type="primary">✨ AI</Badge></div>}
