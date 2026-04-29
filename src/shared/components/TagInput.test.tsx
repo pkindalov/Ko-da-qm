@@ -66,4 +66,22 @@ describe('TagInput', () => {
     expect(screen.queryByText(/яйца/)).not.toBeInTheDocument();
     expect(screen.getByText(/масло/)).toBeInTheDocument();
   });
+
+  it('does not add a tag for whitespace-only input', async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    render(<TagInput value={[]} onChange={onChange} placeholder="Добави" />);
+    await user.type(screen.getByPlaceholderText('Добави'), '   ');
+    await user.click(screen.getByRole('button', { name: '+' }));
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it('does not add a tag that is a duplicate after normalisation', async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    render(<TagInput value={['яйца']} onChange={onChange} placeholder="Добави" />);
+    await user.type(screen.getByPlaceholderText('Добави'), '  Яйца  ');
+    await user.click(screen.getByRole('button', { name: '+' }));
+    expect(onChange).not.toHaveBeenCalled();
+  });
 });

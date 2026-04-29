@@ -80,4 +80,28 @@ describe('RegisterScreen', () => {
     await user.click(screen.getByRole('button', { name: /регистрирай се/i }));
     await waitFor(() => expect(screen.getByText('Email already in use')).toBeInTheDocument());
   });
+
+  it('clears a previous password-mismatch error on the next submit', async () => {
+    mockSignUp.mockResolvedValue({ error: null });
+    const user = userEvent.setup();
+    renderRegister();
+    await fillForm(user, 'test@test.com', 'password123', 'different');
+    await user.click(screen.getByRole('button', { name: /регистрирай се/i }));
+    expect(screen.getByText('Паролите не съвпадат')).toBeInTheDocument();
+
+    const passwordFields = screen.getAllByPlaceholderText('••••••••');
+    await user.clear(passwordFields[1]);
+    await user.type(passwordFields[1], 'password123');
+    await user.click(screen.getByRole('button', { name: /регистрирай се/i }));
+    await waitFor(() => expect(screen.queryByText('Паролите не съвпадат')).not.toBeInTheDocument());
+  });
+
+  it('disables submit button and shows loading text during sign-up', async () => {
+    mockSignUp.mockImplementation(() => new Promise(() => {}));
+    const user = userEvent.setup();
+    renderRegister();
+    await fillForm(user, 'test@test.com', 'secret123', 'secret123');
+    await user.click(screen.getByRole('button', { name: /регистрирай се/i }));
+    await waitFor(() => expect(screen.getByRole('button', { name: /регистрация/i })).toBeDisabled());
+  });
 });

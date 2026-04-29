@@ -43,4 +43,20 @@ describe('filterProducts', () => {
     const products = [makeProduct({ name: 'Домати' })];
     expect(filterProducts(products, 'пица', 'all', 'bg')).toHaveLength(0);
   });
+
+  it('applies search and category filter simultaneously', () => {
+    const products = [
+      makeProduct({ id: '1', name: 'Домати', category: 'veg' }),
+      makeProduct({ id: '2', name: 'Домати', category: 'dairy' }),
+      makeProduct({ id: '3', name: 'Мляко', category: 'dairy' }),
+    ];
+    expect(filterProducts(products, 'домати', 'veg', 'bg')).toHaveLength(1);
+    expect(filterProducts(products, 'домати', 'veg', 'bg')[0].id).toBe('1');
+  });
+
+  it('falls back to p.name for search when lang is en but nameEn is absent', () => {
+    const products = [makeProduct({ name: 'Домати' })]; // no nameEn
+    expect(filterProducts(products, 'домати', 'all', 'en')).toHaveLength(1);
+    expect(filterProducts(products, 'tomato', 'all', 'en')).toHaveLength(0);
+  });
 });

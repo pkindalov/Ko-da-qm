@@ -81,6 +81,18 @@ describe('matchFromFridge', () => {
     expect(result).toHaveLength(1);
   });
 
+  it('returns empty when fridge is empty', async () => {
+    mockSelect.mockResolvedValue({ data: [makeRow()], error: null });
+    const result = await matchFromFridge([], []);
+    expect(result).toHaveLength(0);
+  });
+
+  it('excludes recipe with no required ingredients (NaN matchScore)', async () => {
+    mockSelect.mockResolvedValue({ data: [makeRow({ required_ingredients: [] })], error: null });
+    const result = await matchFromFridge([makeFridgeItem('яйца')], []);
+    expect(result).toHaveLength(0);
+  });
+
   it('sorts by matchScore descending', async () => {
     const rows = [
       makeRow({ id: 'A', required_ingredients: ['яйца', 'масло'] }),
@@ -143,6 +155,14 @@ describe('searchDatabase', () => {
   it('matching is case-insensitive', async () => {
     mockSelect.mockResolvedValue({ data: [makeRow()], error: null });
     const result = await searchDatabase('ЗАКУСКА', []);
+    expect(result).toHaveLength(1);
+  });
+
+  it('matches by full ingredient line including quantity prefix', async () => {
+    // makeRow ingredients: ['2 яйца', '1 с.л. масло']
+    // '1 с.л.' is not in name, tags, or required_ingredients — exercises the r.ingredients path
+    mockSelect.mockResolvedValue({ data: [makeRow()], error: null });
+    const result = await searchDatabase('1 с.л.', []);
     expect(result).toHaveLength(1);
   });
 });

@@ -50,4 +50,15 @@ describe('parseRecipeForm', () => {
     expect(result?.ingredients).toEqual(['яйца', 'масло']);
     expect(result?.steps).toEqual(['стъпка']);
   });
+
+  it('defaults time to 15 when value is 0 (JS falsy coercion: 0 || 15)', () => {
+    const result = parseRecipeForm({ name: 'Тест', emoji: '🍳', time: '0', ingredients: '', steps: '' });
+    expect(result?.time).toBe(15);
+  });
+
+  it('stores name with surrounding whitespace unchanged', () => {
+    // trim() is only used for the null-guard, not applied to the output
+    const result = parseRecipeForm({ name: '  Тест  ', emoji: '🍳', time: '10', ingredients: '', steps: '' });
+    expect(result?.name).toBe('  Тест  ');
+  });
 });

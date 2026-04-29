@@ -39,4 +39,13 @@ describe('isSafe', () => {
   it('returns true when required ingredients list is empty', () => {
     expect(isSafe(makeRecipe([]), ['яйца'])).toBe(true);
   });
+
+  it('blocked word is not lowercased — uppercase block does not match lowercase ingredient', () => {
+    // 'яйца'.includes('ЯЙЦА') is false; only the ingredient side is lowercased
+    expect(isSafe(makeRecipe(['яйца']), ['ЯЙЦА'])).toBe(true);
+  });
+
+  it('returns false when any one of multiple blocked words matches', () => {
+    expect(isSafe(makeRecipe(['яйца', 'масло']), ['захар', 'яйца'])).toBe(false);
+  });
 });
