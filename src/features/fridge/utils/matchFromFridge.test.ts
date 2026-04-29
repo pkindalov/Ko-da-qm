@@ -87,6 +87,14 @@ describe('matchFromFridge', () => {
     expect(result).toHaveLength(0);
   });
 
+  it('matches when a fridge item is a substring of the required ingredient', async () => {
+    // fridge has 'масло'; required is 'краве масло' — ingredient.includes(fridge) path
+    mockSelect.mockResolvedValue({ data: [makeRow({ required_ingredients: ['краве масло'] })], error: null });
+    const result = await matchFromFridge([makeFridgeItem('масло')], []);
+    expect(result).toHaveLength(1);
+    expect(result[0].matchScore).toBe(1);
+  });
+
   it('excludes recipe with no required ingredients (NaN matchScore)', async () => {
     mockSelect.mockResolvedValue({ data: [makeRow({ required_ingredients: [] })], error: null });
     const result = await matchFromFridge([makeFridgeItem('яйца')], []);
@@ -156,6 +164,18 @@ describe('searchDatabase', () => {
     mockSelect.mockResolvedValue({ data: [makeRow()], error: null });
     const result = await searchDatabase('ЗАКУСКА', []);
     expect(result).toHaveLength(1);
+  });
+
+  it('returns only unblocked recipes when the query matches multiple', async () => {
+    const rows = [
+      makeRow({ id: '1', required_ingredients: ['яйца', 'масло'] }),
+      makeRow({ id: '2', required_ingredients: ['яйца', 'нещо'] }),
+    ];
+    mockSelect.mockResolvedValue({ data: rows, error: null });
+    // 'нещо' blocks row 2; row 1 still matches
+    const result = await searchDatabase('яйца', ['нещо']);
+    expect(result).toHaveLength(1);
+    expect(result[0].id).toBe('1');
   });
 
   it('matches by full ingredient line including quantity prefix', async () => {

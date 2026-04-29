@@ -96,6 +96,16 @@ describe('RegisterScreen', () => {
     await waitFor(() => expect(screen.queryByText('Паролите не съвпадат')).not.toBeInTheDocument());
   });
 
+  it('does not navigate on a failed registration', async () => {
+    mockSignUp.mockResolvedValue({ error: { message: 'Email already in use' } });
+    const user = userEvent.setup();
+    renderRegister();
+    await fillForm(user, 'taken@test.com', 'secret123', 'secret123');
+    await user.click(screen.getByRole('button', { name: /регистрирай се/i }));
+    await waitFor(() => expect(screen.getByText('Email already in use')).toBeInTheDocument());
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
   it('disables submit button and shows loading text during sign-up', async () => {
     mockSignUp.mockImplementation(() => new Promise(() => {}));
     const user = userEvent.setup();

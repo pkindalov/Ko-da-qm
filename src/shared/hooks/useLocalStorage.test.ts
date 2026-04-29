@@ -41,4 +41,11 @@ describe('useLocalStorage', () => {
     act(() => result.current[1](['a', 'b']));
     expect(result.current[0]).toEqual(['a', 'b']);
   });
+
+  it('returns null when null was previously stored, not the defaultValue', () => {
+    // JSON.stringify(null) = "null" — "null" is truthy so the stored ? branch fires
+    localStorage.setItem('x', 'null');
+    const { result } = renderHook(() => useLocalStorage<string | null>('x', 'default'));
+    expect(result.current[0]).toBeNull();
+  });
 });

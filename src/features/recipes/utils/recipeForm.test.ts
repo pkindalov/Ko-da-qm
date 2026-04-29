@@ -61,4 +61,10 @@ describe('parseRecipeForm', () => {
     const result = parseRecipeForm({ name: '  Тест  ', emoji: '🍳', time: '10', ingredients: '', steps: '' });
     expect(result?.name).toBe('  Тест  ');
   });
+
+  it('strips only the first token — multi-word quantities leave a prefix in requiredIngredient', () => {
+    // "2 с.л. масло".split(' ').slice(1).join(' ') → "с.л. масло", not "масло"
+    const result = parseRecipeForm({ name: 'Тест', emoji: '🍳', time: '10', ingredients: '2 с.л. масло', steps: '' });
+    expect(result?.requiredIngredients).toEqual(['с.л. масло']);
+  });
 });

@@ -84,4 +84,14 @@ describe('TagInput', () => {
     await user.click(screen.getByRole('button', { name: '+' }));
     expect(onChange).not.toHaveBeenCalled();
   });
+
+  it('clears the input field even when the tag is rejected as a duplicate', async () => {
+    // setInput('') runs unconditionally — rejection still clears the field
+    const user = userEvent.setup();
+    render(<Wrapper initial={['яйца']} />);
+    const input = screen.getByPlaceholderText('Добави');
+    await user.type(input, 'яйца');
+    await user.click(screen.getByRole('button', { name: '+' }));
+    expect(input).toHaveValue('');
+  });
 });

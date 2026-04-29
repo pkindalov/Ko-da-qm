@@ -48,4 +48,9 @@ describe('isSafe', () => {
   it('returns false when any one of multiple blocked words matches', () => {
     expect(isSafe(makeRecipe(['яйца', 'масло']), ['захар', 'яйца'])).toBe(false);
   });
+
+  it('an empty string in the blocked list makes every recipe unsafe', () => {
+    // every string includes '' — a stray empty entry would silently block everything
+    expect(isSafe(makeRecipe(['яйца']), [''])).toBe(false);
+  });
 });
