@@ -122,4 +122,24 @@ describe('useAppData – addProduct', () => {
       expect.objectContaining({ name_en: null }),
     );
   });
+
+  it('accumulates products in state across sequential calls', async () => {
+    const { result } = renderHook(() => useAppData());
+    await act(async () => {}); // flush loadAll (null user → no-op)
+
+    mockGetUser.mockResolvedValue({ data: { user: { id: 'user-123' } } });
+    mockSingle
+      .mockResolvedValueOnce({ data: { id: 'uuid-1' }, error: null })
+      .mockResolvedValueOnce({ data: { id: 'uuid-2' }, error: null });
+
+    await act(async () => {
+      await result.current.addProduct({ name: 'Ябълка', emoji: '🍎', category: 'fruit', status: 'liked' });
+    });
+    await act(async () => {
+      await result.current.addProduct({ name: 'Круша', emoji: '🍐', category: 'fruit', status: 'liked' });
+    });
+
+    expect(result.current.products).toContainEqual(expect.objectContaining({ id: 'uuid-1', name: 'Ябълка' }));
+    expect(result.current.products).toContainEqual(expect.objectContaining({ id: 'uuid-2', name: 'Круша' }));
+  });
 });

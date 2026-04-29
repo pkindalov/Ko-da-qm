@@ -148,4 +148,81 @@ describe('useAppData – setProducts (edit)', () => {
     // userProducts is empty → delete-all path, upsert never called
     expect(mockUpsert).not.toHaveBeenCalled();
   });
+
+  it('updates state even when the upsert fails, but skips the delete cleanup', async () => {
+    const { result } = renderHook(() => useAppData());
+    await act(async () => {});
+
+    const product = makeUserProduct();
+
+    await act(async () => {
+      result.current.setProducts([...DEFAULT_PRODUCTS, product]);
+    });
+
+    mockUpsert.mockResolvedValueOnce({ error: { message: 'upsert failed' } });
+
+    const edited = { ...product, name: 'Круша' };
+
+    await act(async () => {
+      result.current.setProducts(
+        result.current.products.map(p => (p.id === product.id ? edited : p)),
+      );
+    });
+
+    // State reflects the edit despite the Supabase error
+    expect(result.current.products).toContainEqual(edited);
+    // Cleanup delete must not run when upsert already failed
+    expect(mockNot).toHaveBeenCalledTimes(1); // only from the initial setProducts
+  });
+
+  it('maps cleared nameEn (undefined) to name_en: null in the upsert payload', async () => {
+    const { result } = renderHook(() => useAppData());
+    await act(async () => {});
+
+    const product = makeUserProduct({ nameEn: 'Apple' });
+
+    await act(async () => {
+      result.current.setProducts([...DEFAULT_PRODUCTS, product]);
+    });
+
+    const cleared = { ...product, nameEn: undefined };
+
+    await act(async () => {
+      result.current.setProducts(
+        result.current.products.map(p => (p.id === product.id ? cleared : p)),
+      );
+    });
+
+    expect(mockUpsert).toHaveBeenLastCalledWith(
+      [expect.objectContaining({ name_en: null })],
+    );
+  });
+
+  it('includes all user products in the upsert payload when multiple are edited', async () => {
+    const { result } = renderHook(() => useAppData());
+    await act(async () => {});
+
+    const p1 = makeUserProduct({ id: 'uuid-1', name: 'Ябълка' });
+    const p2 = makeUserProduct({ id: 'uuid-2', name: 'Круша' });
+
+    await act(async () => {
+      result.current.setProducts([...DEFAULT_PRODUCTS, p1, p2]);
+    });
+
+    const edited1 = { ...p1, status: 'disliked' as const };
+    const edited2 = { ...p2, status: 'allergic' as const };
+
+    await act(async () => {
+      result.current.setProducts([...DEFAULT_PRODUCTS, edited1, edited2]);
+    });
+
+    const lastCall = mockUpsert.mock.calls[mockUpsert.mock.calls.length - 1][0];
+    expect(lastCall).toHaveLength(2);
+    expect(lastCall).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ id: 'uuid-1', status: 'disliked' }),
+        expect.objectContaining({ id: 'uuid-2', status: 'allergic' }),
+      ]),
+    );
+  });
 });

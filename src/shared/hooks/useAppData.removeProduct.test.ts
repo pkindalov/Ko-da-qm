@@ -132,4 +132,28 @@ describe('useAppData – setProducts (remove)', () => {
     // Default-only → userProducts is empty → delete-all path, upsert never called
     expect(mockUpsert).not.toHaveBeenCalled();
   });
+
+  it('updates state even when the upsert fails, but skips the delete cleanup', async () => {
+    const { result } = renderHook(() => useAppData());
+    await act(async () => {});
+
+    const keep = makeUserProduct({ id: 'uuid-keep', name: 'Морков', emoji: '🥕' });
+    const remove = makeUserProduct({ id: 'uuid-remove', name: 'Лук', emoji: '🧅' });
+
+    await act(async () => {
+      result.current.setProducts([...DEFAULT_PRODUCTS, keep, remove]);
+    });
+
+    mockUpsert.mockResolvedValueOnce({ error: { message: 'upsert failed' } });
+
+    await act(async () => {
+      result.current.setProducts([...DEFAULT_PRODUCTS, keep]);
+    });
+
+    // State reflects the removal despite the Supabase error
+    expect(result.current.products).not.toContainEqual(remove);
+    expect(result.current.products).toContainEqual(keep);
+    // Cleanup delete must not run when upsert already failed
+    expect(mockNot).toHaveBeenCalledTimes(1); // only from the first setProducts call
+  });
 });
