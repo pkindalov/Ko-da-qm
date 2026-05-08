@@ -45,6 +45,11 @@ export function ProductsScreen({ products, setProducts, addProduct, lang }: Prod
     setEditP(null);
   };
 
+  const handleAddClose = () => {
+    setNewP({ name: '', emoji: '📦', category: 'other', status: 'liked' });
+    setAddOpen(false);
+  };
+
   const handleAdd = async () => {
     if (!newP.name.trim()) return;
     await addProduct(newP);
@@ -143,7 +148,7 @@ export function ProductsScreen({ products, setProducts, addProduct, lang }: Prod
         )}
       </Modal>
 
-      <Modal open={addOpen} onClose={() => setAddOpen(false)} title={L ? 'Add Product' : 'Добави продукт'}>
+      <Modal open={addOpen} onClose={handleAddClose} title={L ? 'Add Product' : 'Добави продукт'}>
         <div style={{ display: 'flex', gap: 10, marginBottom: 12 }}>
           <div style={{ flex: 1 }}>
             <label className="input-label">{L ? 'Product name' : 'Продукт'}</label>
@@ -174,7 +179,7 @@ export function ProductsScreen({ products, setProducts, addProduct, lang }: Prod
         </div>
         <div style={{ display: 'flex', gap: 10 }}>
           <button className="btn btn-primary" style={{ flex: 1 }} onClick={handleAdd}>{L ? 'Save' : 'Запази'}</button>
-          <button className="btn btn-ghost" onClick={() => setAddOpen(false)}>{L ? 'Cancel' : 'Отказ'}</button>
+          <button className="btn btn-ghost" onClick={handleAddClose}>{L ? 'Cancel' : 'Отказ'}</button>
         </div>
       </Modal>
     </div>
