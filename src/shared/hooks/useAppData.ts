@@ -150,8 +150,6 @@ export function useAppData() {
 
   const setProducts = useCallback((next: Product[]) => {
     setProductsState(next);
-    // Default products have short text IDs (p1, p2…) — they are JS-only, never persisted.
-    // Only save user-created products, which have proper UUID ids.
     const defaultIds = new Set(DEFAULT_PRODUCTS.map(p => p.id));
     const userProducts = next.filter(p => !defaultIds.has(p.id));
 
