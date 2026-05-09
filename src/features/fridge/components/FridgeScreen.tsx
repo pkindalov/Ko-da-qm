@@ -4,6 +4,7 @@ import { Badge } from '../../../shared/components/Badge';
 import { EmptyState } from '../../../shared/components/EmptyState';
 import { matchFromFridge, type MatchedRecipe } from '../utils/matchFromFridge';
 import { searchByFridge } from '../utils/searchTheMealDB';
+import { searchWithGemini } from '../utils/searchWithGemini';
 import type { FridgeItem, Profile, Recipe, Language } from '../../../shared/types';
 
 const FRIDGE_EMOJIS = ['🥚', '🧀', '🍞', '🧈', '🥛', '🍚', '🍗', '🥔', '🍎', '🍅', '🥕', '🥦', '🧅', '🫙', '📦'];
@@ -24,6 +25,7 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, profile,
   const [addOpen, setAddOpen] = useState(false);
   const [suggestions, setSuggestions] = useState<MatchedRecipe[] | null>(null);
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
+  const [geminiMode, setGeminiMode] = useState(false);
 
   const removeItem = (id: string) => removeFridgeItem(id);
 
@@ -41,11 +43,15 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, profile,
     setLoadingSuggestions(true);
     setSuggestions(null);
     try {
-      const online = await searchByFridge(fridge, blocked);
-      if (online.length > 0) {
-        setSuggestions(online);
+      if (geminiMode) {
+        setSuggestions(await searchWithGemini(fridge, blocked, lang));
       } else {
-        setSuggestions(await matchFromFridge(fridge, blocked));
+        const online = await searchByFridge(fridge, blocked);
+        if (online.length > 0) {
+          setSuggestions(online);
+        } else {
+          setSuggestions(await matchFromFridge(fridge, blocked));
+        }
       }
     } finally {
       setLoadingSuggestions(false);
@@ -111,16 +117,33 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, profile,
       )}
 
       <div className="divider" />
-      <div className="section-title">{L ? 'RECIPE SUGGESTIONS' : 'ПРЕДЛОЖЕНИЯ ОТ БАЗАТА'}</div>
+      <div className="row-between" style={{ marginBottom: 12 }}>
+        <div className="section-title" style={{ marginBottom: 0 }}>
+          {geminiMode ? (L ? '✨ AI SUGGESTIONS' : '✨ ИИ ПРЕДЛОЖЕНИЯ') : (L ? 'RECIPE SUGGESTIONS' : 'ПРЕДЛОЖЕНИЯ ОТ БАЗАТА')}
+        </div>
+        <div className="toggle-wrap">
+          <span className={`toggle-label${geminiMode ? ' active' : ''}`}>Gemini AI</span>
+          <label className="toggle">
+            <input type="checkbox" checked={geminiMode} onChange={(e) => setGeminiMode(e.target.checked)} />
+            <span className="toggle-slider" />
+          </label>
+        </div>
+      </div>
       <p style={{ fontSize: 14, color: 'var(--text2)', marginBottom: 14, fontWeight: 600 }}>
-        {L ? 'Find recipes that match what you have at home.' : 'Намери рецепти спрямо наличните продукти и твоите ограничения.'}
+        {geminiMode
+          ? (L ? 'Ask Gemini AI to suggest recipes from your fridge.' : 'Попитай Gemini ИИ за рецепти от хладилника.')
+          : (L ? 'Find recipes that match what you have at home.' : 'Намери рецепти спрямо наличните продукти и твоите ограничения.')}
       </p>
       <button
         className="btn btn-primary btn-full"
         onClick={handleWhatCanICook}
         disabled={fridge.length === 0 || loadingSuggestions}
       >
-        {loadingSuggestions ? (L ? 'Searching...' : 'Търси...') : `🔍 ${L ? 'What can I cook?' : 'Какво мога да готвя?'}`}
+        {loadingSuggestions
+          ? (L ? 'Searching...' : 'Търси...')
+          : geminiMode
+            ? `✨ ${L ? 'Ask Gemini' : 'Попитай Gemini'}`
+            : `🔍 ${L ? 'What can I cook?' : 'Какво мога да готвя?'}`}
       </button>
 
       {suggestions !== null && (
@@ -134,11 +157,12 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, profile,
           ) : (
             <div className="stack">
               {suggestions.map((r) => (
-                <div key={r.id} className="card-sm" style={{ borderLeft: '3px solid var(--primary)' }}>
+                <div key={r.id} className="card-sm" style={{ borderLeft: `3px solid ${r.isAI ? 'var(--secondary)' : 'var(--primary)'}` }}>
                   <div className="row-between" style={{ marginBottom: 6 }}>
                     <div className="row" style={{ gap: 8 }}>
                       <span style={{ fontSize: 22 }}>{r.emoji}</span>
                       <span style={{ fontWeight: 800, fontSize: 15 }}>{r.name}</span>
+                      {r.isAI && <span className="badge badge-neutral" style={{ fontSize: 11 }}>✨ AI</span>}
                     </div>
                     <span className="badge badge-safe">
                       {r.matchedCount}/{r.requiredIngredients.length} {L ? 'match' : 'съвп.'}
