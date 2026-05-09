@@ -173,7 +173,7 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, profile,
         disabled={fridge.length === 0 || loadingSuggestions}
       >
         {loadingSuggestions
-          ? (L ? 'Searching...' : 'Търси...')
+          ? (<><span className="spinner" />{L ? 'Searching...' : 'Търси...'}</>)
           : geminiMode
             ? `✨ ${L ? 'Ask Gemini' : 'Попитай Gemini'}`
             : `🔍 ${L ? 'What can I cook?' : 'Какво мога да готвя?'}`}
