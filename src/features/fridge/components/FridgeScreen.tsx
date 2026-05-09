@@ -5,7 +5,7 @@ import { EmptyState } from '../../../shared/components/EmptyState';
 import { matchFromFridge, type MatchedRecipe } from '../utils/matchFromFridge';
 import { searchByFridge } from '../utils/searchTheMealDB';
 import { searchWithGemini } from '../utils/searchWithGemini';
-import type { FridgeItem, Profile, Recipe, Language } from '../../../shared/types';
+import type { FridgeItem, Profile, Recipe, Language, Product } from '../../../shared/types';
 
 const FRIDGE_EMOJIS = ['🥚', '🧀', '🍞', '🧈', '🥛', '🍚', '🍗', '🥔', '🍎', '🍅', '🥕', '🥦', '🧅', '🫙', '📦'];
 
@@ -15,27 +15,60 @@ interface FridgeScreenProps {
   removeFridgeItem: (id: string) => Promise<void>;
   profile: Profile;
   recipes: Recipe[];
+  products: Product[];
   lang: Language;
 }
 
-export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, profile, recipes, lang }: FridgeScreenProps) {
+export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, profile, recipes, products, lang }: FridgeScreenProps) {
   const L = lang === 'en';
   const [newItem, setNewItem] = useState('');
   const [newEmoji, setNewEmoji] = useState('📦');
   const [addOpen, setAddOpen] = useState(false);
+  const [addMode, setAddMode] = useState<'select' | 'manual'>('select');
+  const [productSearch, setProductSearch] = useState('');
   const [suggestions, setSuggestions] = useState<MatchedRecipe[] | null>(null);
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
   const [geminiMode, setGeminiMode] = useState(false);
 
   const removeItem = (id: string) => removeFridgeItem(id);
 
-  const addItem = async () => {
-    if (!newItem.trim()) return;
-    await addFridgeItem({ name: newItem.trim(), emoji: newEmoji, category: 'other' });
+  const openAddModal = () => {
+    setAddMode(products.length > 0 ? 'select' : 'manual');
+    setProductSearch('');
     setNewItem('');
     setNewEmoji('📦');
-    setAddOpen(false);
+    setAddOpen(true);
   };
+
+  const closeAddModal = () => {
+    setAddOpen(false);
+    setProductSearch('');
+    setNewItem('');
+    setNewEmoji('📦');
+  };
+
+  const addItemManually = async () => {
+    if (!newItem.trim()) return;
+    await addFridgeItem({ name: newItem.trim(), emoji: newEmoji, category: 'other' });
+    closeAddModal();
+  };
+
+  const addFromProduct = async (product: Product) => {
+    await addFridgeItem({ name: product.name, emoji: product.emoji, category: product.category });
+    closeAddModal();
+  };
+
+  const availableProducts = products.filter(
+    (p) => !fridge.some((f) => f.name.toLowerCase() === p.name.toLowerCase()),
+  );
+
+  const filteredProducts = productSearch
+    ? availableProducts.filter(
+        (p) =>
+          p.name.toLowerCase().includes(productSearch.toLowerCase()) ||
+          (p.nameEn && p.nameEn.toLowerCase().includes(productSearch.toLowerCase())),
+      )
+    : availableProducts;
 
   const blocked = [...profile.allergies, ...profile.dislikes];
 
@@ -74,7 +107,7 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, profile,
             <div className="page-title">🧊 {L ? 'My Fridge' : 'Моят хладилник'}</div>
             <div className="page-sub">{fridge.length} {L ? 'items' : 'продукта'}</div>
           </div>
-          <button className="btn btn-primary btn-sm" onClick={() => setAddOpen(true)}>
+          <button className="btn btn-primary btn-sm" onClick={openAddModal}>
             + {L ? 'Add' : 'Добави'}
           </button>
         </div>
@@ -211,37 +244,90 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, profile,
         </div>
       )}
 
-      <Modal open={addOpen} onClose={() => setAddOpen(false)} title={L ? 'Add to Fridge' : 'Добави в хладилника'}>
-        <div style={{ marginBottom: 14 }}>
-          <label className="input-label">{L ? 'Product name' : 'Продукт'}</label>
-          <input
-            className="input-field"
-            value={newItem}
-            onChange={(e) => setNewItem(e.target.value)}
-            placeholder={L ? 'e.g. Tomatoes' : 'напр. Домати'}
-            onKeyDown={(e) => e.key === 'Enter' && addItem()}
-            autoFocus
-          />
+      <Modal open={addOpen} onClose={closeAddModal} title={L ? 'Add to Fridge' : 'Добави в хладилника'}>
+        <div className="chip-group" style={{ marginBottom: 16 }}>
+          <span
+            className={`chip${addMode === 'select' ? ' selected' : ''}`}
+            onClick={() => setAddMode('select')}
+          >
+            {L ? 'My products' : 'Моите продукти'}
+          </span>
+          <span
+            className={`chip${addMode === 'manual' ? ' selected' : ''}`}
+            onClick={() => setAddMode('manual')}
+          >
+            {L ? 'Manual' : 'Ръчно'}
+          </span>
         </div>
-        <div style={{ marginBottom: 20 }}>
-          <label className="input-label">{L ? 'Pick an emoji' : 'Избери емоджи'}</label>
-          <div className="chip-group">
-            {FRIDGE_EMOJIS.map((e) => (
-              <span
-                key={e}
-                className={`chip${newEmoji === e ? ' selected' : ''}`}
-                style={{ fontSize: 20, padding: '4px 8px' }}
-                onClick={() => setNewEmoji(e)}
-              >
-                {e}
-              </span>
-            ))}
-          </div>
-        </div>
-        <div style={{ display: 'flex', gap: 10 }}>
-          <button className="btn btn-primary" style={{ flex: 1 }} onClick={addItem}>{L ? 'Add' : 'Добави'}</button>
-          <button className="btn btn-ghost" onClick={() => setAddOpen(false)}>{L ? 'Cancel' : 'Отказ'}</button>
-        </div>
+
+        {addMode === 'select' ? (
+          <>
+            <div style={{ marginBottom: 10 }}>
+              <input
+                className="input-field"
+                value={productSearch}
+                onChange={(e) => setProductSearch(e.target.value)}
+                placeholder={L ? 'Search products…' : 'Търси продукти…'}
+                autoFocus
+              />
+            </div>
+            {filteredProducts.length === 0 ? (
+              <div style={{ textAlign: 'center', color: 'var(--text2)', fontSize: 14, padding: '16px 0', marginBottom: 14 }}>
+                {availableProducts.length === 0
+                  ? (L ? 'All your products are already in the fridge' : 'Всички продукти вече са в хладилника')
+                  : (L ? 'No matching products' : 'Няма съвпадащи продукти')}
+              </div>
+            ) : (
+              <div style={{ maxHeight: 240, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 4, marginBottom: 14 }}>
+                {filteredProducts.map((p) => (
+                  <button
+                    key={p.id}
+                    className="btn btn-ghost"
+                    style={{ display: 'flex', alignItems: 'center', gap: 10, justifyContent: 'flex-start', textAlign: 'left' }}
+                    onClick={() => addFromProduct(p)}
+                  >
+                    <span style={{ fontSize: 20 }}>{p.emoji}</span>
+                    <span style={{ fontWeight: 600 }}>{p.name}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+            <button className="btn btn-ghost" onClick={closeAddModal}>{L ? 'Cancel' : 'Отказ'}</button>
+          </>
+        ) : (
+          <>
+            <div style={{ marginBottom: 14 }}>
+              <label className="input-label">{L ? 'Product name' : 'Продукт'}</label>
+              <input
+                className="input-field"
+                value={newItem}
+                onChange={(e) => setNewItem(e.target.value)}
+                placeholder={L ? 'e.g. Tomatoes' : 'напр. Домати'}
+                onKeyDown={(e) => e.key === 'Enter' && addItemManually()}
+                autoFocus
+              />
+            </div>
+            <div style={{ marginBottom: 20 }}>
+              <label className="input-label">{L ? 'Pick an emoji' : 'Избери емоджи'}</label>
+              <div className="chip-group">
+                {FRIDGE_EMOJIS.map((e) => (
+                  <span
+                    key={e}
+                    className={`chip${newEmoji === e ? ' selected' : ''}`}
+                    style={{ fontSize: 20, padding: '4px 8px' }}
+                    onClick={() => setNewEmoji(e)}
+                  >
+                    {e}
+                  </span>
+                ))}
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button className="btn btn-primary" style={{ flex: 1 }} onClick={addItemManually}>{L ? 'Add' : 'Добави'}</button>
+              <button className="btn btn-ghost" onClick={closeAddModal}>{L ? 'Cancel' : 'Отказ'}</button>
+            </div>
+          </>
+        )}
       </Modal>
     </div>
   );
