@@ -30,6 +30,7 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, profile,
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
   const [geminiMode, setGeminiMode] = useState(false);
   const [fridgeExpanded, setFridgeExpanded] = useState(true);
+  const [matchingExpanded, setMatchingExpanded] = useState(true);
 
   const removeItem = (id: string) => removeFridgeItem(id);
 
@@ -141,19 +142,24 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, profile,
 
       {matchingRecipes.length > 0 && (
         <>
-          <div className="section-title">{L ? 'RECIPES FROM WHAT YOU HAVE' : 'РЕЦЕПТИ ОТ НАЛИЧНИ ПРОДУКТИ'}</div>
-          <div className="stack" style={{ marginBottom: 20 }}>
-            {matchingRecipes.map((r) => (
-              <div key={r.id} className="card-sm row">
-                <span style={{ fontSize: 24 }}>{r.emoji}</span>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontWeight: 700 }}>{L && r.nameEn ? r.nameEn : r.name}</div>
-                  <div style={{ fontSize: 12, color: 'var(--text2)', marginTop: 2 }}>⏱ {r.time} {L ? 'min' : 'мин'}</div>
+          <button className="section-title-toggle" onClick={() => setMatchingExpanded((v) => !v)}>
+            {L ? 'RECIPES FROM WHAT YOU HAVE' : 'РЕЦЕПТИ ОТ НАЛИЧНИ ПРОДУКТИ'}
+            <span className="section-title-chevron">{matchingExpanded ? '▲' : '▼'}</span>
+          </button>
+          {matchingExpanded && (
+            <div className="stack" style={{ marginBottom: 20 }}>
+              {matchingRecipes.map((r) => (
+                <div key={r.id} className="card-sm row">
+                  <span style={{ fontSize: 24 }}>{r.emoji}</span>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontWeight: 700 }}>{L && r.nameEn ? r.nameEn : r.name}</div>
+                    <div style={{ fontSize: 12, color: 'var(--text2)', marginTop: 2 }}>⏱ {r.time} {L ? 'min' : 'мин'}</div>
+                  </div>
+                  <Badge type="safe">✓ {L ? 'Safe' : 'Безопасно'}</Badge>
                 </div>
-                <Badge type="safe">✓ {L ? 'Safe' : 'Безопасно'}</Badge>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </>
       )}
 
