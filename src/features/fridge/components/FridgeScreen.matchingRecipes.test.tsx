@@ -29,7 +29,8 @@ const sampleRecipes: Recipe[] = [
     requiredIngredients: ['Домати'],
     ingredients: ['Домати'],
     steps: ['Нарежи'],
-    category: 'salad',
+    tags: [],
+    isAI: false,
   },
   {
     id: 'r2',
@@ -40,44 +41,45 @@ const sampleRecipes: Recipe[] = [
     requiredIngredients: ['Домати'],
     ingredients: ['Домати'],
     steps: ['Свари'],
-    category: 'soup',
+    tags: [],
+    isAI: false,
   },
 ];
 
 describe('FridgeScreen – collapsible matching recipes', () => {
-  it('shows matching recipe cards by default', () => {
+  it('hides matching recipe cards by default', () => {
     render(<FridgeScreen {...makeProps({ fridge: sampleFridge, recipes: sampleRecipes })} />);
-    expect(screen.getByText('Салата')).toBeInTheDocument();
-    expect(screen.getByText('Супа')).toBeInTheDocument();
-  });
-
-  it('shows the section toggle button with ▲ when expanded', () => {
-    render(<FridgeScreen {...makeProps({ fridge: sampleFridge, recipes: sampleRecipes })} />);
-    expect(screen.getByRole('button', { name: /РЕЦЕПТИ ОТ НАЛИЧНИ ПРОДУКТИ.*▲/i })).toBeInTheDocument();
-  });
-
-  it('hides recipe cards after clicking the toggle', async () => {
-    const user = userEvent.setup();
-    render(<FridgeScreen {...makeProps({ fridge: sampleFridge, recipes: sampleRecipes })} />);
-    await user.click(screen.getByRole('button', { name: /РЕЦЕПТИ ОТ НАЛИЧНИ ПРОДУКТИ/i }));
     expect(screen.queryByText('Салата')).not.toBeInTheDocument();
     expect(screen.queryByText('Супа')).not.toBeInTheDocument();
   });
 
-  it('shows ▼ on the toggle button when collapsed', async () => {
-    const user = userEvent.setup();
+  it('shows the section toggle button with ▼ when collapsed by default', () => {
     render(<FridgeScreen {...makeProps({ fridge: sampleFridge, recipes: sampleRecipes })} />);
-    await user.click(screen.getByRole('button', { name: /РЕЦЕПТИ ОТ НАЛИЧНИ ПРОДУКТИ/i }));
     expect(screen.getByRole('button', { name: /РЕЦЕПТИ ОТ НАЛИЧНИ ПРОДУКТИ.*▼/i })).toBeInTheDocument();
   });
 
-  it('shows recipe cards again after toggling twice', async () => {
+  it('shows recipe cards after clicking the toggle', async () => {
+    const user = userEvent.setup();
+    render(<FridgeScreen {...makeProps({ fridge: sampleFridge, recipes: sampleRecipes })} />);
+    await user.click(screen.getByRole('button', { name: /РЕЦЕПТИ ОТ НАЛИЧНИ ПРОДУКТИ/i }));
+    expect(screen.getByText('Салата')).toBeInTheDocument();
+    expect(screen.getByText('Супа')).toBeInTheDocument();
+  });
+
+  it('shows ▲ on the toggle button when expanded', async () => {
+    const user = userEvent.setup();
+    render(<FridgeScreen {...makeProps({ fridge: sampleFridge, recipes: sampleRecipes })} />);
+    await user.click(screen.getByRole('button', { name: /РЕЦЕПТИ ОТ НАЛИЧНИ ПРОДУКТИ/i }));
+    expect(screen.getByRole('button', { name: /РЕЦЕПТИ ОТ НАЛИЧНИ ПРОДУКТИ.*▲/i })).toBeInTheDocument();
+  });
+
+  it('hides recipe cards again after toggling twice', async () => {
     const user = userEvent.setup();
     render(<FridgeScreen {...makeProps({ fridge: sampleFridge, recipes: sampleRecipes })} />);
     const toggle = screen.getByRole('button', { name: /РЕЦЕПТИ ОТ НАЛИЧНИ ПРОДУКТИ/i });
     await user.click(toggle);
     await user.click(toggle);
-    expect(screen.getByText('Салата')).toBeInTheDocument();
+    expect(screen.queryByText('Салата')).not.toBeInTheDocument();
   });
 
   it('does not show the toggle when there are no matching recipes', () => {

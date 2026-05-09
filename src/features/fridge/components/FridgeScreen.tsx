@@ -30,7 +30,7 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, profile,
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
   const [geminiMode, setGeminiMode] = useState(false);
   const [fridgeExpanded, setFridgeExpanded] = useState(true);
-  const [matchingExpanded, setMatchingExpanded] = useState(true);
+  const [matchingExpanded, setMatchingExpanded] = useState(false);
 
   const removeItem = (id: string) => removeFridgeItem(id);
 
