@@ -29,6 +29,7 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, profile,
   const [suggestions, setSuggestions] = useState<MatchedRecipe[] | null>(null);
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
   const [geminiMode, setGeminiMode] = useState(false);
+  const [fridgeExpanded, setFridgeExpanded] = useState(true);
 
   const removeItem = (id: string) => removeFridgeItem(id);
 
@@ -105,7 +106,14 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, profile,
         <div className="row-between">
           <div>
             <div className="page-title">🧊 {L ? 'My Fridge' : 'Моят хладилник'}</div>
-            <div className="page-sub">{fridge.length} {L ? 'items' : 'продукта'}</div>
+            {fridge.length > 0 && (
+              <button className="fridge-toggle" onClick={() => setFridgeExpanded((v) => !v)}>
+                {fridge.length} {L ? 'items' : 'продукта'} {fridgeExpanded ? '▲' : '▼'}
+              </button>
+            )}
+            {fridge.length === 0 && (
+              <div className="page-sub">0 {L ? 'items' : 'продукта'}</div>
+            )}
           </div>
           <button className="btn btn-primary btn-sm" onClick={openAddModal}>
             + {L ? 'Add' : 'Добави'}
@@ -119,7 +127,7 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, profile,
           title={L ? 'Empty fridge' : 'Празен хладилник'}
           subtitle={L ? 'Add what you have at home' : 'Добави какво имаш у дома'}
         />
-      ) : (
+      ) : fridgeExpanded && (
         <div className="stack" style={{ marginBottom: 20 }}>
           {fridge.map((item) => (
             <div key={item.id} className="fridge-item">
