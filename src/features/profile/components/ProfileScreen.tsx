@@ -2,16 +2,24 @@ import { useState } from 'react';
 import { TagInput } from '../../../shared/components/TagInput';
 import type { Profile, Language } from '../../../shared/types';
 
-const DIETARY_PREFS = ['Вегетарианец', 'Веган', 'Без глутен', 'Без лактоза', 'Халал', 'Кошер'];
+const DIETARY_PREFS = [
+  { id: 'Вегетарианец', labelEn: 'Vegetarian' },
+  { id: 'Веган',        labelEn: 'Vegan'       },
+  { id: 'Без глутен',   labelEn: 'Gluten-free' },
+  { id: 'Без лактоза',  labelEn: 'Lactose-free'},
+  { id: 'Халал',        labelEn: 'Halal'       },
+  { id: 'Кошер',        labelEn: 'Kosher'      },
+];
 
 interface ProfileScreenProps {
   profile: Profile;
   setProfile: (profile: Profile) => void;
   lang: Language;
   onLogout?: () => void;
+  onTweaksToggle?: () => void;
 }
 
-export function ProfileScreen({ profile, setProfile, lang, onLogout }: ProfileScreenProps) {
+export function ProfileScreen({ profile, setProfile, lang, onLogout, onTweaksToggle }: ProfileScreenProps) {
   const L = lang === 'en';
   const [name, setName] = useState(profile.name);
 
@@ -69,22 +77,22 @@ export function ProfileScreen({ profile, setProfile, lang, onLogout }: ProfileSc
       <div className="card" style={{ marginBottom: 16 }}>
         <div className="section-title">{L ? 'DIETARY PREFERENCES' : 'ДИЕТИЧНИ ПРЕДПОЧИТАНИЯ'}</div>
         <div className="chip-group">
-          {DIETARY_PREFS.map((pref) => {
-            const sel = profile.dietaryPrefs.includes(pref);
+          {DIETARY_PREFS.map(({ id, labelEn }) => {
+            const sel = profile.dietaryPrefs.includes(id);
             return (
               <span
-                key={pref}
+                key={id}
                 className={`chip${sel ? ' selected' : ''}`}
                 onClick={() =>
                   setProfile({
                     ...profile,
                     dietaryPrefs: sel
-                      ? profile.dietaryPrefs.filter((p) => p !== pref)
-                      : [...profile.dietaryPrefs, pref],
+                      ? profile.dietaryPrefs.filter((p) => p !== id)
+                      : [...profile.dietaryPrefs, id],
                   })
                 }
               >
-                {pref}
+                {L ? labelEn : id}
               </span>
             );
           })}
@@ -99,6 +107,12 @@ export function ProfileScreen({ profile, setProfile, lang, onLogout }: ProfileSc
           {L ? 'Dietary prefs' : 'Диетични предпочит.'}: <strong>{profile.dietaryPrefs.length}</strong>
         </div>
       </div>
+
+      {onTweaksToggle && (
+        <button className="btn btn-ghost settings-btn-mobile" onClick={onTweaksToggle}>
+          ⚙ {L ? 'Settings' : 'Настройки'}
+        </button>
+      )}
 
       {onLogout && (
         <button className="btn btn-danger logout-btn-mobile" onClick={onLogout}>

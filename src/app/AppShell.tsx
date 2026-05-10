@@ -45,7 +45,7 @@ export function AppShell() {
     fridge: <FridgeScreen fridge={fridge} addFridgeItem={addFridgeItem} removeFridgeItem={removeFridgeItem} profile={profile} recipes={recipes} products={products} lang={tweaks.lang} />,
     recipes: <RecipesScreen recipes={recipes} setRecipes={setRecipes} profile={profile} lang={tweaks.lang} />,
     products: <ProductsScreen products={products} setProducts={setProducts} addProduct={addProduct} lang={tweaks.lang} />,
-    profile: <ProfileScreen profile={profile} setProfile={setProfile} lang={tweaks.lang} onLogout={handleLogout} />,
+    profile: <ProfileScreen profile={profile} setProfile={setProfile} lang={tweaks.lang} onLogout={handleLogout} onTweaksToggle={() => setTweaksOpen((o) => !o)} />,
   };
 
   async function handleLogout() {
@@ -57,7 +57,7 @@ export function AppShell() {
       <Sidebar tab={tab} setTab={setTab} lang={tweaks.lang} onTweaksToggle={() => setTweaksOpen((o) => !o)} onLogout={handleLogout} />
       <main className="main-content">{screens[tab]}</main>
       <BottomNav tab={tab} setTab={setTab} lang={tweaks.lang} />
-      <TweaksPanel open={tweaksOpen} tweaks={tweaks} setTweaks={setTweaks} />
+      <TweaksPanel open={tweaksOpen} tweaks={tweaks} setTweaks={setTweaks} onClose={() => setTweaksOpen(false)} />
     </div>
   );
 }
