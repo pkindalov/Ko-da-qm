@@ -83,22 +83,26 @@ export function ProductsScreen({ products, setProducts, addProduct, lang }: Prod
           <div key={p.id} className="product-row">
             <span style={{ fontSize: 22 }}>{p.emoji}</span>
             <span className="product-name">{L && p.nameEn ? p.nameEn : p.name}</span>
-            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-              {(['liked', 'disliked', 'allergic'] as ProductStatus[]).map((s) => (
-                <button
-                  key={s}
-                  className={`btn btn-sm ${p.status === s ? (s === 'liked' ? 'btn-secondary' : s === 'disliked' ? '' : 'btn-danger') : 'btn-ghost'}`}
-                  style={p.status === s && s === 'disliked' ? { background: 'var(--warn-light)', color: 'var(--warn)' } : {}}
-                  onClick={() => toggleStatus(p.id, s)}
-                  title={s === 'liked' ? (L ? 'I like this' : 'Харесвам') : s === 'disliked' ? (L ? 'I dislike this' : 'Не харесвам') : (L ? 'I am allergic' : 'Алергия')}
-                >
-                  {s === 'liked' ? '✓' : s === 'disliked' ? '✗' : '⚠'}
-                </button>
-              ))}
+            <div className="product-row-actions">
+              <button className="btn btn-ghost btn-sm" onClick={() => setEditP(p)} title={L ? 'Edit' : 'Редактирай'}>✏</button>
+              <button className="btn btn-ghost btn-sm" onClick={() => deleteProduct(p.id)} title={L ? 'Delete' : 'Изтрий'} style={{ color: 'var(--danger)' }}>✕</button>
             </div>
-            <Badge type={statusBadge(p.status)}>{statusLabel(p.status, lang)}</Badge>
-            <button className="btn btn-ghost btn-sm" onClick={() => setEditP(p)} title={L ? 'Edit' : 'Редактирай'}>✏</button>
-            <button className="btn btn-ghost btn-sm" onClick={() => deleteProduct(p.id)} title={L ? 'Delete' : 'Изтрий'} style={{ color: 'var(--danger)' }}>✕</button>
+            <div className="product-row-tags">
+              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                {(['liked', 'disliked', 'allergic'] as ProductStatus[]).map((s) => (
+                  <button
+                    key={s}
+                    className={`btn btn-sm ${p.status === s ? (s === 'liked' ? 'btn-secondary' : s === 'disliked' ? '' : 'btn-danger') : 'btn-ghost'}`}
+                    style={p.status === s && s === 'disliked' ? { background: 'var(--warn-light)', color: 'var(--warn)' } : {}}
+                    onClick={() => toggleStatus(p.id, s)}
+                    title={s === 'liked' ? (L ? 'I like this' : 'Харесвам') : s === 'disliked' ? (L ? 'I dislike this' : 'Не харесвам') : (L ? 'I am allergic' : 'Алергия')}
+                  >
+                    {s === 'liked' ? '✓' : s === 'disliked' ? '✗' : '⚠'}
+                  </button>
+                ))}
+              </div>
+              <Badge type={statusBadge(p.status)}>{statusLabel(p.status, lang)}</Badge>
+            </div>
           </div>
         ))}
         {filtered.length === 0 && (
