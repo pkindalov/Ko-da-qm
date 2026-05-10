@@ -6,6 +6,7 @@ import { RegisterScreen } from './RegisterScreen';
 
 const mockNavigate = vi.hoisted(() => vi.fn());
 const mockSignUp = vi.hoisted(() => vi.fn());
+const mockSignInWithOAuth = vi.hoisted(() => vi.fn());
 const mockGetSession = vi.hoisted(() => vi.fn());
 
 vi.mock('react-router-dom', async () => {
@@ -14,7 +15,7 @@ vi.mock('react-router-dom', async () => {
 });
 
 vi.mock('../../../lib/supabase', () => ({
-  supabase: { auth: { signUp: mockSignUp, getSession: mockGetSession } },
+  supabase: { auth: { signUp: mockSignUp, signInWithOAuth: mockSignInWithOAuth, getSession: mockGetSession } },
 }));
 
 const renderRegister = async () => {
@@ -40,6 +41,7 @@ describe('RegisterScreen', () => {
   beforeEach(() => {
     mockNavigate.mockReset();
     mockSignUp.mockReset();
+    mockSignInWithOAuth.mockReset();
     mockGetSession.mockResolvedValue({ data: { session: null } });
   });
 
@@ -52,7 +54,7 @@ describe('RegisterScreen', () => {
     const user = userEvent.setup();
     await renderRegister();
     await fillForm(user, 'Тест', 'test@test.com', 'password123', 'different');
-    await user.click(screen.getByRole('button', { name: /регистрирай се/i }));
+    await user.click(screen.getByRole('button', { name: 'Регистрирай се' }));
     expect(screen.getByText('Паролите не съвпадат')).toBeInTheDocument();
   });
 
@@ -60,7 +62,7 @@ describe('RegisterScreen', () => {
     const user = userEvent.setup();
     await renderRegister();
     await fillForm(user, 'Тест', 'test@test.com', 'password123', 'different');
-    await user.click(screen.getByRole('button', { name: /регистрирай се/i }));
+    await user.click(screen.getByRole('button', { name: 'Регистрирай се' }));
     expect(mockSignUp).not.toHaveBeenCalled();
   });
 
@@ -69,7 +71,7 @@ describe('RegisterScreen', () => {
     const user = userEvent.setup();
     await renderRegister();
     await fillForm(user, 'Иван', 'test@test.com', 'secret123', 'secret123');
-    await user.click(screen.getByRole('button', { name: /регистрирай се/i }));
+    await user.click(screen.getByRole('button', { name: 'Регистрирай се' }));
     expect(mockSignUp).toHaveBeenCalledWith({
       email: 'test@test.com',
       password: 'secret123',
@@ -82,7 +84,7 @@ describe('RegisterScreen', () => {
     const user = userEvent.setup();
     await renderRegister();
     await fillForm(user, 'Иван', 'test@test.com', 'secret123', 'secret123');
-    await user.click(screen.getByRole('button', { name: /регистрирай се/i }));
+    await user.click(screen.getByRole('button', { name: 'Регистрирай се' }));
     await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith('/'));
   });
 
@@ -91,7 +93,7 @@ describe('RegisterScreen', () => {
     const user = userEvent.setup();
     await renderRegister();
     await fillForm(user, 'Иван', 'test@test.com', 'secret123', 'secret123');
-    await user.click(screen.getByRole('button', { name: /регистрирай се/i }));
+    await user.click(screen.getByRole('button', { name: 'Регистрирай се' }));
     await waitFor(() => expect(screen.getByText(/провери имейла си/i)).toBeInTheDocument());
     expect(mockNavigate).not.toHaveBeenCalled();
   });
@@ -101,7 +103,7 @@ describe('RegisterScreen', () => {
     const user = userEvent.setup();
     await renderRegister();
     await fillForm(user, 'Иван', 'test@test.com', 'secret123', 'secret123');
-    await user.click(screen.getByRole('button', { name: /регистрирай се/i }));
+    await user.click(screen.getByRole('button', { name: 'Регистрирай се' }));
     await waitFor(() => expect(screen.getByText('test@test.com')).toBeInTheDocument());
   });
 
@@ -110,7 +112,7 @@ describe('RegisterScreen', () => {
     const user = userEvent.setup();
     await renderRegister();
     await fillForm(user, 'Иван', 'taken@test.com', 'secret123', 'secret123');
-    await user.click(screen.getByRole('button', { name: /регистрирай се/i }));
+    await user.click(screen.getByRole('button', { name: 'Регистрирай се' }));
     await waitFor(() => expect(screen.getByText('Email already in use')).toBeInTheDocument());
   });
 
@@ -119,13 +121,13 @@ describe('RegisterScreen', () => {
     const user = userEvent.setup();
     await renderRegister();
     await fillForm(user, 'Иван', 'test@test.com', 'password123', 'different');
-    await user.click(screen.getByRole('button', { name: /регистрирай се/i }));
+    await user.click(screen.getByRole('button', { name: 'Регистрирай се' }));
     expect(screen.getByText('Паролите не съвпадат')).toBeInTheDocument();
 
     const passwordFields = screen.getAllByPlaceholderText('••••••••');
     await user.clear(passwordFields[1]);
     await user.type(passwordFields[1], 'password123');
-    await user.click(screen.getByRole('button', { name: /регистрирай се/i }));
+    await user.click(screen.getByRole('button', { name: 'Регистрирай се' }));
     await waitFor(() => expect(screen.queryByText('Паролите не съвпадат')).not.toBeInTheDocument());
   });
 
@@ -134,7 +136,7 @@ describe('RegisterScreen', () => {
     const user = userEvent.setup();
     await renderRegister();
     await fillForm(user, 'Иван', 'taken@test.com', 'secret123', 'secret123');
-    await user.click(screen.getByRole('button', { name: /регистрирай се/i }));
+    await user.click(screen.getByRole('button', { name: 'Регистрирай се' }));
     await waitFor(() => expect(screen.getByText('Email already in use')).toBeInTheDocument());
     expect(mockNavigate).not.toHaveBeenCalled();
   });
@@ -144,7 +146,7 @@ describe('RegisterScreen', () => {
     const user = userEvent.setup();
     await renderRegister();
     await fillForm(user, 'Иван', 'test@test.com', 'secret123', 'secret123');
-    await user.click(screen.getByRole('button', { name: /регистрирай се/i }));
+    await user.click(screen.getByRole('button', { name: 'Регистрирай се' }));
     await waitFor(() => expect(screen.getByRole('button', { name: /регистрация/i })).toBeDisabled());
   });
 
@@ -152,5 +154,29 @@ describe('RegisterScreen', () => {
     mockGetSession.mockResolvedValue({ data: { session: { access_token: 'tok' } } });
     render(<MemoryRouter><RegisterScreen /></MemoryRouter>);
     await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith('/', { replace: true }));
+  });
+
+  it('renders the Facebook register button', async () => {
+    await renderRegister();
+    expect(screen.getByRole('button', { name: /регистрирай се с facebook/i })).toBeInTheDocument();
+  });
+
+  it('calls signInWithOAuth with facebook provider on Facebook button click', async () => {
+    mockSignInWithOAuth.mockResolvedValue({ error: null });
+    const user = userEvent.setup();
+    await renderRegister();
+    await user.click(screen.getByRole('button', { name: /регистрирай се с facebook/i }));
+    expect(mockSignInWithOAuth).toHaveBeenCalledWith({
+      provider: 'facebook',
+      options: { redirectTo: window.location.origin },
+    });
+  });
+
+  it('shows error message when Facebook OAuth fails', async () => {
+    mockSignInWithOAuth.mockResolvedValue({ error: { message: 'Facebook provider not enabled' } });
+    const user = userEvent.setup();
+    await renderRegister();
+    await user.click(screen.getByRole('button', { name: /регистрирай се с facebook/i }));
+    await waitFor(() => expect(screen.getByText('Facebook provider not enabled')).toBeInTheDocument());
   });
 });

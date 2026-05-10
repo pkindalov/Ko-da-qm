@@ -6,6 +6,7 @@ import { LoginScreen } from './LoginScreen';
 
 const mockNavigate = vi.hoisted(() => vi.fn());
 const mockSignIn = vi.hoisted(() => vi.fn());
+const mockSignInWithOAuth = vi.hoisted(() => vi.fn());
 const mockGetSession = vi.hoisted(() => vi.fn());
 
 vi.mock('react-router-dom', async () => {
@@ -14,7 +15,7 @@ vi.mock('react-router-dom', async () => {
 });
 
 vi.mock('../../../lib/supabase', () => ({
-  supabase: { auth: { signInWithPassword: mockSignIn, getSession: mockGetSession } },
+  supabase: { auth: { signInWithPassword: mockSignIn, signInWithOAuth: mockSignInWithOAuth, getSession: mockGetSession } },
 }));
 
 const renderLogin = async () => {
@@ -35,6 +36,7 @@ describe('LoginScreen', () => {
   beforeEach(() => {
     mockNavigate.mockReset();
     mockSignIn.mockReset();
+    mockSignInWithOAuth.mockReset();
     mockGetSession.mockResolvedValue({ data: { session: null } });
   });
 
@@ -110,5 +112,29 @@ describe('LoginScreen', () => {
     mockGetSession.mockResolvedValue({ data: { session: { access_token: 'tok' } } });
     render(<MemoryRouter><LoginScreen /></MemoryRouter>);
     await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith('/', { replace: true }));
+  });
+
+  it('renders the Facebook login button', async () => {
+    await renderLogin();
+    expect(screen.getByRole('button', { name: /влез с facebook/i })).toBeInTheDocument();
+  });
+
+  it('calls signInWithOAuth with facebook provider on Facebook button click', async () => {
+    mockSignInWithOAuth.mockResolvedValue({ error: null });
+    const user = userEvent.setup();
+    await renderLogin();
+    await user.click(screen.getByRole('button', { name: /влез с facebook/i }));
+    expect(mockSignInWithOAuth).toHaveBeenCalledWith({
+      provider: 'facebook',
+      options: { redirectTo: window.location.origin },
+    });
+  });
+
+  it('shows error message when Facebook OAuth fails', async () => {
+    mockSignInWithOAuth.mockResolvedValue({ error: { message: 'Facebook provider not enabled' } });
+    const user = userEvent.setup();
+    await renderLogin();
+    await user.click(screen.getByRole('button', { name: /влез с facebook/i }));
+    await waitFor(() => expect(screen.getByText('Facebook provider not enabled')).toBeInTheDocument());
   });
 });
