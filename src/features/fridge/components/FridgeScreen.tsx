@@ -72,24 +72,30 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, profile,
       )
     : availableProducts;
 
-  const blocked = [
+  const allergicEntries = [
     ...profile.allergies,
-    ...profile.dislikes,
     ...products.filter(p => p.status === 'allergic').flatMap(p => p.nameEn ? [p.name, p.nameEn] : [p.name]),
+  ];
+  const dislikedEntries = [
+    ...profile.dislikes,
     ...products.filter(p => p.status === 'disliked').flatMap(p => p.nameEn ? [p.name, p.nameEn] : [p.name]),
   ];
-  const safeFridge = fridge.filter(
-    (item) => !blocked.some(
-      (b) => item.name.toLowerCase().includes(b.toLowerCase()) || b.toLowerCase().includes(item.name.toLowerCase()),
-    ),
-  );
+  const blocked = [...allergicEntries, ...dislikedEntries];
+
+  const nameMatches = (name: string, entries: string[]) =>
+    entries.some((b) => name.toLowerCase().includes(b.toLowerCase()) || b.toLowerCase().includes(name.toLowerCase()));
+
+  const safeFridge = fridge.filter((item) => !nameMatches(item.name, blocked));
+
+  const blockedFridgeItems = fridge
+    .filter((item) => nameMatches(item.name, blocked))
+    .map((item) => ({
+      ...item,
+      reason: nameMatches(item.name, allergicEntries) ? 'allergic' as const : 'disliked' as const,
+    }));
 
   const containsBlocked = (allIngredients: string[]) =>
-    allIngredients.some((ing) =>
-      blocked.some(
-        (b) => ing.toLowerCase().includes(b.toLowerCase()) || b.toLowerCase().includes(ing.toLowerCase()),
-      ),
-    );
+    allIngredients.some((ing) => nameMatches(ing, blocked));
 
   const filterSafe = (results: MatchedRecipe[]) =>
     results.filter((r) => !containsBlocked([...r.requiredIngredients, ...r.ingredients]));
@@ -215,6 +221,27 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, profile,
 
       {suggestions !== null && (
         <div style={{ marginTop: 16 }}>
+          {blockedFridgeItems.length > 0 && (
+            <div style={{ marginBottom: 12, padding: '8px 12px', borderRadius: 8, background: 'var(--bg)', border: '1px solid var(--border)', fontSize: 13, fontWeight: 600 }}>
+              <span style={{ color: 'var(--text2)', marginRight: 6 }}>
+                🚫 {L ? 'Excluded from search:' : 'Изключено от търсенето:'}
+              </span>
+              {blockedFridgeItems.map((item) => (
+                <span
+                  key={item.id}
+                  className="badge"
+                  style={{
+                    marginRight: 4,
+                    background: item.reason === 'allergic' ? 'var(--danger-light, #fdecea)' : 'var(--warn-light, #fff8e1)',
+                    color: item.reason === 'allergic' ? 'var(--danger)' : 'var(--warn)',
+                    border: `1px solid ${item.reason === 'allergic' ? 'var(--danger)' : 'var(--warn)'}`,
+                  }}
+                >
+                  {item.emoji} {item.name} · {item.reason === 'allergic' ? (L ? 'allergic' : 'алергия') : (L ? 'disliked' : 'нелюбимо')}
+                </span>
+              ))}
+            </div>
+          )}
           {suggestions.length === 0 ? (
             <EmptyState
               icon="😔"
