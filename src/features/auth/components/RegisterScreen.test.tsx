@@ -179,4 +179,28 @@ describe('RegisterScreen', () => {
     await user.click(screen.getByRole('button', { name: /регистрирай се с facebook/i }));
     await waitFor(() => expect(screen.getByText('Facebook provider not enabled')).toBeInTheDocument());
   });
+
+  it('renders the Google register button', async () => {
+    await renderRegister();
+    expect(screen.getByRole('button', { name: /регистрирай се с google/i })).toBeInTheDocument();
+  });
+
+  it('calls signInWithOAuth with google provider on Google button click', async () => {
+    mockSignInWithOAuth.mockResolvedValue({ error: null });
+    const user = userEvent.setup();
+    await renderRegister();
+    await user.click(screen.getByRole('button', { name: /регистрирай се с google/i }));
+    expect(mockSignInWithOAuth).toHaveBeenCalledWith({
+      provider: 'google',
+      options: { redirectTo: window.location.origin },
+    });
+  });
+
+  it('shows error message when Google OAuth fails', async () => {
+    mockSignInWithOAuth.mockResolvedValue({ error: { message: 'Google provider not enabled' } });
+    const user = userEvent.setup();
+    await renderRegister();
+    await user.click(screen.getByRole('button', { name: /регистрирай се с google/i }));
+    await waitFor(() => expect(screen.getByText('Google provider not enabled')).toBeInTheDocument());
+  });
 });

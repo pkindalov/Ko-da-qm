@@ -137,4 +137,28 @@ describe('LoginScreen', () => {
     await user.click(screen.getByRole('button', { name: /влез с facebook/i }));
     await waitFor(() => expect(screen.getByText('Facebook provider not enabled')).toBeInTheDocument());
   });
+
+  it('renders the Google login button', async () => {
+    await renderLogin();
+    expect(screen.getByRole('button', { name: /влез с google/i })).toBeInTheDocument();
+  });
+
+  it('calls signInWithOAuth with google provider on Google button click', async () => {
+    mockSignInWithOAuth.mockResolvedValue({ error: null });
+    const user = userEvent.setup();
+    await renderLogin();
+    await user.click(screen.getByRole('button', { name: /влез с google/i }));
+    expect(mockSignInWithOAuth).toHaveBeenCalledWith({
+      provider: 'google',
+      options: { redirectTo: window.location.origin },
+    });
+  });
+
+  it('shows error message when Google OAuth fails', async () => {
+    mockSignInWithOAuth.mockResolvedValue({ error: { message: 'Google provider not enabled' } });
+    const user = userEvent.setup();
+    await renderLogin();
+    await user.click(screen.getByRole('button', { name: /влез с google/i }));
+    await waitFor(() => expect(screen.getByText('Google provider not enabled')).toBeInTheDocument());
+  });
 });
