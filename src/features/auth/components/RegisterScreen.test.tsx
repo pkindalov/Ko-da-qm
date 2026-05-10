@@ -79,13 +79,13 @@ describe('RegisterScreen', () => {
     });
   });
 
-  it('navigates to / when signUp returns a session (email confirmation disabled)', async () => {
+  it('navigates to /app when signUp returns a session (email confirmation disabled)', async () => {
     mockSignUp.mockResolvedValue({ data: { session: { access_token: 'tok' }, user: {} }, error: null });
     const user = userEvent.setup();
     await renderRegister();
     await fillForm(user, 'Иван', 'test@test.com', 'secret123', 'secret123');
     await user.click(screen.getByRole('button', { name: 'Регистрирай се' }));
-    await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith('/'));
+    await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith('/app'));
   });
 
   it('shows confirmation screen when signUp returns no session (email confirmation required)', async () => {
@@ -150,10 +150,10 @@ describe('RegisterScreen', () => {
     await waitFor(() => expect(screen.getByRole('button', { name: /регистрация/i })).toBeDisabled());
   });
 
-  it('redirects to / immediately when an active session already exists', async () => {
+  it('redirects to /app immediately when an active session already exists', async () => {
     mockGetSession.mockResolvedValue({ data: { session: { access_token: 'tok' } } });
     render(<MemoryRouter><RegisterScreen /></MemoryRouter>);
-    await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith('/', { replace: true }));
+    await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith('/app', { replace: true }));
   });
 
   it('renders the Facebook register button', async () => {

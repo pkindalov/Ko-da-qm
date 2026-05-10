@@ -1,0 +1,92 @@
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { render, screen, waitFor, within } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
+import { LandingPage } from './LandingPage';
+
+const mockNavigate = vi.hoisted(() => vi.fn());
+const mockGetSession = vi.hoisted(() => vi.fn());
+
+vi.mock('react-router-dom', async () => {
+  const actual = await vi.importActual<typeof import('react-router-dom')>('react-router-dom');
+  return { ...actual, useNavigate: () => mockNavigate };
+});
+
+vi.mock('../../../lib/supabase', () => ({
+  supabase: { auth: { getSession: mockGetSession } },
+}));
+
+const renderLanding = () => render(<MemoryRouter><LandingPage /></MemoryRouter>);
+
+describe('LandingPage', () => {
+  beforeEach(() => {
+    mockNavigate.mockReset();
+    mockGetSession.mockResolvedValue({ data: { session: null } });
+  });
+
+  it('renders the app name in the hero', async () => {
+    renderLanding();
+    await waitFor(() => expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument());
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Ко-да-ям');
+  });
+
+  it('renders the app name in the nav logo', async () => {
+    renderLanding();
+    const nav = await screen.findByRole('navigation');
+    expect(within(nav).getByText('Ко-да-ям')).toBeInTheDocument();
+  });
+
+  it('renders login and register links in the nav', async () => {
+    renderLanding();
+    await waitFor(() => expect(screen.getByRole('link', { name: /вход/i })).toBeInTheDocument());
+    expect(screen.getByRole('link', { name: /регистрация/i })).toBeInTheDocument();
+  });
+
+  it('login link points to /login', async () => {
+    renderLanding();
+    await waitFor(() => expect(screen.getByRole('link', { name: /вход/i })).toHaveAttribute('href', '/login'));
+  });
+
+  it('register link points to /register', async () => {
+    renderLanding();
+    await waitFor(() => expect(screen.getByRole('link', { name: /регистрация/i })).toHaveAttribute('href', '/register'));
+  });
+
+  it('renders all three feature cards', async () => {
+    renderLanding();
+    await waitFor(() => expect(screen.getByText(/умен хладилник/i)).toBeInTheDocument());
+    expect(screen.getByText(/безопасни рецепти/i)).toBeInTheDocument();
+    expect(screen.getByText(/алергии под контрол/i)).toBeInTheDocument();
+  });
+
+  it('renders the three how-it-works steps', async () => {
+    renderLanding();
+    await waitFor(() => expect(screen.getByText(/добави в хладилника/i)).toBeInTheDocument());
+    expect(screen.getByText(/задай ограниченията/i)).toBeInTheDocument();
+    expect(screen.getByText(/готви без стрес/i)).toBeInTheDocument();
+  });
+
+  it('renders the final CTA section', async () => {
+    renderLanding();
+    await waitFor(() => expect(screen.getByRole('heading', { level: 2, name: /готов да ядеш/i })).toBeInTheDocument());
+    expect(screen.getByRole('link', { name: /регистрирай се сега/i })).toBeInTheDocument();
+  });
+
+  it('CTA register link points to /register', async () => {
+    renderLanding();
+    await waitFor(() =>
+      expect(screen.getByRole('link', { name: /регистрирай се сега/i })).toHaveAttribute('href', '/register'),
+    );
+  });
+
+  it('redirects to /app when an active session exists', async () => {
+    mockGetSession.mockResolvedValue({ data: { session: { access_token: 'tok' } } });
+    renderLanding();
+    await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith('/app', { replace: true }));
+  });
+
+  it('does not navigate when there is no session', async () => {
+    renderLanding();
+    await waitFor(() => expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument());
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+});

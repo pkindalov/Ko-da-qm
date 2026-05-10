@@ -55,13 +55,13 @@ describe('LoginScreen', () => {
     expect(mockSignIn).toHaveBeenCalledWith({ email: 'test@test.com', password: 'secret123' });
   });
 
-  it('navigates to / on successful login', async () => {
+  it('navigates to /app on successful login', async () => {
     mockSignIn.mockResolvedValue({ error: null });
     const user = userEvent.setup();
     await renderLogin();
     await fillForm(user, 'test@test.com', 'secret123');
     await user.click(screen.getByRole('button', { name: /вход/i }));
-    await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith('/'));
+    await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith('/app'));
   });
 
   it('shows error message when credentials are invalid', async () => {
@@ -108,10 +108,10 @@ describe('LoginScreen', () => {
     await waitFor(() => expect(screen.queryByText('Invalid login credentials')).not.toBeInTheDocument());
   });
 
-  it('redirects to / immediately when an active session already exists', async () => {
+  it('redirects to /app immediately when an active session already exists', async () => {
     mockGetSession.mockResolvedValue({ data: { session: { access_token: 'tok' } } });
     render(<MemoryRouter><LoginScreen /></MemoryRouter>);
-    await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith('/', { replace: true }));
+    await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith('/app', { replace: true }));
   });
 
   it('renders the Facebook login button', async () => {
