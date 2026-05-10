@@ -19,7 +19,7 @@ export function useAppData() {
     if (!user) { setLoading(false); return; }
 
     const [profileRes, fridgeRes, recipesRes, productsRes] = await Promise.all([
-      supabase.from('profiles').select('*').eq('id', user.id).single(),
+      supabase.from('users').select('*').eq('id', user.id).single(),
       supabase.from('fridge_items').select('*').eq('user_id', user.id),
       supabase.from('recipes').select('*').eq('user_id', user.id),
       supabase.from('products').select('*').eq('user_id', user.id),
@@ -33,12 +33,19 @@ export function useAppData() {
         dietaryPrefs: profileRes.data.dietary_prefs ?? [],
       });
     } else {
-      await supabase.from('profiles').insert({
+      const newName = (user.user_metadata?.name as string) ?? DEFAULT_PROFILE.name;
+      await supabase.from('users').insert({
         id: user.id,
-        name: DEFAULT_PROFILE.name,
+        name: newName,
         allergies: DEFAULT_PROFILE.allergies,
         dislikes: DEFAULT_PROFILE.dislikes,
         dietary_prefs: DEFAULT_PROFILE.dietaryPrefs,
+      });
+      setProfileState({
+        name: newName,
+        allergies: DEFAULT_PROFILE.allergies,
+        dislikes: DEFAULT_PROFILE.dislikes,
+        dietaryPrefs: DEFAULT_PROFILE.dietaryPrefs,
       });
     }
 
@@ -86,7 +93,7 @@ export function useAppData() {
     setProfileState(next);
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (!user) return;
-      supabase.from('profiles').upsert({
+      supabase.from('users').upsert({
         id: user.id,
         name: next.name,
         allergies: next.allergies,

@@ -6,6 +6,7 @@ import { RegisterScreen } from './RegisterScreen';
 
 const mockNavigate = vi.hoisted(() => vi.fn());
 const mockSignUp = vi.hoisted(() => vi.fn());
+const mockGetSession = vi.hoisted(() => vi.fn());
 
 vi.mock('react-router-dom', async () => {
   const actual = await vi.importActual<typeof import('react-router-dom')>('react-router-dom');
@@ -13,19 +14,22 @@ vi.mock('react-router-dom', async () => {
 });
 
 vi.mock('../../../lib/supabase', () => ({
-  supabase: { auth: { signUp: mockSignUp } },
+  supabase: { auth: { signUp: mockSignUp, getSession: mockGetSession } },
 }));
 
-function renderRegister() {
+const renderRegister = async () => {
   render(<MemoryRouter><RegisterScreen /></MemoryRouter>);
-}
+  await screen.findByPlaceholderText('Иван Иванов');
+};
 
 async function fillForm(
   user: ReturnType<typeof userEvent.setup>,
+  name: string,
   email: string,
   password: string,
   confirm: string,
 ) {
+  await user.type(screen.getByPlaceholderText('Иван Иванов'), name);
   await user.type(screen.getByPlaceholderText('you@example.com'), email);
   const passwordFields = screen.getAllByPlaceholderText('••••••••');
   await user.type(passwordFields[0], password);
@@ -36,56 +40,85 @@ describe('RegisterScreen', () => {
   beforeEach(() => {
     mockNavigate.mockReset();
     mockSignUp.mockReset();
+    mockGetSession.mockResolvedValue({ data: { session: null } });
+  });
+
+  it('renders the name field', async () => {
+    await renderRegister();
+    expect(screen.getByPlaceholderText('Иван Иванов')).toBeInTheDocument();
   });
 
   it('shows error when passwords do not match', async () => {
     const user = userEvent.setup();
-    renderRegister();
-    await fillForm(user, 'test@test.com', 'password123', 'different');
+    await renderRegister();
+    await fillForm(user, 'Тест', 'test@test.com', 'password123', 'different');
     await user.click(screen.getByRole('button', { name: /регистрирай се/i }));
     expect(screen.getByText('Паролите не съвпадат')).toBeInTheDocument();
   });
 
   it('does not call supabase when passwords do not match', async () => {
     const user = userEvent.setup();
-    renderRegister();
-    await fillForm(user, 'test@test.com', 'password123', 'different');
+    await renderRegister();
+    await fillForm(user, 'Тест', 'test@test.com', 'password123', 'different');
     await user.click(screen.getByRole('button', { name: /регистрирай се/i }));
     expect(mockSignUp).not.toHaveBeenCalled();
   });
 
-  it('calls supabase signUp with correct credentials', async () => {
-    mockSignUp.mockResolvedValue({ error: null });
+  it('calls supabase signUp with credentials and name in options', async () => {
+    mockSignUp.mockResolvedValue({ data: { session: {}, user: {} }, error: null });
     const user = userEvent.setup();
-    renderRegister();
-    await fillForm(user, 'test@test.com', 'secret123', 'secret123');
+    await renderRegister();
+    await fillForm(user, 'Иван', 'test@test.com', 'secret123', 'secret123');
     await user.click(screen.getByRole('button', { name: /регистрирай се/i }));
-    expect(mockSignUp).toHaveBeenCalledWith({ email: 'test@test.com', password: 'secret123' });
+    expect(mockSignUp).toHaveBeenCalledWith({
+      email: 'test@test.com',
+      password: 'secret123',
+      options: { data: { name: 'Иван' } },
+    });
   });
 
-  it('navigates to / on successful registration', async () => {
-    mockSignUp.mockResolvedValue({ error: null });
+  it('navigates to / when signUp returns a session (email confirmation disabled)', async () => {
+    mockSignUp.mockResolvedValue({ data: { session: { access_token: 'tok' }, user: {} }, error: null });
     const user = userEvent.setup();
-    renderRegister();
-    await fillForm(user, 'test@test.com', 'secret123', 'secret123');
+    await renderRegister();
+    await fillForm(user, 'Иван', 'test@test.com', 'secret123', 'secret123');
     await user.click(screen.getByRole('button', { name: /регистрирай се/i }));
     await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith('/'));
   });
 
-  it('shows supabase error message on failed registration', async () => {
-    mockSignUp.mockResolvedValue({ error: { message: 'Email already in use' } });
+  it('shows confirmation screen when signUp returns no session (email confirmation required)', async () => {
+    mockSignUp.mockResolvedValue({ data: { session: null, user: {} }, error: null });
     const user = userEvent.setup();
-    renderRegister();
-    await fillForm(user, 'taken@test.com', 'secret123', 'secret123');
+    await renderRegister();
+    await fillForm(user, 'Иван', 'test@test.com', 'secret123', 'secret123');
+    await user.click(screen.getByRole('button', { name: /регистрирай се/i }));
+    await waitFor(() => expect(screen.getByText(/провери имейла си/i)).toBeInTheDocument());
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('shows the registered email address in the confirmation screen', async () => {
+    mockSignUp.mockResolvedValue({ data: { session: null, user: {} }, error: null });
+    const user = userEvent.setup();
+    await renderRegister();
+    await fillForm(user, 'Иван', 'test@test.com', 'secret123', 'secret123');
+    await user.click(screen.getByRole('button', { name: /регистрирай се/i }));
+    await waitFor(() => expect(screen.getByText('test@test.com')).toBeInTheDocument());
+  });
+
+  it('shows supabase error message on failed registration', async () => {
+    mockSignUp.mockResolvedValue({ data: { session: null, user: null }, error: { message: 'Email already in use' } });
+    const user = userEvent.setup();
+    await renderRegister();
+    await fillForm(user, 'Иван', 'taken@test.com', 'secret123', 'secret123');
     await user.click(screen.getByRole('button', { name: /регистрирай се/i }));
     await waitFor(() => expect(screen.getByText('Email already in use')).toBeInTheDocument());
   });
 
   it('clears a previous password-mismatch error on the next submit', async () => {
-    mockSignUp.mockResolvedValue({ error: null });
+    mockSignUp.mockResolvedValue({ data: { session: { access_token: 'tok' }, user: {} }, error: null });
     const user = userEvent.setup();
-    renderRegister();
-    await fillForm(user, 'test@test.com', 'password123', 'different');
+    await renderRegister();
+    await fillForm(user, 'Иван', 'test@test.com', 'password123', 'different');
     await user.click(screen.getByRole('button', { name: /регистрирай се/i }));
     expect(screen.getByText('Паролите не съвпадат')).toBeInTheDocument();
 
@@ -97,10 +130,10 @@ describe('RegisterScreen', () => {
   });
 
   it('does not navigate on a failed registration', async () => {
-    mockSignUp.mockResolvedValue({ error: { message: 'Email already in use' } });
+    mockSignUp.mockResolvedValue({ data: { session: null, user: null }, error: { message: 'Email already in use' } });
     const user = userEvent.setup();
-    renderRegister();
-    await fillForm(user, 'taken@test.com', 'secret123', 'secret123');
+    await renderRegister();
+    await fillForm(user, 'Иван', 'taken@test.com', 'secret123', 'secret123');
     await user.click(screen.getByRole('button', { name: /регистрирай се/i }));
     await waitFor(() => expect(screen.getByText('Email already in use')).toBeInTheDocument());
     expect(mockNavigate).not.toHaveBeenCalled();
@@ -109,9 +142,15 @@ describe('RegisterScreen', () => {
   it('disables submit button and shows loading text during sign-up', async () => {
     mockSignUp.mockImplementation(() => new Promise(() => {}));
     const user = userEvent.setup();
-    renderRegister();
-    await fillForm(user, 'test@test.com', 'secret123', 'secret123');
+    await renderRegister();
+    await fillForm(user, 'Иван', 'test@test.com', 'secret123', 'secret123');
     await user.click(screen.getByRole('button', { name: /регистрирай се/i }));
     await waitFor(() => expect(screen.getByRole('button', { name: /регистрация/i })).toBeDisabled());
+  });
+
+  it('redirects to / immediately when an active session already exists', async () => {
+    mockGetSession.mockResolvedValue({ data: { session: { access_token: 'tok' } } });
+    render(<MemoryRouter><RegisterScreen /></MemoryRouter>);
+    await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith('/', { replace: true }));
   });
 });

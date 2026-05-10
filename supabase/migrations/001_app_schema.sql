@@ -2,8 +2,8 @@
 -- Ko-da-qm: App Schema
 -- ============================================================
 
--- Profiles (one row per auth user)
-create table if not exists profiles (
+-- Users (one row per auth user)
+create table if not exists users (
   id           uuid primary key references auth.users on delete cascade,
   name         text        not null default '',
   allergies    text[]      not null default '{}',
@@ -12,10 +12,10 @@ create table if not exists profiles (
   updated_at   timestamptz not null default now()
 );
 
-alter table profiles enable row level security;
+alter table users enable row level security;
 
-create policy "profiles: own row only"
-  on profiles for all
+create policy "users: own row only"
+  on users for all
   using  (auth.uid() = id)
   with check (auth.uid() = id);
 
