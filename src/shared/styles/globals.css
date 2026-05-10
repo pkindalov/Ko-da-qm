@@ -210,3 +210,7 @@ a{color:inherit;text-decoration:none}
 .auth-error{color:var(--danger);font-size:13px;font-weight:600}
 .auth-switch{margin-top:20px;text-align:center;font-size:13px;font-weight:600;color:var(--text2)}
 .auth-switch a{color:var(--primary);font-weight:700}
+.auth-divider{display:flex;align-items:center;gap:12px;color:var(--text2);font-size:13px;font-weight:600;margin:4px 0}
+.auth-divider::before,.auth-divider::after{content:'';flex:1;height:1px;background:var(--border)}
+.btn-facebook{background:#1877F2;color:#fff}
+.btn-facebook:hover{background:#166fe5}

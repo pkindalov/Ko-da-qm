@@ -17,6 +17,19 @@ export function LoginScreen() {
     });
   }, [navigate]);
 
+  const handleFacebookLogin = async () => {
+    setError('');
+    setLoading(true);
+    const { error: oauthError } = await supabase.auth.signInWithOAuth({
+      provider: 'facebook',
+      options: { redirectTo: window.location.origin },
+    });
+    if (oauthError) {
+      setError(oauthError.message);
+      setLoading(false);
+    }
+  };
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError('');
@@ -65,6 +78,10 @@ export function LoginScreen() {
             {loading ? 'Влизане...' : 'Вход'}
           </button>
         </form>
+        <div className="auth-divider">или</div>
+        <button className="btn btn-facebook btn-full" onClick={handleFacebookLogin} disabled={loading}>
+          Влез с Facebook
+        </button>
         <p className="auth-switch">
           Нямаш акаунт? <Link to="/register">Регистрирай се</Link>
         </p>

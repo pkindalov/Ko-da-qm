@@ -20,6 +20,19 @@ export function RegisterScreen() {
     });
   }, [navigate]);
 
+  const handleFacebookLogin = async () => {
+    setErrorMsg('');
+    setLoading(true);
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'facebook',
+      options: { redirectTo: window.location.origin },
+    });
+    if (error) {
+      setErrorMsg(error.message);
+      setLoading(false);
+    }
+  };
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setErrorMsg("");
@@ -127,6 +140,10 @@ export function RegisterScreen() {
             {loading ? "Регистрация..." : "Регистрирай се"}
           </button>
         </form>
+        <div className="auth-divider">или</div>
+        <button className="btn btn-facebook btn-full" onClick={handleFacebookLogin} disabled={loading}>
+          Регистрирай се с Facebook
+        </button>
         <p className="auth-switch">
           Вече имаш акаунт? <Link to="/login">Влез</Link>
         </p>
