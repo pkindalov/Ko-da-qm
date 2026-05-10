@@ -67,7 +67,7 @@ const BG_TO_EN: Record<string, string> = {
   'черен пипер': 'pepper',
 };
 
-function toEnglish(name: string): string {
+export function toEnglish(name: string): string {
   const lower = name.toLowerCase().trim();
   return BG_TO_EN[lower] ?? lower;
 }

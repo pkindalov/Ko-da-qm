@@ -3,7 +3,7 @@ import { Modal } from '../../../shared/components/Modal';
 import { Badge } from '../../../shared/components/Badge';
 import { EmptyState } from '../../../shared/components/EmptyState';
 import { matchFromFridge, type MatchedRecipe } from '../utils/matchFromFridge';
-import { searchByFridge } from '../utils/searchTheMealDB';
+import { searchByFridge, toEnglish } from '../utils/searchTheMealDB';
 import { searchWithGemini } from '../utils/searchWithGemini';
 import type { FridgeItem, Profile, Recipe, Language, Product } from '../../../shared/types';
 
@@ -240,9 +240,13 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, profile,
                   </div>
                   <div style={{ marginTop: 8, display: 'flex', flexWrap: 'wrap', gap: 4 }}>
                     {r.requiredIngredients.map((ing) => {
-                      const inFridge = safeFridge.some(
-                        (f) => f.name.toLowerCase().includes(ing.toLowerCase()) || ing.toLowerCase().includes(f.name.toLowerCase()),
-                      );
+                      const ingLow = ing.toLowerCase();
+                      const inFridge = safeFridge.some((f) => {
+                        const fLow = f.name.toLowerCase();
+                        const fEn = toEnglish(f.name).toLowerCase();
+                        return fLow.includes(ingLow) || ingLow.includes(fLow) ||
+                               fEn.includes(ingLow) || ingLow.includes(fEn);
+                      });
                       return (
                         <span
                           key={ing}

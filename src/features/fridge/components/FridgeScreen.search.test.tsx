@@ -8,9 +8,10 @@ import type { MatchedRecipe } from '../utils/matchFromFridge';
 vi.mock('../utils/searchWithGemini', () => ({
   searchWithGemini: vi.fn().mockResolvedValue([]),
 }));
-vi.mock('../utils/searchTheMealDB', () => ({
-  searchByFridge: vi.fn().mockResolvedValue([]),
-}));
+vi.mock('../utils/searchTheMealDB', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../utils/searchTheMealDB')>();
+  return { ...actual, searchByFridge: vi.fn().mockResolvedValue([]) };
+});
 vi.mock('../utils/matchFromFridge', () => ({
   matchFromFridge: vi.fn().mockResolvedValue([]),
 }));
