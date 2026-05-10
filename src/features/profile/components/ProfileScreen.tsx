@@ -8,9 +8,10 @@ interface ProfileScreenProps {
   profile: Profile;
   setProfile: (profile: Profile) => void;
   lang: Language;
+  onLogout?: () => void;
 }
 
-export function ProfileScreen({ profile, setProfile, lang }: ProfileScreenProps) {
+export function ProfileScreen({ profile, setProfile, lang, onLogout }: ProfileScreenProps) {
   const L = lang === 'en';
   const [name, setName] = useState(profile.name);
 
@@ -98,6 +99,12 @@ export function ProfileScreen({ profile, setProfile, lang }: ProfileScreenProps)
           {L ? 'Dietary prefs' : 'Диетични предпочит.'}: <strong>{profile.dietaryPrefs.length}</strong>
         </div>
       </div>
+
+      {onLogout && (
+        <button className="btn btn-danger logout-btn-mobile" onClick={onLogout}>
+          🚪 {L ? 'Log out' : 'Изход'}
+        </button>
+      )}
     </div>
   );
 }
