@@ -17,11 +17,11 @@ export function LoginScreen() {
     });
   }, [navigate]);
 
-  const handleFacebookLogin = async () => {
+  const handleOAuthLogin = async (provider: 'facebook' | 'google') => {
     setError('');
     setLoading(true);
     const { error: oauthError } = await supabase.auth.signInWithOAuth({
-      provider: 'facebook',
+      provider,
       options: { redirectTo: window.location.origin },
     });
     if (oauthError) {
@@ -79,9 +79,14 @@ export function LoginScreen() {
           </button>
         </form>
         <div className="auth-divider">или</div>
-        <button className="btn btn-facebook btn-full" onClick={handleFacebookLogin} disabled={loading}>
-          Влез с Facebook
-        </button>
+        <div className="stack">
+          <button className="btn btn-google btn-full" onClick={() => handleOAuthLogin('google')} disabled={loading}>
+            Влез с Google
+          </button>
+          <button className="btn btn-facebook btn-full" onClick={() => handleOAuthLogin('facebook')} disabled={loading}>
+            Влез с Facebook
+          </button>
+        </div>
         <p className="auth-switch">
           Нямаш акаунт? <Link to="/register">Регистрирай се</Link>
         </p>

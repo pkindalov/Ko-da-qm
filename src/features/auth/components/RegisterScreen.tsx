@@ -20,11 +20,11 @@ export function RegisterScreen() {
     });
   }, [navigate]);
 
-  const handleFacebookLogin = async () => {
+  const handleOAuthLogin = async (provider: 'facebook' | 'google') => {
     setErrorMsg('');
     setLoading(true);
     const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'facebook',
+      provider,
       options: { redirectTo: window.location.origin },
     });
     if (error) {
@@ -141,9 +141,14 @@ export function RegisterScreen() {
           </button>
         </form>
         <div className="auth-divider">или</div>
-        <button className="btn btn-facebook btn-full" onClick={handleFacebookLogin} disabled={loading}>
-          Регистрирай се с Facebook
-        </button>
+        <div className="stack">
+          <button className="btn btn-google btn-full" onClick={() => handleOAuthLogin('google')} disabled={loading}>
+            Регистрирай се с Google
+          </button>
+          <button className="btn btn-facebook btn-full" onClick={() => handleOAuthLogin('facebook')} disabled={loading}>
+            Регистрирай се с Facebook
+          </button>
+        </div>
         <p className="auth-switch">
           Вече имаш акаунт? <Link to="/login">Влез</Link>
         </p>
