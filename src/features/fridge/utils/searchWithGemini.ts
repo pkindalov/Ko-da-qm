@@ -1,6 +1,7 @@
 import { supabase } from '../../../lib/supabase';
 import type { FridgeItem, Language } from '../../../shared/types';
 import type { MatchedRecipe } from './matchFromFridge';
+import { toEnglish } from './searchTheMealDB';
 
 interface GeminiRecipe {
   name: string;
@@ -14,9 +15,14 @@ interface GeminiRecipe {
 }
 
 const toMatchedRecipe = (recipe: GeminiRecipe, index: number, fridgeItems: FridgeItem[]): MatchedRecipe => {
-  const fridgeLow = fridgeItems.map((f) => f.name.toLowerCase());
-  const matchFn = (i: string) =>
-    fridgeLow.some((f) => f.includes(i.toLowerCase()) || i.toLowerCase().includes(f));
+  const matchFn = (i: string) => {
+    const ingLow = i.toLowerCase();
+    return fridgeItems.some((f) => {
+      const fLow = f.name.toLowerCase();
+      const fEn = toEnglish(f.name).toLowerCase();
+      return fLow.includes(ingLow) || ingLow.includes(fLow) || fEn.includes(ingLow) || ingLow.includes(fEn);
+    });
+  };
   const matchedCount = recipe.requiredIngredients.filter(matchFn).length;
 
   return {
