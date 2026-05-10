@@ -1,6 +1,5 @@
 import { useState } from 'react';
-import { TagInput } from '../../../shared/components/TagInput';
-import type { Profile, Language } from '../../../shared/types';
+import type { Profile, Product, Language } from '../../../shared/types';
 
 const DIETARY_PREFS = [
   { id: 'Вегетарианец', labelEn: 'Vegetarian' },
@@ -14,16 +13,27 @@ const DIETARY_PREFS = [
 interface ProfileScreenProps {
   profile: Profile;
   setProfile: (profile: Profile) => void;
+  products: Product[];
   lang: Language;
   onLogout?: () => void;
   onTweaksToggle?: () => void;
+  onNavigateToProducts?: () => void;
 }
 
-export function ProfileScreen({ profile, setProfile, lang, onLogout, onTweaksToggle }: ProfileScreenProps) {
+export function ProfileScreen({ profile, setProfile, products, lang, onLogout, onTweaksToggle, onNavigateToProducts }: ProfileScreenProps) {
   const L = lang === 'en';
   const [name, setName] = useState(profile.name);
 
   const saveName = () => setProfile({ ...profile, name: name.trim() });
+
+  const allergicProducts = products.filter(p => p.status === 'allergic');
+  const dislikedProducts = products.filter(p => p.status === 'disliked');
+
+  const manageButton = onNavigateToProducts && (
+    <button className="btn btn-ghost btn-sm" onClick={onNavigateToProducts} style={{ marginTop: 8 }}>
+      {L ? '→ Manage in Products' : '→ Управлявай в Продукти'}
+    </button>
+  );
 
   return (
     <div className="fade-in">
@@ -53,12 +63,20 @@ export function ProfileScreen({ profile, setProfile, lang, onLogout, onTweaksTog
         <p style={{ fontSize: 13, color: 'var(--text2)', marginBottom: 12, fontWeight: 600 }}>
           {L ? 'These ingredients will always be flagged as dangerous.' : 'Тези съставки ще бъдат маркирани като опасни.'}
         </p>
-        <TagInput
-          value={profile.allergies}
-          type="danger"
-          onChange={(v) => setProfile({ ...profile, allergies: v })}
-          placeholder={L ? 'Add allergen (press Enter)' : 'Добави алерген (Enter)'}
-        />
+        {allergicProducts.length > 0 ? (
+          <div className="chip-group">
+            {allergicProducts.map(p => (
+              <span key={p.id} className="chip selected" style={{ borderColor: 'var(--danger)', color: 'var(--danger)' }}>
+                {p.emoji} {p.name}
+              </span>
+            ))}
+          </div>
+        ) : (
+          <p style={{ fontSize: 13, color: 'var(--text2)', fontStyle: 'italic' }}>
+            {L ? 'No allergies set.' : 'Няма зададени алергии.'}
+          </p>
+        )}
+        {manageButton}
       </div>
 
       <div className="card" style={{ marginBottom: 16, borderColor: 'var(--warn)', borderWidth: 2 }}>
@@ -66,12 +84,20 @@ export function ProfileScreen({ profile, setProfile, lang, onLogout, onTweaksTog
         <p style={{ fontSize: 13, color: 'var(--text2)', marginBottom: 12, fontWeight: 600 }}>
           {L ? "Foods you simply don't enjoy." : 'Храни, които просто не харесваш.'}
         </p>
-        <TagInput
-          value={profile.dislikes}
-          type="warn"
-          onChange={(v) => setProfile({ ...profile, dislikes: v })}
-          placeholder={L ? 'Add disliked food (press Enter)' : 'Добави нелюбима храна (Enter)'}
-        />
+        {dislikedProducts.length > 0 ? (
+          <div className="chip-group">
+            {dislikedProducts.map(p => (
+              <span key={p.id} className="chip selected" style={{ borderColor: 'var(--warn)', color: 'var(--warn)' }}>
+                {p.emoji} {p.name}
+              </span>
+            ))}
+          </div>
+        ) : (
+          <p style={{ fontSize: 13, color: 'var(--text2)', fontStyle: 'italic' }}>
+            {L ? 'No dislikes set.' : 'Няма зададени нелюбими.'}
+          </p>
+        )}
+        {manageButton}
       </div>
 
       <div className="card" style={{ marginBottom: 16 }}>
@@ -102,8 +128,8 @@ export function ProfileScreen({ profile, setProfile, lang, onLogout, onTweaksTog
       <div className="card" style={{ background: 'var(--bg)', borderStyle: 'dashed' }}>
         <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 8 }}>📊 {L ? 'Summary' : 'Обобщение'}</div>
         <div style={{ fontSize: 14, color: 'var(--text2)', fontWeight: 600, lineHeight: 2 }}>
-          {L ? 'Allergies' : 'Алергии'}: <strong style={{ color: 'var(--danger)' }}>{profile.allergies.length}</strong><br />
-          {L ? 'Dislikes' : 'Нелюбими'}: <strong style={{ color: 'var(--warn)' }}>{profile.dislikes.length}</strong><br />
+          {L ? 'Allergies' : 'Алергии'}: <strong style={{ color: 'var(--danger)' }}>{allergicProducts.length}</strong><br />
+          {L ? 'Dislikes' : 'Нелюбими'}: <strong style={{ color: 'var(--warn)' }}>{dislikedProducts.length}</strong><br />
           {L ? 'Dietary prefs' : 'Диетични предпочит.'}: <strong>{profile.dietaryPrefs.length}</strong>
         </div>
       </div>

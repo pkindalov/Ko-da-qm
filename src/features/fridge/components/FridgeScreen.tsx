@@ -72,20 +72,40 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, profile,
       )
     : availableProducts;
 
-  const blocked = [...profile.allergies, ...profile.dislikes];
+  const blocked = [
+    ...profile.allergies,
+    ...profile.dislikes,
+    ...products.filter(p => p.status === 'allergic').flatMap(p => p.nameEn ? [p.name, p.nameEn] : [p.name]),
+    ...products.filter(p => p.status === 'disliked').flatMap(p => p.nameEn ? [p.name, p.nameEn] : [p.name]),
+  ];
+  const safeFridge = fridge.filter(
+    (item) => !blocked.some(
+      (b) => item.name.toLowerCase().includes(b.toLowerCase()) || b.toLowerCase().includes(item.name.toLowerCase()),
+    ),
+  );
+
+  const containsBlocked = (allIngredients: string[]) =>
+    allIngredients.some((ing) =>
+      blocked.some(
+        (b) => ing.toLowerCase().includes(b.toLowerCase()) || b.toLowerCase().includes(ing.toLowerCase()),
+      ),
+    );
+
+  const filterSafe = (results: MatchedRecipe[]) =>
+    results.filter((r) => !containsBlocked([...r.requiredIngredients, ...r.ingredients]));
 
   const handleWhatCanICook = async () => {
     setLoadingSuggestions(true);
     setSuggestions(null);
     try {
       if (geminiMode) {
-        setSuggestions(await searchWithGemini(fridge, blocked, lang));
+        setSuggestions(filterSafe(await searchWithGemini(safeFridge, blocked, lang)));
       } else {
-        const online = await searchByFridge(fridge, blocked);
+        const online = filterSafe(await searchByFridge(safeFridge, blocked));
         if (online.length > 0) {
           setSuggestions(online);
         } else {
-          setSuggestions(await matchFromFridge(fridge, blocked));
+          setSuggestions(filterSafe(await matchFromFridge(safeFridge, blocked)));
         }
       }
     } finally {
@@ -220,7 +240,7 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, profile,
                   </div>
                   <div style={{ marginTop: 8, display: 'flex', flexWrap: 'wrap', gap: 4 }}>
                     {r.requiredIngredients.map((ing) => {
-                      const inFridge = fridge.some(
+                      const inFridge = safeFridge.some(
                         (f) => f.name.toLowerCase().includes(ing.toLowerCase()) || ing.toLowerCase().includes(f.name.toLowerCase()),
                       );
                       return (

@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ProfileScreen } from './ProfileScreen';
-import type { Profile } from '../../../shared/types';
+import type { Profile, Product } from '../../../shared/types';
 
 const baseProfile: Profile = {
   name: 'Test User',
@@ -11,21 +11,29 @@ const baseProfile: Profile = {
   dietaryPrefs: [],
 };
 
+const honeyProduct: Product = { id: 'p1', name: 'Honey', nameEn: 'honey', category: 'other', status: 'allergic', emoji: '🍯' };
+const mushroomProduct: Product = { id: 'p2', name: 'Mushrooms', nameEn: 'mushrooms', category: 'veg', status: 'disliked', emoji: '🍄' };
+const tomatoProduct: Product = { id: 'p3', name: 'Tomato', nameEn: 'tomato', category: 'veg', status: 'liked', emoji: '🍅' };
+
 interface RenderOptions {
   lang?: 'en' | 'bg';
   onLogout?: () => void;
   onTweaksToggle?: () => void;
+  onNavigateToProducts?: () => void;
   profile?: Profile;
+  products?: Product[];
 }
 
-const renderProfile = ({ lang = 'en', onLogout, onTweaksToggle, profile = baseProfile }: RenderOptions = {}) =>
+const renderProfile = ({ lang = 'en', onLogout, onTweaksToggle, onNavigateToProducts, profile = baseProfile, products = [] }: RenderOptions = {}) =>
   render(
     <ProfileScreen
       profile={profile}
       setProfile={vi.fn()}
+      products={products}
       lang={lang}
       onLogout={onLogout}
       onTweaksToggle={onTweaksToggle}
+      onNavigateToProducts={onNavigateToProducts}
     />
   );
 
@@ -126,5 +134,64 @@ describe('ProfileScreen dietary preferences language', () => {
     renderProfile({ lang: 'bg' });
     expect(screen.queryByText('Vegetarian')).not.toBeInTheDocument();
     expect(screen.queryByText('Vegan')).not.toBeInTheDocument();
+  });
+});
+
+describe('ProfileScreen allergies and dislikes from products', () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it('shows allergic product name in allergies section', () => {
+    renderProfile({ products: [honeyProduct] });
+    expect(screen.getByText(/Honey/)).toBeInTheDocument();
+  });
+
+  it('shows disliked product name in dislikes section', () => {
+    renderProfile({ products: [mushroomProduct] });
+    expect(screen.getByText(/Mushrooms/)).toBeInTheDocument();
+  });
+
+  it('does not show liked product in allergies or dislikes sections', () => {
+    renderProfile({ products: [tomatoProduct] });
+    const allergiesCard = screen.getByText((_, el) => el?.className === 'section-title' && !!el.textContent?.includes('ALLERGIES')).closest('.card');
+    const dislikesCard = screen.getByText((_, el) => el?.className === 'section-title' && !!el.textContent?.includes('DISLIKES')).closest('.card');
+    expect(allergiesCard).not.toHaveTextContent('Tomato');
+    expect(dislikesCard).not.toHaveTextContent('Tomato');
+  });
+
+  it('shows empty message when no allergic products', () => {
+    renderProfile({ products: [] });
+    expect(screen.getByText('No allergies set.')).toBeInTheDocument();
+  });
+
+  it('shows empty message when no disliked products', () => {
+    renderProfile({ products: [] });
+    expect(screen.getByText('No dislikes set.')).toBeInTheDocument();
+  });
+
+  it('shows empty messages in bulgarian when no products and lang is bg', () => {
+    renderProfile({ lang: 'bg', products: [] });
+    expect(screen.getByText('Няма зададени алергии.')).toBeInTheDocument();
+    expect(screen.getByText('Няма зададени нелюбими.')).toBeInTheDocument();
+  });
+
+  it('shows manage button when onNavigateToProducts is provided', () => {
+    renderProfile({ onNavigateToProducts: vi.fn(), products: [] });
+    const buttons = screen.getAllByRole('button', { name: /manage in products/i });
+    expect(buttons.length).toBeGreaterThan(0);
+  });
+
+  it('calls onNavigateToProducts when manage button is clicked', async () => {
+    const onNavigateToProducts = vi.fn();
+    renderProfile({ onNavigateToProducts, products: [] });
+    const buttons = screen.getAllByRole('button', { name: /manage in products/i });
+    await userEvent.click(buttons[0]);
+    expect(onNavigateToProducts).toHaveBeenCalledOnce();
+  });
+
+  it('shows correct summary counts from products', () => {
+    renderProfile({ products: [honeyProduct, mushroomProduct, tomatoProduct] });
+    const summary = screen.getByText(/summary/i).closest('.card');
+    expect(summary).toHaveTextContent('1'); // 1 allergy
+    expect(summary).toHaveTextContent('1'); // 1 dislike
   });
 });
