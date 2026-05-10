@@ -203,4 +203,33 @@ describe('RegisterScreen', () => {
     await user.click(screen.getByRole('button', { name: /регистрирай се с google/i }));
     await waitFor(() => expect(screen.getByText('Google provider not enabled')).toBeInTheDocument());
   });
+
+  it('disables the Google button while Google OAuth is in progress', async () => {
+    mockSignInWithOAuth.mockImplementation(() => new Promise(() => {}));
+    const user = userEvent.setup();
+    await renderRegister();
+    await user.click(screen.getByRole('button', { name: /регистрирай се с google/i }));
+    await waitFor(() => expect(screen.getByRole('button', { name: /регистрирай се с google/i })).toBeDisabled());
+  });
+
+  it('disables the Google button while a form sign-up is in progress', async () => {
+    mockSignUp.mockImplementation(() => new Promise(() => {}));
+    const user = userEvent.setup();
+    await renderRegister();
+    await fillForm(user, 'Иван', 'test@test.com', 'secret123', 'secret123');
+    await user.click(screen.getByRole('button', { name: 'Регистрирай се' }));
+    await waitFor(() => expect(screen.getByRole('button', { name: /регистрирай се с google/i })).toBeDisabled());
+  });
+
+  it('clears a previous error when Google register is clicked', async () => {
+    mockSignUp.mockResolvedValueOnce({ data: { session: null, user: null }, error: { message: 'Email already in use' } });
+    mockSignInWithOAuth.mockResolvedValue({ error: null });
+    const user = userEvent.setup();
+    await renderRegister();
+    await fillForm(user, 'Иван', 'taken@test.com', 'secret123', 'secret123');
+    await user.click(screen.getByRole('button', { name: 'Регистрирай се' }));
+    await waitFor(() => expect(screen.getByText('Email already in use')).toBeInTheDocument());
+    await user.click(screen.getByRole('button', { name: /регистрирай се с google/i }));
+    await waitFor(() => expect(screen.queryByText('Email already in use')).not.toBeInTheDocument());
+  });
 });

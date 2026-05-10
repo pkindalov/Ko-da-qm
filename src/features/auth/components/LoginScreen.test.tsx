@@ -161,4 +161,33 @@ describe('LoginScreen', () => {
     await user.click(screen.getByRole('button', { name: /влез с google/i }));
     await waitFor(() => expect(screen.getByText('Google provider not enabled')).toBeInTheDocument());
   });
+
+  it('disables the Google button while Google OAuth is in progress', async () => {
+    mockSignInWithOAuth.mockImplementation(() => new Promise(() => {}));
+    const user = userEvent.setup();
+    await renderLogin();
+    await user.click(screen.getByRole('button', { name: /влез с google/i }));
+    await waitFor(() => expect(screen.getByRole('button', { name: /влез с google/i })).toBeDisabled());
+  });
+
+  it('disables the Google button while a form sign-in is in progress', async () => {
+    mockSignIn.mockImplementation(() => new Promise(() => {}));
+    const user = userEvent.setup();
+    await renderLogin();
+    await fillForm(user, 'test@test.com', 'secret123');
+    await user.click(screen.getByRole('button', { name: /вход/i }));
+    await waitFor(() => expect(screen.getByRole('button', { name: /влез с google/i })).toBeDisabled());
+  });
+
+  it('clears a previous error when Google login is clicked', async () => {
+    mockSignIn.mockResolvedValueOnce({ error: { message: 'Invalid login credentials' } });
+    mockSignInWithOAuth.mockResolvedValue({ error: null });
+    const user = userEvent.setup();
+    await renderLogin();
+    await fillForm(user, 'test@test.com', 'wrongpass');
+    await user.click(screen.getByRole('button', { name: /вход/i }));
+    await waitFor(() => expect(screen.getByText('Invalid login credentials')).toBeInTheDocument());
+    await user.click(screen.getByRole('button', { name: /влез с google/i }));
+    await waitFor(() => expect(screen.queryByText('Invalid login credentials')).not.toBeInTheDocument());
+  });
 });
