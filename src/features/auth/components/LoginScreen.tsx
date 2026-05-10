@@ -12,7 +12,7 @@ export function LoginScreen() {
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) navigate('/', { replace: true });
+      if (session) navigate('/app', { replace: true });
       else setSessionChecked(true);
     });
   }, [navigate]);
@@ -39,7 +39,7 @@ export function LoginScreen() {
     if (error) {
       setError(error.message);
     } else {
-      navigate('/');
+      navigate('/app');
     }
   }
 

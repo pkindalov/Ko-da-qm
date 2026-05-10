@@ -15,7 +15,7 @@ export function RegisterScreen() {
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) navigate("/", { replace: true });
+      if (session) navigate("/app", { replace: true });
       else setSessionChecked(true);
     });
   }, [navigate]);
@@ -50,7 +50,7 @@ export function RegisterScreen() {
     if (error) {
       setErrorMsg(error.message);
     } else if (data.session) {
-      navigate("/");
+      navigate("/app");
     } else {
       // Email confirmation required — account was created but not yet active
       setAwaitingConfirmation(true);
