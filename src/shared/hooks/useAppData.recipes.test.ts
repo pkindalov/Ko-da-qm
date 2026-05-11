@@ -2,10 +2,11 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useAppData } from './useAppData';
 
-const { mockInsert, mockDelete, mockEq, mockSelect, mockSingle, mockFrom, mockGetUser } = vi.hoisted(() => {
+const { mockInsert, mockDelete, mockUpdate, mockEq, mockSelect, mockSingle, mockFrom, mockGetUser } = vi.hoisted(() => {
   const mockSingle = vi.fn();
   const mockInsert = vi.fn();
   const mockDelete = vi.fn();
+  const mockUpdate = vi.fn();
   const mockEq = vi.fn();
   const mockSelect = vi.fn();
   const mockFrom = vi.fn();
@@ -15,9 +16,10 @@ const { mockInsert, mockDelete, mockEq, mockSelect, mockSingle, mockFrom, mockGe
   mockSelect.mockReturnValue({ eq: mockEq });
   mockInsert.mockResolvedValue({ data: null, error: null });
   mockDelete.mockReturnValue({ eq: mockEq });
+  mockUpdate.mockReturnValue({ eq: mockEq });
   mockSingle.mockResolvedValue({ data: null, error: null });
 
-  return { mockInsert, mockDelete, mockEq, mockSelect, mockSingle, mockFrom, mockGetUser };
+  return { mockInsert, mockDelete, mockUpdate, mockEq, mockSelect, mockSingle, mockFrom, mockGetUser };
 });
 
 vi.mock('../../lib/supabase', () => ({
@@ -56,7 +58,7 @@ function setupLoadAllMocks(profileData: object | null = { name: 'Alice', allergi
         insert: mockInsert,
       };
     }
-    if (table === 'recipes') return { select: mockSelect, insert: mockInsert, delete: mockDelete };
+    if (table === 'recipes') return { select: mockSelect, insert: mockInsert, delete: mockDelete, update: mockUpdate };
     return { select: () => ({ eq: () => Promise.resolve({ data: [], error: null }) }) };
   });
   mockEq.mockReturnValue({ single: mockSingle, eq: mockEq });
@@ -124,6 +126,50 @@ describe('useAppData – addRecipe', () => {
     await act(async () => { await result.current.addRecipe(makeRecipe()); });
 
     expect(mockInsert).not.toHaveBeenCalled();
+  });
+});
+
+describe('useAppData – updateRecipe', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('updates in-memory state and sends UPDATE to DB', async () => {
+    setupLoadAllMocks();
+    mockInsert.mockResolvedValue({ data: null, error: null });
+    mockEq.mockReturnValue({ eq: mockEq });
+
+    const { result } = renderHook(() => useAppData());
+    await act(async () => {});
+
+    const recipe = makeRecipe();
+    await act(async () => { await result.current.addRecipe(recipe); });
+
+    const updated = makeRecipe({ name: 'Cheese Omelette', time: 20 });
+    await act(async () => { await result.current.updateRecipe(updated); });
+
+    expect(mockUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({ name: 'Cheese Omelette', time: 20 }),
+    );
+    expect(mockEq).toHaveBeenCalledWith('id', 'recipe-1');
+    expect(mockEq).toHaveBeenCalledWith('user_id', 'user-1');
+    expect(result.current.recipes.find(r => r.id === 'recipe-1')?.name).toBe('Cheese Omelette');
+  });
+
+  it('maps null optional fields correctly on update', async () => {
+    setupLoadAllMocks();
+    mockInsert.mockResolvedValue({ data: null, error: null });
+    mockEq.mockReturnValue({ eq: mockEq });
+
+    const { result } = renderHook(() => useAppData());
+    await act(async () => {});
+
+    const recipe = makeRecipe({ nameEn: undefined, authorName: undefined, authorEmail: undefined });
+    await act(async () => { await result.current.updateRecipe(recipe); });
+
+    expect(mockUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({ name_en: null, author_name: null, author_email: null }),
+    );
   });
 });
 

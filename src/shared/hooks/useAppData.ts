@@ -159,6 +159,30 @@ export function useAppData() {
     await supabase.from('recipes').delete().eq('id', id).eq('user_id', user.id);
   }, []);
 
+  const updateRecipe = useCallback(async (recipe: Recipe) => {
+    setRecipesState(prev => prev.map(r => r.id === recipe.id ? recipe : r));
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    const { error } = await supabase.from('recipes')
+      .update({
+        name: recipe.name,
+        name_en: recipe.nameEn ?? null,
+        emoji: recipe.emoji,
+        ingredients: recipe.ingredients,
+        steps: recipe.steps,
+        time: recipe.time,
+        tags: recipe.tags,
+        required_ingredients: recipe.requiredIngredients,
+        is_ai: recipe.isAI,
+        is_public: recipe.isPublic,
+        author_name: recipe.authorName ?? null,
+        author_email: recipe.authorEmail ?? null,
+      })
+      .eq('id', recipe.id)
+      .eq('user_id', user.id);
+    if (error) console.error('updateRecipe error:', error);
+  }, []);
+
   const setProducts = useCallback((next: Product[]) => {
     setProductsState(next);
     const defaultIds = new Set(DEFAULT_PRODUCTS.map(p => p.id));
@@ -209,5 +233,5 @@ export function useAppData() {
     setProductsState(prev => [...prev, { ...newProduct, id: data.id }]);
   }, []);
 
-  return { loading, userEmail, profile, setProfile, fridge, addFridgeItem, removeFridgeItem, recipes, addRecipe, removeRecipe, products, setProducts, addProduct };
+  return { loading, userEmail, profile, setProfile, fridge, addFridgeItem, removeFridgeItem, recipes, addRecipe, removeRecipe, updateRecipe, products, setProducts, addProduct };
 }
