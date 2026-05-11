@@ -36,6 +36,7 @@ const toMatchedRecipe = (recipe: GeminiRecipe, index: number, fridgeItems: Fridg
     tags: recipe.tags ?? [],
     requiredIngredients: recipe.requiredIngredients,
     isAI: true,
+    isPublic: false,
     matchScore: matchedCount / Math.max(recipe.requiredIngredients.length, 1),
     matchedCount,
   };

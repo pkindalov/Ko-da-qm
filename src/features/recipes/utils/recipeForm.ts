@@ -6,7 +6,7 @@ export interface RecipeFormData {
   time: string;
   ingredients: string;
   steps: string;
-  isPublic: boolean;
+  isPublic?: boolean;
 }
 
 export function parseRecipeForm(form: RecipeFormData): Omit<Recipe, 'id' | 'authorName' | 'authorEmail'> | null {
@@ -20,7 +20,7 @@ export function parseRecipeForm(form: RecipeFormData): Omit<Recipe, 'id' | 'auth
     time: parseInt(form.time) || 15,
     tags: [],
     isAI: false,
-    isPublic: form.isPublic,
+    isPublic: form.isPublic ?? false,
     requiredIngredients: ingredientLines.map((i) => i.split(' ').slice(1).join(' ') || i),
   };
 }
