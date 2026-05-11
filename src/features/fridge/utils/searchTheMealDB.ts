@@ -129,6 +129,7 @@ function mealToMatchedRecipe(meal: DetailMeal, matchedCount: number, totalFridge
     tags,
     requiredIngredients,
     isAI: false,
+    isPublic: false,
     matchedCount,
     matchScore: matchedCount / totalFridgeItems,
   };

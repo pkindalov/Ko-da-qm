@@ -143,6 +143,7 @@ const makeMatchedRecipe = (overrides: Partial<MatchedRecipe> = {}): MatchedRecip
   time: 20,
   tags: [],
   isAI: true,
+  isPublic: false,
   matchScore: 1,
   matchedCount: 1,
   ...overrides,

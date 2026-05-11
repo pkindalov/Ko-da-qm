@@ -31,6 +31,7 @@ const sampleRecipes: Recipe[] = [
     steps: ['Нарежи'],
     tags: [],
     isAI: false,
+    isPublic: false,
   },
   {
     id: 'r2',
@@ -43,6 +44,7 @@ const sampleRecipes: Recipe[] = [
     steps: ['Свари'],
     tags: [],
     isAI: false,
+    isPublic: false,
   },
 ];
 
