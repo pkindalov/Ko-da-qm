@@ -43,7 +43,7 @@ export function AppShell() {
   }
 
   const screens: Record<Tab, React.ReactNode> = {
-    home: <HomeScreen profile={profile} recipes={recipes} fridge={fridge} publicRecipes={publicRecipes} setTab={setTab} lang={tweaks.lang} />,
+    home: <HomeScreen profile={profile} recipes={recipes} fridge={fridge} publicRecipes={publicRecipes} products={products} setTab={setTab} lang={tweaks.lang} />,
     fridge: <FridgeScreen fridge={fridge} addFridgeItem={addFridgeItem} removeFridgeItem={removeFridgeItem} profile={profile} recipes={recipes} products={products} lang={tweaks.lang} />,
     recipes: <RecipesScreen recipes={recipes} addRecipe={addRecipe} removeRecipe={removeRecipe} updateRecipe={updateRecipe} products={products} profile={profile} lang={tweaks.lang} userEmail={userEmail} />,
     products: <ProductsScreen products={products} setProducts={setProducts} addProduct={addProduct} lang={tweaks.lang} />,

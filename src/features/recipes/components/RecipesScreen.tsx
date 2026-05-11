@@ -3,7 +3,7 @@ import { Modal } from '../../../shared/components/Modal';
 import { Badge } from '../../../shared/components/Badge';
 import { EmptyState } from '../../../shared/components/EmptyState';
 import { searchDatabase } from '../../fridge/utils/matchFromFridge';
-import { isSafe } from '../../../shared/utils/recipeUtils';
+import { isSafe, recipeRisk } from '../../../shared/utils/recipeUtils';
 import { parseRecipeForm } from '../utils/recipeForm';
 import type { Recipe, Profile, Language, Product } from '../../../shared/types';
 
@@ -43,7 +43,12 @@ export function RecipesScreen({ recipes, addRecipe, removeRecipe, updateRecipe, 
   const [form, setForm] = useState<RecipeFormState>(EMPTY_FORM);
   const [productFilter, setProductFilter] = useState('');
 
-  const blocked = [...profile.allergies, ...profile.dislikes];
+  const toNames = (list: { name: string; nameEn?: string }[]) =>
+    list.flatMap(p => p.nameEn ? [p.name, p.nameEn] : [p.name]);
+
+  const allergies = [...profile.allergies, ...toNames(products.filter(p => p.status === 'allergic'))];
+  const dislikes  = [...profile.dislikes,  ...toNames(products.filter(p => p.status === 'disliked'))];
+  const blocked   = [...allergies, ...dislikes];
   const filteredProducts = products.filter(p =>
     (L && p.nameEn ? p.nameEn : p.name).toLowerCase().includes(productFilter.toLowerCase())
   );
@@ -124,9 +129,16 @@ export function RecipesScreen({ recipes, addRecipe, removeRecipe, updateRecipe, 
             <div className="detail-emoji">{detailRecipe.emoji}</div>
             <div className="detail-title">{L && detailRecipe.nameEn ? detailRecipe.nameEn : detailRecipe.name}</div>
             <div style={{ marginTop: 8, display: 'flex', justifyContent: 'center', gap: 6, flexWrap: 'wrap' }}>
-              <Badge type={isSafe(detailRecipe, blocked) ? 'safe' : 'dislike'}>
-                {isSafe(detailRecipe, blocked) ? (L ? '✓ Safe for you' : '✓ Безопасно') : (L ? '⚠ Contains restrictions' : '⚠ Съдържа ограничения')}
-              </Badge>
+              {(() => {
+                const r = recipeRisk(detailRecipe, allergies, dislikes);
+                return (
+                  <Badge type={r === 'safe' ? 'safe' : r === 'allergy' ? 'allergy' : 'dislike'}>
+                    {r === 'safe'    && (L ? '✓ Safe for you'          : '✓ Безопасно')}
+                    {r === 'dislike' && (L ? '⚠ Contains restrictions' : '⚠ Съдържа ограничения')}
+                    {r === 'allergy' && (L ? '⚠ Contains allergens!'   : '⚠ Съдържа алергени!')}
+                  </Badge>
+                );
+              })()}
               <span className="badge badge-neutral">⏱ {detailRecipe.time} {L ? 'min' : 'мин'}</span>
               {detailRecipe.isAI && <Badge type="primary">✨ AI</Badge>}
             </div>
@@ -136,7 +148,8 @@ export function RecipesScreen({ recipes, addRecipe, removeRecipe, updateRecipe, 
             <div className="section-title">{L ? 'INGREDIENTS' : 'СЪСТАВКИ'}</div>
             <div className="stack" style={{ gap: 6 }}>
               {detailRecipe.ingredients.map((ing, i) => {
-                const isBlockedIng = blocked.some((b) => ing.toLowerCase().includes(b));
+                const isAllergyIng = allergies.some((b) => ing.toLowerCase().includes(b.toLowerCase()));
+                const isBlockedIng = isAllergyIng || dislikes.some((b) => ing.toLowerCase().includes(b.toLowerCase()));
                 return (
                   <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, fontWeight: 600 }}>
                     <span style={{ color: isBlockedIng ? 'var(--danger)' : 'var(--secondary)' }}>
@@ -146,10 +159,8 @@ export function RecipesScreen({ recipes, addRecipe, removeRecipe, updateRecipe, 
                       {ing}
                     </span>
                     {isBlockedIng && (
-                      <Badge type={profile.allergies.some((a) => ing.toLowerCase().includes(a)) ? 'allergy' : 'dislike'}>
-                        {profile.allergies.some((a) => ing.toLowerCase().includes(a))
-                          ? (L ? 'Allergy' : 'Алергия')
-                          : (L ? 'Dislike' : 'Нелюбимо')}
+                      <Badge type={isAllergyIng ? 'allergy' : 'dislike'}>
+                        {isAllergyIng ? (L ? 'Allergy' : 'Алергия') : (L ? 'Dislike' : 'Нелюбимо')}
                       </Badge>
                     )}
                   </div>
@@ -216,15 +227,17 @@ export function RecipesScreen({ recipes, addRecipe, removeRecipe, updateRecipe, 
           ) : (
             <div className="grid-2">
               {filtered.map((r) => {
-                const safe = isSafe(r, blocked);
+                const risk = recipeRisk(r, allergies, dislikes);
                 return (
-                  <div key={r.id} className="recipe-card" onClick={() => setDetail(r.id)}>
+                  <div key={r.id} className={`recipe-card${risk === 'allergy' ? ' allergy' : ''}`} onClick={() => setDetail(r.id)}>
                     {r.isAI && <div style={{ position: 'absolute', top: 12, right: 12 }}><Badge type="primary">✨ AI</Badge></div>}
                     <div className="recipe-emoji">{r.emoji}</div>
                     <div className="recipe-name">{L && r.nameEn ? r.nameEn : r.name}</div>
                     <div className="recipe-meta">⏱ {r.time} {L ? 'min' : 'мин'}</div>
                     <div style={{ marginTop: 6 }}>
-                      <Badge type={safe ? 'safe' : 'dislike'}>{safe ? (L ? 'Safe' : 'Безопасно') : (L ? 'Check' : 'Провери!')}</Badge>
+                      {risk === 'safe'    && <Badge type="safe">{L ? 'Safe' : 'Безопасно'}</Badge>}
+                      {risk === 'dislike' && <Badge type="dislike">{L ? 'Check' : 'Провери!'}</Badge>}
+                      {risk === 'allergy' && <Badge type="allergy">⚠ {L ? 'Allergy risk!' : 'Алергия!'}</Badge>}
                     </div>
                   </div>
                 );

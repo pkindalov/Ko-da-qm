@@ -1,22 +1,26 @@
 import { Badge } from '../../../shared/components/Badge';
 import { EmptyState } from '../../../shared/components/EmptyState';
-import { isSafe } from '../../../shared/utils/recipeUtils';
+import { isSafe, recipeRisk } from '../../../shared/utils/recipeUtils';
 import { getGreeting } from '../../../shared/utils/greeting';
-import type { Profile, Recipe, FridgeItem, Language, Tab } from '../../../shared/types';
+import type { Profile, Recipe, FridgeItem, Language, Tab, Product } from '../../../shared/types';
 
 interface HomeScreenProps {
   profile: Profile;
   recipes: Recipe[];
   fridge: FridgeItem[];
   publicRecipes: Recipe[];
+  products: Product[];
   setTab: (tab: Tab) => void;
   lang: Language;
 }
 
-export function HomeScreen({ profile, recipes, fridge, publicRecipes, setTab, lang }: HomeScreenProps) {
+export function HomeScreen({ profile, recipes, fridge, publicRecipes, products, setTab, lang }: HomeScreenProps) {
   const L = lang === 'en';
 
-  const blocked = [...profile.allergies, ...profile.dislikes];
+  const toNames = (list: Product[]) => list.flatMap(p => p.nameEn ? [p.name, p.nameEn] : [p.name]);
+  const allergies = [...profile.allergies, ...toNames(products.filter(p => p.status === 'allergic'))];
+  const dislikes  = [...profile.dislikes,  ...toNames(products.filter(p => p.status === 'disliked'))];
+  const blocked   = [...allergies, ...dislikes];
   const safeRecipes = recipes.filter((r) => isSafe(r, blocked));
   const greeting = getGreeting(new Date().getHours(), lang);
 
@@ -66,21 +70,29 @@ export function HomeScreen({ profile, recipes, fridge, publicRecipes, setTab, la
       <div className="divider" />
       <div className="section-title">{L ? 'QUICK IDEAS' : 'БЪРЗИ ИДЕИ'}</div>
 
-      {safeRecipes.length === 0 ? (
+      {recipes.length === 0 ? (
         <EmptyState
           icon="😔"
-          title={L ? 'No safe recipes yet' : 'Все още няма безопасни рецепти'}
+          title={L ? 'No recipes yet' : 'Все още няма рецепти'}
           subtitle={L ? 'Add recipes or update your restrictions' : 'Добави рецепти или промени ограниченията си'}
         />
       ) : (
         <div className="grid-2">
-          {safeRecipes.slice(0, 4).map((r) => (
-            <div key={r.id} className="recipe-card" onClick={() => setTab('recipes')}>
-              <div className="recipe-emoji">{r.emoji}</div>
-              <div className="recipe-name">{L && r.nameEn ? r.nameEn : r.name}</div>
-              <div className="recipe-meta">⏱ {r.time} {L ? 'min' : 'мин'}</div>
-            </div>
-          ))}
+          {recipes.slice(0, 4).map((r) => {
+            const risk = recipeRisk(r, allergies, dislikes);
+            return (
+              <div key={r.id} className={`recipe-card${risk === 'allergy' ? ' allergy' : ''}`} onClick={() => setTab('recipes')}>
+                <div className="recipe-emoji">{r.emoji}</div>
+                <div className="recipe-name">{L && r.nameEn ? r.nameEn : r.name}</div>
+                <div className="recipe-meta">⏱ {r.time} {L ? 'min' : 'мин'}</div>
+                <div style={{ marginTop: 6 }}>
+                  {risk === 'safe'    && <Badge type="safe">{L ? 'Safe' : 'Безопасно'}</Badge>}
+                  {risk === 'dislike' && <Badge type="dislike">{L ? 'Check' : 'Провери!'}</Badge>}
+                  {risk === 'allergy' && <Badge type="allergy">⚠ {L ? 'Allergy risk!' : 'Алергия!'}</Badge>}
+                </div>
+              </div>
+            );
+          })}
         </div>
       )}
 
