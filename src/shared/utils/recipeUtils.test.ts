@@ -11,6 +11,7 @@ const makeRecipe = (requiredIngredients: string[]): Recipe => ({
   time: 10,
   tags: [],
   isAI: false,
+  isPublic: false,
   requiredIngredients,
 });
 
