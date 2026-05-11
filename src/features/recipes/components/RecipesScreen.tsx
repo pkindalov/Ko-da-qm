@@ -41,13 +41,18 @@ export function RecipesScreen({ recipes, addRecipe, removeRecipe, updateRecipe, 
   const [dbResults, setDbResults] = useState<Awaited<ReturnType<typeof searchDatabase>>>([]);
   const [dbLoading, setDbLoading] = useState(false);
   const [form, setForm] = useState<RecipeFormState>(EMPTY_FORM);
+  const [productFilter, setProductFilter] = useState('');
 
   const blocked = [...profile.allergies, ...profile.dislikes];
+  const filteredProducts = products.filter(p =>
+    (L && p.nameEn ? p.nameEn : p.name).toLowerCase().includes(productFilter.toLowerCase())
+  );
 
   const closeModal = () => {
     setAddOpen(false);
     setEditingId(null);
     setForm(EMPTY_FORM);
+    setProductFilter('');
   };
 
   const openEditModal = (r: Recipe) => {
@@ -252,11 +257,25 @@ export function RecipesScreen({ recipes, addRecipe, removeRecipe, updateRecipe, 
             placeholder={L ? '3 eggs\n50g cheese' : '3 яйца\n50г кашкавал'} />
           {products.length > 0 && (
             <div style={{ marginTop: 6 }}>
-              <div style={{ fontSize: 12, color: 'var(--text2)', fontWeight: 600, marginBottom: 6 }}>
-                {L ? 'Pick from your products:' : 'Избери от продуктите:'}
+              <div style={{ fontSize: 12, color: 'var(--text2)', fontWeight: 600, marginBottom: 6, display: 'flex', justifyContent: 'space-between' }}>
+                <span>{L ? 'Pick from your products:' : 'Избери от продуктите:'}</span>
+                {products.length >= 10 && (
+                  <span style={{ fontWeight: 400 }}>
+                    {filteredProducts.length} / {products.length}
+                  </span>
+                )}
               </div>
+              {products.length >= 10 && (
+                <input
+                  className="input-field"
+                  value={productFilter}
+                  onChange={(e) => setProductFilter(e.target.value)}
+                  placeholder={L ? 'Filter products...' : 'Филтрирай продукти...'}
+                  style={{ marginBottom: 6, fontSize: 13 }}
+                />
+              )}
               <div className="tag-list">
-                {products.map(p => (
+                {filteredProducts.map(p => (
                   <button key={p.id} className="chip" onClick={() => appendIngredient(L && p.nameEn ? p.nameEn : p.name)}>
                     {p.emoji} {L && p.nameEn ? p.nameEn : p.name}
                   </button>
