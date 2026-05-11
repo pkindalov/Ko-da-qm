@@ -129,38 +129,34 @@ export function useAppData() {
     await supabase.from('fridge_items').delete().eq('id', id).eq('user_id', user.id);
   }, []);
 
-  const setRecipes = useCallback((next: Recipe[]) => {
-    setRecipesState(next);
-    supabase.auth.getUser().then(async ({ data: { user } }) => {
-      if (!user) return;
-      if (next.length === 0) {
-        await supabase.from('recipes').delete().eq('user_id', user.id);
-        return;
-      }
-      await supabase.from('recipes').upsert(
-        next.map(item => ({
-          id: item.id,
-          user_id: user.id,
-          name: item.name,
-          name_en: item.nameEn ?? null,
-          emoji: item.emoji,
-          ingredients: item.ingredients,
-          steps: item.steps,
-          time: item.time,
-          tags: item.tags,
-          required_ingredients: item.requiredIngredients,
-          is_ai: item.isAI,
-          is_public: item.isPublic,
-          author_name: item.authorName ?? null,
-          author_email: item.authorEmail ?? null,
-        })),
-        { onConflict: 'id,user_id' }
-      );
-      supabase.from('recipes')
-        .delete()
-        .eq('user_id', user.id)
-        .not('id', 'in', `(${next.map(i => i.id).join(',')})`);
+  const addRecipe = useCallback(async (recipe: Recipe) => {
+    setRecipesState(prev => [...prev, recipe]);
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    const { error } = await supabase.from('recipes').insert({
+      id: recipe.id,
+      user_id: user.id,
+      name: recipe.name,
+      name_en: recipe.nameEn ?? null,
+      emoji: recipe.emoji,
+      ingredients: recipe.ingredients,
+      steps: recipe.steps,
+      time: recipe.time,
+      tags: recipe.tags,
+      required_ingredients: recipe.requiredIngredients,
+      is_ai: recipe.isAI,
+      is_public: recipe.isPublic,
+      author_name: recipe.authorName ?? null,
+      author_email: recipe.authorEmail ?? null,
     });
+    if (error) console.error('addRecipe error:', error);
+  }, []);
+
+  const removeRecipe = useCallback(async (id: string) => {
+    setRecipesState(prev => prev.filter(r => r.id !== id));
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    await supabase.from('recipes').delete().eq('id', id).eq('user_id', user.id);
   }, []);
 
   const setProducts = useCallback((next: Product[]) => {
@@ -213,5 +209,5 @@ export function useAppData() {
     setProductsState(prev => [...prev, { ...newProduct, id: data.id }]);
   }, []);
 
-  return { loading, userEmail, profile, setProfile, fridge, addFridgeItem, removeFridgeItem, recipes, setRecipes, products, setProducts, addProduct };
+  return { loading, userEmail, profile, setProfile, fridge, addFridgeItem, removeFridgeItem, recipes, addRecipe, removeRecipe, products, setProducts, addProduct };
 }

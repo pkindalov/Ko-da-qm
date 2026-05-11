@@ -9,7 +9,8 @@ import type { Recipe, Profile, Language } from '../../../shared/types';
 
 interface RecipesScreenProps {
   recipes: Recipe[];
-  setRecipes: (recipes: Recipe[]) => void;
+  addRecipe: (recipe: Recipe) => void;
+  removeRecipe: (id: string) => void;
   profile: Profile;
   lang: Language;
   userEmail: string;
@@ -24,7 +25,7 @@ interface NewRecipeForm {
   isPublic: boolean;
 }
 
-export function RecipesScreen({ recipes, setRecipes, profile, lang, userEmail }: RecipesScreenProps) {
+export function RecipesScreen({ recipes, addRecipe, removeRecipe, profile, lang, userEmail }: RecipesScreenProps) {
   const L = lang === 'en';
   const [search, setSearch] = useState('');
   const [detail, setDetail] = useState<string | null>(null);
@@ -49,7 +50,7 @@ export function RecipesScreen({ recipes, setRecipes, profile, lang, userEmail }:
 
   const importFromDb = (r: Recipe) => {
     if (!recipes.find((x) => x.id === r.id || x.name === r.name)) {
-      setRecipes([...recipes, { ...r, isAI: false, isPublic: false, authorName: undefined, authorEmail: undefined }]);
+      addRecipe({ ...r, isAI: false, isPublic: false, authorName: undefined, authorEmail: undefined });
     }
     setDbOpen(false);
     setDbSearch('');
@@ -64,12 +65,7 @@ export function RecipesScreen({ recipes, setRecipes, profile, lang, userEmail }:
   const saveRecipe = () => {
     const parsed = parseRecipeForm(newR);
     if (!parsed) return;
-    setRecipes([...recipes, {
-      ...parsed,
-      id: crypto.randomUUID(),
-      authorName: profile.name,
-      authorEmail: userEmail,
-    }]);
+    addRecipe({ ...parsed, id: crypto.randomUUID(), authorName: profile.name, authorEmail: userEmail });
     setNewR({ name: '', emoji: '🍽', time: '', ingredients: '', steps: '', isPublic: false });
     setAddOpen(false);
   };
@@ -135,7 +131,7 @@ export function RecipesScreen({ recipes, setRecipes, profile, lang, userEmail }:
 
         <button
           className="btn btn-danger btn-sm"
-          onClick={() => { setRecipes(recipes.filter((x) => x.id !== r.id)); setDetail(null); }}
+          onClick={() => { removeRecipe(r.id); setDetail(null); }}
         >
           {L ? 'Delete Recipe' : 'Изтрий рецептата'}
         </button>

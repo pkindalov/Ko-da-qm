@@ -8,11 +8,12 @@ interface HomeScreenProps {
   profile: Profile;
   recipes: Recipe[];
   fridge: FridgeItem[];
+  publicRecipes: Recipe[];
   setTab: (tab: Tab) => void;
   lang: Language;
 }
 
-export function HomeScreen({ profile, recipes, fridge, setTab, lang }: HomeScreenProps) {
+export function HomeScreen({ profile, recipes, fridge, publicRecipes, setTab, lang }: HomeScreenProps) {
   const L = lang === 'en';
 
   const blocked = [...profile.allergies, ...profile.dislikes];
@@ -81,6 +82,25 @@ export function HomeScreen({ profile, recipes, fridge, setTab, lang }: HomeScree
             </div>
           ))}
         </div>
+      )}
+
+      {publicRecipes.length > 0 && (
+        <>
+          <div className="divider" />
+          <div className="section-title">{L ? 'FROM THE COMMUNITY' : 'ОТ ОБЩНОСТТА'}</div>
+          <div className="grid-2">
+            {publicRecipes.slice(0, 4).map((r) => (
+              <div key={r.id} className="recipe-card">
+                <div className="recipe-emoji">{r.emoji}</div>
+                <div className="recipe-name">{L && r.nameEn ? r.nameEn : r.name}</div>
+                <div className="recipe-meta">⏱ {r.time} {L ? 'min' : 'мин'}</div>
+                {r.authorName && (
+                  <div className="recipe-meta">👤 {r.authorName}</div>
+                )}
+              </div>
+            ))}
+          </div>
+        </>
       )}
 
       <div className="divider" />
