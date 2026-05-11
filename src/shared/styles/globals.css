@@ -115,6 +115,7 @@ a{color:inherit;text-decoration:none}
 @media(min-width:768px){.modal-overlay{align-items:center}}
 .modal{background:var(--surface);border-radius:var(--r) var(--r) 0 0;padding:24px;width:100%;max-width:500px;max-height:90dvh;overflow-y:auto;position:relative}
 @media(min-width:768px){.modal{border-radius:var(--r);max-height:85dvh}}
+@media(min-width:768px){.modal-recipe{width:70vw;max-width:none;max-height:88dvh}}
 .modal-title{font-size:20px;font-weight:900;margin-bottom:20px}
 .modal-close{position:absolute;top:16px;right:16px;background:var(--bg);border:none;border-radius:50%;width:32px;height:32px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center}
 

@@ -132,7 +132,7 @@ export function HomeScreen({ profile, recipes, fridge, publicRecipes, products, 
       <Modal
         open={selectedRecipe !== null}
         onClose={() => setSelectedRecipe(null)}
-        contentStyle={{ maxWidth: 600 }}
+        contentClassName="modal-recipe"
       >
         {selectedRecipe && (
           <RecipeDetailView
