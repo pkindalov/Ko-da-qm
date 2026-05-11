@@ -12,6 +12,7 @@ export interface MatchedRecipe {
   tags: string[];
   requiredIngredients: string[];
   isAI: boolean;
+  isPublic: boolean;
   matchScore: number;
   matchedCount: number;
 }
@@ -50,6 +51,7 @@ function toMatched(row: DbRow, fridgeLow: string[], blocked: string[]): MatchedR
     tags: row.tags,
     requiredIngredients: row.required_ingredients,
     isAI: row.is_ai,
+    isPublic: false,
     matchScore,
     matchedCount,
   };

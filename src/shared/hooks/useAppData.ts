@@ -5,6 +5,7 @@ import type { Profile, FridgeItem, Recipe, Product } from '../types';
 
 export function useAppData() {
   const [loading, setLoading] = useState(true);
+  const [userEmail, setUserEmail] = useState('');
   const [profile, setProfileState] = useState<Profile>(DEFAULT_PROFILE);
   const [fridge, setFridgeState] = useState<FridgeItem[]>(DEFAULT_FRIDGE);
   const [recipes, setRecipesState] = useState<Recipe[]>(DEFAULT_RECIPES);
@@ -17,6 +18,7 @@ export function useAppData() {
   async function loadAll() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { setLoading(false); return; }
+    setUserEmail(user.email ?? '');
 
     const [profileRes, fridgeRes, recipesRes, productsRes] = await Promise.all([
       supabase.from('users').select('*').eq('id', user.id).single(),
@@ -71,6 +73,9 @@ export function useAppData() {
         tags: r.tags ?? [],
         requiredIngredients: r.required_ingredients ?? [],
         isAI: r.is_ai,
+        isPublic: r.is_public ?? false,
+        authorName: r.author_name ?? undefined,
+        authorEmail: r.author_email ?? undefined,
       })));
     }
 
@@ -145,6 +150,9 @@ export function useAppData() {
           tags: item.tags,
           required_ingredients: item.requiredIngredients,
           is_ai: item.isAI,
+          is_public: item.isPublic,
+          author_name: item.authorName ?? null,
+          author_email: item.authorEmail ?? null,
         })),
         { onConflict: 'id,user_id' }
       );
@@ -205,5 +213,5 @@ export function useAppData() {
     setProductsState(prev => [...prev, { ...newProduct, id: data.id }]);
   }, []);
 
-  return { loading, profile, setProfile, fridge, addFridgeItem, removeFridgeItem, recipes, setRecipes, products, setProducts, addProduct };
+  return { loading, userEmail, profile, setProfile, fridge, addFridgeItem, removeFridgeItem, recipes, setRecipes, products, setProducts, addProduct };
 }

@@ -6,9 +6,10 @@ export interface RecipeFormData {
   time: string;
   ingredients: string;
   steps: string;
+  isPublic: boolean;
 }
 
-export function parseRecipeForm(form: RecipeFormData): Omit<Recipe, 'id'> | null {
+export function parseRecipeForm(form: RecipeFormData): Omit<Recipe, 'id' | 'authorName' | 'authorEmail'> | null {
   if (!form.name.trim()) return null;
   const ingredientLines = form.ingredients.split('\n').filter(Boolean);
   return {
@@ -19,6 +20,7 @@ export function parseRecipeForm(form: RecipeFormData): Omit<Recipe, 'id'> | null
     time: parseInt(form.time) || 15,
     tags: [],
     isAI: false,
+    isPublic: form.isPublic,
     requiredIngredients: ingredientLines.map((i) => i.split(' ').slice(1).join(' ') || i),
   };
 }

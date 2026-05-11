@@ -12,6 +12,7 @@ interface RecipesScreenProps {
   setRecipes: (recipes: Recipe[]) => void;
   profile: Profile;
   lang: Language;
+  userEmail: string;
 }
 
 interface NewRecipeForm {
@@ -20,9 +21,10 @@ interface NewRecipeForm {
   time: string;
   ingredients: string;
   steps: string;
+  isPublic: boolean;
 }
 
-export function RecipesScreen({ recipes, setRecipes, profile, lang }: RecipesScreenProps) {
+export function RecipesScreen({ recipes, setRecipes, profile, lang, userEmail }: RecipesScreenProps) {
   const L = lang === 'en';
   const [search, setSearch] = useState('');
   const [detail, setDetail] = useState<string | null>(null);
@@ -32,7 +34,7 @@ export function RecipesScreen({ recipes, setRecipes, profile, lang }: RecipesScr
   const [dbSearch, setDbSearch] = useState('');
   const [dbResults, setDbResults] = useState<Awaited<ReturnType<typeof searchDatabase>>>([]);
   const [dbLoading, setDbLoading] = useState(false);
-  const [newR, setNewR] = useState<NewRecipeForm>({ name: '', emoji: '🍽', time: '', ingredients: '', steps: '' });
+  const [newR, setNewR] = useState<NewRecipeForm>({ name: '', emoji: '🍽', time: '', ingredients: '', steps: '', isPublic: false });
 
   const blocked = [...profile.allergies, ...profile.dislikes];
 
@@ -47,7 +49,7 @@ export function RecipesScreen({ recipes, setRecipes, profile, lang }: RecipesScr
 
   const importFromDb = (r: Recipe) => {
     if (!recipes.find((x) => x.id === r.id || x.name === r.name)) {
-      setRecipes([...recipes, { ...r, isAI: false }]);
+      setRecipes([...recipes, { ...r, isAI: false, isPublic: false, authorName: undefined, authorEmail: undefined }]);
     }
     setDbOpen(false);
     setDbSearch('');
@@ -62,8 +64,13 @@ export function RecipesScreen({ recipes, setRecipes, profile, lang }: RecipesScr
   const saveRecipe = () => {
     const parsed = parseRecipeForm(newR);
     if (!parsed) return;
-    setRecipes([...recipes, { ...parsed, id: 'r' + Date.now() }]);
-    setNewR({ name: '', emoji: '🍽', time: '', ingredients: '', steps: '' });
+    setRecipes([...recipes, {
+      ...parsed,
+      id: crypto.randomUUID(),
+      authorName: profile.name,
+      authorEmail: userEmail,
+    }]);
+    setNewR({ name: '', emoji: '🍽', time: '', ingredients: '', steps: '', isPublic: false });
     setAddOpen(false);
   };
 
@@ -217,6 +224,21 @@ export function RecipesScreen({ recipes, setRecipes, profile, lang }: RecipesScr
           <label className="input-label">{L ? 'Steps (one per line)' : 'Стъпки (по един ред)'}</label>
           <textarea className="input-field" rows={4} value={newR.steps} onChange={(e) => setNewR({ ...newR, steps: e.target.value })}
             placeholder={L ? 'Beat the eggs\nHeat the pan' : 'Разбий яйцата\nЗагрей тигана'} />
+        </div>
+        <div className="toggle-wrap" style={{ marginBottom: 20 }}>
+          <label className="toggle">
+            <input
+              type="checkbox"
+              checked={newR.isPublic}
+              onChange={(e) => setNewR({ ...newR, isPublic: e.target.checked })}
+            />
+            <span className="toggle-slider" />
+          </label>
+          <span className={`toggle-label${newR.isPublic ? ' active' : ''}`}>
+            {newR.isPublic
+              ? (L ? '🌐 Public — visible to all users' : '🌐 Публична — видима за всички')
+              : (L ? '🔒 Private — only you can see it' : '🔒 Лична — само ти я виждаш')}
+          </span>
         </div>
         <div style={{ display: 'flex', gap: 10 }}>
           <button className="btn btn-primary" style={{ flex: 1 }} onClick={saveRecipe}>{L ? 'Save' : 'Запази'}</button>

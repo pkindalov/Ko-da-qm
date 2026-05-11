@@ -57,6 +57,9 @@ export interface Recipe {
   tags: string[];
   requiredIngredients: string[];
   isAI: boolean;
+  isPublic: boolean;
+  authorName?: string;
+  authorEmail?: string;
 }
 
 export interface Category {

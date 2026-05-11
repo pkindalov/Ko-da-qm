@@ -67,4 +67,14 @@ describe('parseRecipeForm', () => {
     const result = parseRecipeForm({ name: 'Тест', emoji: '🍳', time: '10', ingredients: '2 с.л. масло', steps: '' });
     expect(result?.requiredIngredients).toEqual(['с.л. масло']);
   });
+
+  it('sets isPublic to true when form flag is true', () => {
+    const result = parseRecipeForm({ name: 'Тест', emoji: '🍳', time: '10', ingredients: '', steps: '', isPublic: true });
+    expect(result?.isPublic).toBe(true);
+  });
+
+  it('sets isPublic to false when form flag is false', () => {
+    const result = parseRecipeForm({ name: 'Тест', emoji: '🍳', time: '10', ingredients: '', steps: '', isPublic: false });
+    expect(result?.isPublic).toBe(false);
+  });
 });
