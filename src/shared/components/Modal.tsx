@@ -1,11 +1,12 @@
 interface ModalProps {
   open: boolean;
   onClose: () => void;
-  title: string;
+  title?: string;
   children: React.ReactNode;
+  contentStyle?: React.CSSProperties;
 }
 
-export function Modal({ open, onClose, title, children }: ModalProps) {
+export function Modal({ open, onClose, title, children, contentStyle }: ModalProps) {
   if (!open) return null;
 
   return (
@@ -15,9 +16,9 @@ export function Modal({ open, onClose, title, children }: ModalProps) {
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="modal fade-in" onClick={(e) => e.stopPropagation()}>
+      <div className="modal fade-in" style={contentStyle} onClick={(e) => e.stopPropagation()}>
         <button className="modal-close" onClick={onClose}>✕</button>
-        <div className="modal-title">{title}</div>
+        {title && <div className="modal-title">{title}</div>}
         {children}
       </div>
     </div>

@@ -1,5 +1,8 @@
+import { useState } from 'react';
 import { Badge } from '../../../shared/components/Badge';
 import { EmptyState } from '../../../shared/components/EmptyState';
+import { Modal } from '../../../shared/components/Modal';
+import { RecipeDetailView } from '../../../shared/components/RecipeDetailView';
 import { isSafe, recipeRisk } from '../../../shared/utils/recipeUtils';
 import { getGreeting } from '../../../shared/utils/greeting';
 import type { Profile, Recipe, FridgeItem, Language, Tab, Product } from '../../../shared/types';
@@ -16,6 +19,7 @@ interface HomeScreenProps {
 
 export function HomeScreen({ profile, recipes, fridge, publicRecipes, products, setTab, lang }: HomeScreenProps) {
   const L = lang === 'en';
+  const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
 
   const toNames = (list: Product[]) => list.flatMap(p => p.nameEn ? [p.name, p.nameEn] : [p.name]);
   const allergies = [...profile.allergies, ...toNames(products.filter(p => p.status === 'allergic'))];
@@ -102,7 +106,7 @@ export function HomeScreen({ profile, recipes, fridge, publicRecipes, products, 
           <div className="section-title">{L ? 'FROM THE COMMUNITY' : 'ОТ ОБЩНОСТТА'}</div>
           <div className="grid-2">
             {publicRecipes.slice(0, 4).map((r) => (
-              <div key={r.id} className="recipe-card">
+              <div key={r.id} className="recipe-card" onClick={() => setSelectedRecipe(r)}>
                 <div className="recipe-emoji">{r.emoji}</div>
                 <div className="recipe-name">{L && r.nameEn ? r.nameEn : r.name}</div>
                 <div className="recipe-meta">⏱ {r.time} {L ? 'min' : 'мин'}</div>
@@ -124,6 +128,24 @@ export function HomeScreen({ profile, recipes, fridge, publicRecipes, products, 
           📖 {L ? 'All Recipes' : 'Всички рецепти'}
         </button>
       </div>
+
+      <Modal
+        open={selectedRecipe !== null}
+        onClose={() => setSelectedRecipe(null)}
+        contentStyle={{ maxWidth: 600 }}
+      >
+        {selectedRecipe && (
+          <RecipeDetailView
+            recipe={selectedRecipe}
+            allergies={allergies}
+            dislikes={dislikes}
+            lang={lang}
+            isOwner={false}
+            showBackButton={false}
+            onBack={() => setSelectedRecipe(null)}
+          />
+        )}
+      </Modal>
     </div>
   );
 }

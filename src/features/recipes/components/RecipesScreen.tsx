@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Modal } from '../../../shared/components/Modal';
 import { Badge } from '../../../shared/components/Badge';
 import { EmptyState } from '../../../shared/components/EmptyState';
+import { RecipeDetailView } from '../../../shared/components/RecipeDetailView';
 import { searchDatabase } from '../../fridge/utils/matchFromFridge';
 import { isSafe, recipeRisk } from '../../../shared/utils/recipeUtils';
 import { parseRecipeForm } from '../utils/recipeForm';
@@ -120,74 +121,16 @@ export function RecipesScreen({ recipes, addRecipe, removeRecipe, updateRecipe, 
   return (
     <div className="fade-in">
       {detailRecipe ? (
-        <div>
-          <button className="btn btn-ghost btn-sm" style={{ marginBottom: 16 }} onClick={() => setDetail(null)}>
-            ← {L ? 'Back' : 'Назад'}
-          </button>
-
-          <div className="detail-header">
-            <div className="detail-emoji">{detailRecipe.emoji}</div>
-            <div className="detail-title">{L && detailRecipe.nameEn ? detailRecipe.nameEn : detailRecipe.name}</div>
-            <div style={{ marginTop: 8, display: 'flex', justifyContent: 'center', gap: 6, flexWrap: 'wrap' }}>
-              {(() => {
-                const r = recipeRisk(detailRecipe, allergies, dislikes);
-                return (
-                  <Badge type={r === 'safe' ? 'safe' : r === 'allergy' ? 'allergy' : 'dislike'}>
-                    {r === 'safe'    && (L ? '✓ Safe for you'          : '✓ Безопасно')}
-                    {r === 'dislike' && (L ? '⚠ Contains restrictions' : '⚠ Съдържа ограничения')}
-                    {r === 'allergy' && (L ? '⚠ Contains allergens!'   : '⚠ Съдържа алергени!')}
-                  </Badge>
-                );
-              })()}
-              <span className="badge badge-neutral">⏱ {detailRecipe.time} {L ? 'min' : 'мин'}</span>
-              {detailRecipe.isAI && <Badge type="primary">✨ AI</Badge>}
-            </div>
-          </div>
-
-          <div className="card" style={{ marginBottom: 16 }}>
-            <div className="section-title">{L ? 'INGREDIENTS' : 'СЪСТАВКИ'}</div>
-            <div className="stack" style={{ gap: 6 }}>
-              {detailRecipe.ingredients.map((ing, i) => {
-                const isAllergyIng = allergies.some((b) => ing.toLowerCase().includes(b.toLowerCase()));
-                const isBlockedIng = isAllergyIng || dislikes.some((b) => ing.toLowerCase().includes(b.toLowerCase()));
-                return (
-                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, fontWeight: 600 }}>
-                    <span style={{ color: isBlockedIng ? 'var(--danger)' : 'var(--secondary)' }}>
-                      {isBlockedIng ? '✕' : '✓'}
-                    </span>
-                    <span style={{ color: isBlockedIng ? 'var(--danger)' : 'var(--text)', textDecoration: isBlockedIng ? 'line-through' : 'none' }}>
-                      {ing}
-                    </span>
-                    {isBlockedIng && (
-                      <Badge type={isAllergyIng ? 'allergy' : 'dislike'}>
-                        {isAllergyIng ? (L ? 'Allergy' : 'Алергия') : (L ? 'Dislike' : 'Нелюбимо')}
-                      </Badge>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          <div className="card" style={{ marginBottom: 16 }}>
-            <div className="section-title">{L ? 'STEPS' : 'СТЪПКИ'}</div>
-            {detailRecipe.steps.map((s, i) => (
-              <div key={i} className="step-item">
-                <div className="step-num">{i + 1}</div>
-                <div className="step-text">{s}</div>
-              </div>
-            ))}
-          </div>
-
-          <div style={{ display: 'flex', gap: 10 }}>
-            <button className="btn btn-secondary btn-sm" onClick={() => openEditModal(detailRecipe)}>
-              ✏ {L ? 'Edit' : 'Редактирай'}
-            </button>
-            <button className="btn btn-danger btn-sm" onClick={() => { removeRecipe(detailRecipe.id); setDetail(null); }}>
-              {L ? 'Delete' : 'Изтрий'}
-            </button>
-          </div>
-        </div>
+        <RecipeDetailView
+          recipe={detailRecipe}
+          allergies={allergies}
+          dislikes={dislikes}
+          lang={lang}
+          isOwner={true}
+          onBack={() => setDetail(null)}
+          onEdit={() => openEditModal(detailRecipe)}
+          onDelete={() => { removeRecipe(detailRecipe.id); setDetail(null); }}
+        />
       ) : (
         <div>
           <div className="page-header">
