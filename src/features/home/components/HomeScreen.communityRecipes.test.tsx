@@ -1,0 +1,74 @@
+import { describe, it, expect, vi } from 'vitest';
+import { render, screen } from '@testing-library/react';
+import { HomeScreen } from './HomeScreen';
+import type { Profile, Recipe, FridgeItem, Product } from '../../../shared/types';
+
+const baseProfile: Profile = { name: '', allergies: [], dislikes: [], dietaryPrefs: [] };
+
+const makeRecipe = (overrides: Partial<Recipe> = {}): Recipe => ({
+  id: 'r1',
+  name: 'Рецепта',
+  emoji: '🍲',
+  ingredients: ['пилешко'],
+  steps: ['Свари'],
+  time: 20,
+  tags: [],
+  requiredIngredients: ['пилешко'],
+  isAI: false,
+  isPublic: true,
+  authorName: 'Иван',
+  ...overrides,
+});
+
+const makeProps = (overrides: Partial<Parameters<typeof HomeScreen>[0]> = {}) => ({
+  profile: baseProfile,
+  recipes: [] as Recipe[],
+  fridge: [] as FridgeItem[],
+  publicRecipes: [] as Recipe[],
+  products: [] as Product[],
+  setTab: vi.fn(),
+  lang: 'bg' as const,
+  ...overrides,
+});
+
+describe('HomeScreen – community recipe risk badges', () => {
+  it('shows safe badge on a community recipe with no blocked ingredients', () => {
+    const recipe = makeRecipe({ ingredients: ['пилешко'], requiredIngredients: ['пилешко'] });
+    render(<HomeScreen {...makeProps({ publicRecipes: [recipe] })} />);
+    expect(screen.getByText('Безопасно')).toBeInTheDocument();
+  });
+
+  it('shows allergy badge when a community recipe contains an allergen from the profile', () => {
+    const profile: Profile = { ...baseProfile, allergies: ['пилешко'] };
+    const recipe = makeRecipe({ ingredients: ['пилешко'], requiredIngredients: ['пилешко'] });
+    render(<HomeScreen {...makeProps({ profile, publicRecipes: [recipe] })} />);
+    expect(screen.getByText(/Алергия!/i)).toBeInTheDocument();
+  });
+
+  it('shows dislike badge when a community recipe contains a disliked ingredient', () => {
+    const profile: Profile = { ...baseProfile, dislikes: ['лук'] };
+    const recipe = makeRecipe({ ingredients: ['лук'], requiredIngredients: ['лук'] });
+    render(<HomeScreen {...makeProps({ profile, publicRecipes: [recipe] })} />);
+    expect(screen.getByText('Провери!')).toBeInTheDocument();
+  });
+
+  it('adds allergy CSS class to the card when the recipe contains an allergen', () => {
+    const profile: Profile = { ...baseProfile, allergies: ['пилешко'] };
+    const recipe = makeRecipe({ name: 'Алергенна рецепта', ingredients: ['пилешко'], requiredIngredients: ['пилешко'] });
+    const { container } = render(<HomeScreen {...makeProps({ profile, publicRecipes: [recipe] })} />);
+    const card = container.querySelector('.recipe-card.allergy');
+    expect(card).not.toBeNull();
+  });
+
+  it('does not render the community section when publicRecipes is empty', () => {
+    render(<HomeScreen {...makeProps({ publicRecipes: [] })} />);
+    expect(screen.queryByText('ОТ ОБЩНОСТТА')).not.toBeInTheDocument();
+  });
+
+  it('shows allergy badge for allergen coming from a product (allergic status)', () => {
+    const product: Product = { id: 'p1', name: 'пилешко', category: 'protein', status: 'allergic', emoji: '🍗' };
+    const recipe = makeRecipe({ ingredients: ['пилешко'], requiredIngredients: ['пилешко'] });
+    render(<HomeScreen {...makeProps({ publicRecipes: [recipe], products: [product] })} />);
+    expect(screen.getByText(/Алергия!/i)).toBeInTheDocument();
+  });
+});

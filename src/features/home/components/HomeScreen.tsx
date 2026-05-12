@@ -105,16 +105,24 @@ export function HomeScreen({ profile, recipes, fridge, publicRecipes, products, 
           <div className="divider" />
           <div className="section-title">{L ? 'FROM THE COMMUNITY' : 'ОТ ОБЩНОСТТА'}</div>
           <div className="grid-2">
-            {publicRecipes.slice(0, 4).map((r) => (
-              <div key={r.id} className="recipe-card" onClick={() => setSelectedRecipe(r)}>
-                <div className="recipe-emoji">{r.emoji}</div>
-                <div className="recipe-name">{L && r.nameEn ? r.nameEn : r.name}</div>
-                <div className="recipe-meta">⏱ {r.time} {L ? 'min' : 'мин'}</div>
-                {r.authorName && (
-                  <div className="recipe-meta">👤 {r.authorName}</div>
-                )}
-              </div>
-            ))}
+            {publicRecipes.slice(0, 4).map((r) => {
+              const risk = recipeRisk(r, allergies, dislikes);
+              return (
+                <div key={r.id} className={`recipe-card${risk === 'allergy' ? ' allergy' : ''}`} onClick={() => setSelectedRecipe(r)}>
+                  <div className="recipe-emoji">{r.emoji}</div>
+                  <div className="recipe-name">{L && r.nameEn ? r.nameEn : r.name}</div>
+                  <div className="recipe-meta">⏱ {r.time} {L ? 'min' : 'мин'}</div>
+                  {r.authorName && (
+                    <div className="recipe-meta">👤 {r.authorName}</div>
+                  )}
+                  <div style={{ marginTop: 6 }}>
+                    {risk === 'safe'    && <Badge type="safe">{L ? 'Safe' : 'Безопасно'}</Badge>}
+                    {risk === 'dislike' && <Badge type="dislike">{L ? 'Check' : 'Провери!'}</Badge>}
+                    {risk === 'allergy' && <Badge type="allergy">⚠ {L ? 'Allergy risk!' : 'Алергия!'}</Badge>}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </>
       )}
