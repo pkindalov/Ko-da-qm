@@ -73,19 +73,25 @@ export async function searchDatabase(query: string, blocked: string[]): Promise<
   const q = query.toLowerCase().trim();
   if (!q) return [];
 
-  const { data, error } = await supabase.from('recipe_database').select('*');
-  if (error || !data) return [];
+  const [dbResult, userResult] = await Promise.all([
+    supabase.from('recipe_database').select('*'),
+    supabase.from('recipes').select('*').eq('is_public', true),
+  ]);
 
   const isBlocked = (i: string) => blocked.some((b) => i.toLowerCase().includes(b.toLowerCase()));
+  const matchesQuery = (r: DbRow) =>
+    r.name.toLowerCase().includes(q) ||
+    r.ingredients.some((i) => i.toLowerCase().includes(q)) ||
+    r.tags.some((t) => t.toLowerCase().includes(q)) ||
+    r.required_ingredients.some((i) => i.toLowerCase().includes(q));
 
-  return (data as DbRow[])
-    .filter((r) => !r.required_ingredients.some(isBlocked))
-    .filter(
-      (r) =>
-        r.name.toLowerCase().includes(q) ||
-        r.ingredients.some((i) => i.toLowerCase().includes(q)) ||
-        r.tags.some((t) => t.toLowerCase().includes(q)) ||
-        r.required_ingredients.some((i) => i.toLowerCase().includes(q)),
-    )
-    .map((r) => ({ ...toMatched(r, [], [])!, matchScore: 1, matchedCount: 1 }));
+  const filterAndMap = (rows: DbRow[], isPublic: boolean): MatchedRecipe[] =>
+    rows
+      .filter((r) => !r.required_ingredients.some(isBlocked) && matchesQuery(r))
+      .map((r) => ({ ...toMatched(r, [], [])!, isPublic, matchScore: 1, matchedCount: 1 }));
+
+  return [
+    ...filterAndMap((dbResult.data ?? []) as DbRow[], false),
+    ...filterAndMap((userResult.data ?? []) as DbRow[], true),
+  ];
 }
