@@ -8,8 +8,10 @@ interface RecipeDetailViewProps {
   dislikes: string[];
   lang: Language;
   isOwner: boolean;
+  isFavorite?: boolean;
   showBackButton?: boolean;
   onBack: () => void;
+  onToggleFavorite?: () => void;
   onEdit?: () => void;
   onDelete?: () => void;
 }
@@ -20,8 +22,10 @@ export const RecipeDetailView = ({
   dislikes,
   lang,
   isOwner,
+  isFavorite = false,
   showBackButton = true,
   onBack,
+  onToggleFavorite,
   onEdit,
   onDelete,
 }: RecipeDetailViewProps) => {
@@ -56,6 +60,13 @@ export const RecipeDetailView = ({
           <div className="recipe-detail-author">
             👤 {L ? 'by' : 'от'} <strong>{recipe.authorName}</strong>
           </div>
+        )}
+        {!isOwner && onToggleFavorite && (
+          <button className="btn btn-ghost btn-sm" onClick={onToggleFavorite} style={{ marginTop: 12 }}>
+            {isFavorite
+              ? (L ? '♥ Saved' : '♥ Запазена')
+              : (L ? '♡ Save to favorites' : '♡ Запази в любими')}
+          </button>
         )}
       </div>
 

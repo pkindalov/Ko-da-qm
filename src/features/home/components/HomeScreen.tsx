@@ -12,12 +12,14 @@ interface HomeScreenProps {
   recipes: Recipe[];
   fridge: FridgeItem[];
   publicRecipes: Recipe[];
+  favoriteIds: string[];
+  onToggleFavorite: (recipe: Recipe) => void;
   products: Product[];
   setTab: (tab: Tab) => void;
   lang: Language;
 }
 
-export function HomeScreen({ profile, recipes, fridge, publicRecipes, products, setTab, lang }: HomeScreenProps) {
+export function HomeScreen({ profile, recipes, fridge, publicRecipes, favoriteIds, onToggleFavorite, products, setTab, lang }: HomeScreenProps) {
   const L = lang === 'en';
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
 
@@ -109,6 +111,13 @@ export function HomeScreen({ profile, recipes, fridge, publicRecipes, products, 
               const risk = recipeRisk(r, allergies, dislikes);
               return (
                 <div key={r.id} className={`recipe-card${risk === 'allergy' ? ' allergy' : ''}`} onClick={() => setSelectedRecipe(r)}>
+                  <button
+                    className="btn-favorite"
+                    onClick={(e) => { e.stopPropagation(); onToggleFavorite(r); }}
+                    aria-label={favoriteIds.includes(r.id) ? 'Remove from favorites' : 'Add to favorites'}
+                  >
+                    {favoriteIds.includes(r.id) ? '♥' : '♡'}
+                  </button>
                   <div className="recipe-emoji">{r.emoji}</div>
                   <div className="recipe-name">{L && r.nameEn ? r.nameEn : r.name}</div>
                   <div className="recipe-meta">⏱ {r.time} {L ? 'min' : 'мин'}</div>
@@ -149,8 +158,10 @@ export function HomeScreen({ profile, recipes, fridge, publicRecipes, products, 
             dislikes={dislikes}
             lang={lang}
             isOwner={false}
+            isFavorite={favoriteIds.includes(selectedRecipe.id)}
             showBackButton={false}
             onBack={() => setSelectedRecipe(null)}
+            onToggleFavorite={() => onToggleFavorite(selectedRecipe)}
           />
         )}
       </Modal>

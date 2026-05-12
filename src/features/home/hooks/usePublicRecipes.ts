@@ -1,22 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../../lib/supabase';
+import { mapRecipeRow } from '../../../shared/utils/mapRecipeRow';
 import type { Recipe } from '../../../shared/types';
-
-const mapRow = (r: Record<string, unknown>): Recipe => ({
-  id: r.id as string,
-  name: r.name as string,
-  nameEn: (r.name_en as string | null) ?? undefined,
-  emoji: r.emoji as string,
-  ingredients: (r.ingredients as string[]) ?? [],
-  steps: (r.steps as string[]) ?? [],
-  time: r.time as number,
-  tags: (r.tags as string[]) ?? [],
-  requiredIngredients: (r.required_ingredients as string[]) ?? [],
-  isAI: r.is_ai as boolean,
-  isPublic: (r.is_public as boolean) ?? false,
-  authorName: (r.author_name as string | null) ?? undefined,
-  authorEmail: (r.author_email as string | null) ?? undefined,
-});
 
 export const usePublicRecipes = () => {
   const [publicRecipes, setPublicRecipes] = useState<Recipe[]>([]);
@@ -38,7 +23,7 @@ export const usePublicRecipes = () => {
       .order('created_at', { ascending: false })
       .limit(20);
 
-    if (data) setPublicRecipes(data.map(mapRow));
+    if (data) setPublicRecipes(data.map(mapRecipeRow));
     setLoading(false);
   };
 

@@ -13,6 +13,9 @@ interface RecipesScreenProps {
   addRecipe: (recipe: Recipe) => void;
   removeRecipe: (id: string) => void;
   updateRecipe: (recipe: Recipe) => void;
+  favoriteRecipes: Recipe[];
+  favoriteIds: string[];
+  onToggleFavorite: (recipe: Recipe) => void;
   products: Product[];
   profile: Profile;
   lang: Language;
@@ -30,7 +33,7 @@ interface RecipeFormState {
 
 const EMPTY_FORM: RecipeFormState = { name: '', emoji: '🍽', time: '', ingredients: '', steps: '', isPublic: false };
 
-export function RecipesScreen({ recipes, addRecipe, removeRecipe, updateRecipe, products, profile, lang, userEmail }: RecipesScreenProps) {
+export function RecipesScreen({ recipes, addRecipe, removeRecipe, updateRecipe, favoriteRecipes, favoriteIds, onToggleFavorite, products, profile, lang, userEmail }: RecipesScreenProps) {
   const L = lang === 'en';
   const [search, setSearch] = useState('');
   const [detail, setDetail] = useState<string | null>(null);
@@ -43,6 +46,8 @@ export function RecipesScreen({ recipes, addRecipe, removeRecipe, updateRecipe, 
   const [dbLoading, setDbLoading] = useState(false);
   const [form, setForm] = useState<RecipeFormState>(EMPTY_FORM);
   const [productFilter, setProductFilter] = useState('');
+  const [favoriteDetail, setFavoriteDetail] = useState<Recipe | null>(null);
+  const [favoritesOpen, setFavoritesOpen] = useState(true);
 
   const toNames = (list: { name: string; nameEn?: string }[]) =>
     list.flatMap(p => p.nameEn ? [p.name, p.nameEn] : [p.name]);
@@ -131,6 +136,17 @@ export function RecipesScreen({ recipes, addRecipe, removeRecipe, updateRecipe, 
           onEdit={() => openEditModal(detailRecipe)}
           onDelete={() => { removeRecipe(detailRecipe.id); setDetail(null); }}
         />
+      ) : favoriteDetail ? (
+        <RecipeDetailView
+          recipe={favoriteDetail}
+          allergies={allergies}
+          dislikes={dislikes}
+          lang={lang}
+          isOwner={false}
+          isFavorite={favoriteIds.includes(favoriteDetail.id)}
+          onBack={() => setFavoriteDetail(null)}
+          onToggleFavorite={() => onToggleFavorite(favoriteDetail)}
+        />
       ) : (
         <div>
           <div className="page-header">
@@ -160,6 +176,44 @@ export function RecipesScreen({ recipes, addRecipe, removeRecipe, updateRecipe, 
               </button>
             </div>
           </div>
+
+          {favoriteRecipes.length > 0 && (
+            <>
+              <button className="section-title-toggle" onClick={() => setFavoritesOpen(o => !o)}>
+                ♥ {L ? 'FAVORITES' : 'ЛЮБИМИ'} <span className="section-title-chevron">{favoritesOpen ? '▲' : '▼'}</span>
+              </button>
+              {favoritesOpen && (
+                <div className="grid-2">
+                  {favoriteRecipes.map((r) => {
+                    const risk = recipeRisk(r, allergies, dislikes);
+                    return (
+                      <div key={r.id} className={`recipe-card${risk === 'allergy' ? ' allergy' : ''}`} onClick={() => setFavoriteDetail(r)}>
+                        <button
+                          className="btn-favorite"
+                          onClick={(e) => { e.stopPropagation(); onToggleFavorite(r); }}
+                          aria-label="Remove from favorites"
+                        >
+                          ♥
+                        </button>
+                        <div className="recipe-emoji">{r.emoji}</div>
+                        <div className="recipe-name">{L && r.nameEn ? r.nameEn : r.name}</div>
+                        <div className="recipe-meta">⏱ {r.time} {L ? 'min' : 'мин'}</div>
+                        {r.authorName && (
+                          <div className="recipe-meta">👤 {r.authorName}</div>
+                        )}
+                        <div style={{ marginTop: 6 }}>
+                          {risk === 'safe'    && <Badge type="safe">{L ? 'Safe' : 'Безопасно'}</Badge>}
+                          {risk === 'dislike' && <Badge type="dislike">{L ? 'Check' : 'Провери!'}</Badge>}
+                          {risk === 'allergy' && <Badge type="allergy">⚠ {L ? 'Allergy risk!' : 'Алергия!'}</Badge>}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+              <div className="divider" />
+            </>
+          )}
 
           {filtered.length === 0 ? (
             <EmptyState

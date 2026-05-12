@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { HomeScreen } from './HomeScreen';
 import type { Profile, Recipe, FridgeItem, Product } from '../../../shared/types';
 
@@ -25,6 +26,8 @@ const makeProps = (overrides: Partial<Parameters<typeof HomeScreen>[0]> = {}) =>
   recipes: [] as Recipe[],
   fridge: [] as FridgeItem[],
   publicRecipes: [] as Recipe[],
+  favoriteIds: [] as string[],
+  onToggleFavorite: vi.fn(),
   products: [] as Product[],
   setTab: vi.fn(),
   lang: 'bg' as const,
@@ -70,5 +73,36 @@ describe('HomeScreen – community recipe risk badges', () => {
     const recipe = makeRecipe({ ingredients: ['пилешко'], requiredIngredients: ['пилешко'] });
     render(<HomeScreen {...makeProps({ publicRecipes: [recipe], products: [product] })} />);
     expect(screen.getByText(/Алергия!/i)).toBeInTheDocument();
+  });
+});
+
+describe('HomeScreen – community recipe heart button', () => {
+  it('renders an unfilled heart when the recipe is not favorited', () => {
+    const recipe = makeRecipe();
+    render(<HomeScreen {...makeProps({ publicRecipes: [recipe], favoriteIds: [] })} />);
+    expect(screen.getByRole('button', { name: /Add to favorites/i })).toBeInTheDocument();
+  });
+
+  it('renders a filled heart when the recipe is already favorited', () => {
+    const recipe = makeRecipe({ id: 'r1' });
+    render(<HomeScreen {...makeProps({ publicRecipes: [recipe], favoriteIds: ['r1'] })} />);
+    expect(screen.getByRole('button', { name: /Remove from favorites/i })).toBeInTheDocument();
+  });
+
+  it('calls onToggleFavorite with the recipe when the heart button is clicked', async () => {
+    const onToggleFavorite = vi.fn();
+    const user = userEvent.setup();
+    const recipe = makeRecipe();
+    render(<HomeScreen {...makeProps({ publicRecipes: [recipe], onToggleFavorite })} />);
+    await user.click(screen.getByRole('button', { name: /Add to favorites/i }));
+    expect(onToggleFavorite).toHaveBeenCalledWith(expect.objectContaining({ id: 'r1' }));
+  });
+
+  it('does not open the recipe detail when the heart button is clicked', async () => {
+    const user = userEvent.setup();
+    const recipe = makeRecipe();
+    render(<HomeScreen {...makeProps({ publicRecipes: [recipe] })} />);
+    await user.click(screen.getByRole('button', { name: /Add to favorites/i }));
+    expect(screen.queryByText(/INGREDIENTS/i)).not.toBeInTheDocument();
   });
 });

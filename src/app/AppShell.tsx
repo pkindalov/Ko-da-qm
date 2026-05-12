@@ -10,6 +10,7 @@ import { ProfileScreen } from '../features/profile/components/ProfileScreen';
 import { useLocalStorage } from '../shared/hooks/useLocalStorage';
 import { useAppData } from '../shared/hooks/useAppData';
 import { usePublicRecipes } from '../features/home/hooks/usePublicRecipes';
+import { useFavorites } from '../features/recipes/hooks/useFavorites';
 import { DEFAULT_TWEAKS } from '../shared/constants/defaults';
 import { supabase } from '../lib/supabase';
 import type { Tab } from '../shared/types';
@@ -19,6 +20,7 @@ export function AppShell() {
   const [tweaks, setTweaks] = useLocalStorage('kdq_tweaks', DEFAULT_TWEAKS);
   const { loading, userEmail, profile, setProfile, fridge, addFridgeItem, removeFridgeItem, recipes, addRecipe, removeRecipe, updateRecipe, products, setProducts, addProduct } = useAppData();
   const { publicRecipes } = usePublicRecipes();
+  const { favoriteIds, favoriteRecipes, toggleFavorite } = useFavorites();
   const [tweaksOpen, setTweaksOpen] = useState(false);
 
   useEffect(() => {
@@ -43,9 +45,9 @@ export function AppShell() {
   }
 
   const screens: Record<Tab, React.ReactNode> = {
-    home: <HomeScreen profile={profile} recipes={recipes} fridge={fridge} publicRecipes={publicRecipes} products={products} setTab={setTab} lang={tweaks.lang} />,
+    home: <HomeScreen profile={profile} recipes={recipes} fridge={fridge} publicRecipes={publicRecipes} favoriteIds={favoriteIds} onToggleFavorite={toggleFavorite} products={products} setTab={setTab} lang={tweaks.lang} />,
     fridge: <FridgeScreen fridge={fridge} addFridgeItem={addFridgeItem} removeFridgeItem={removeFridgeItem} profile={profile} recipes={recipes} products={products} lang={tweaks.lang} />,
-    recipes: <RecipesScreen recipes={recipes} addRecipe={addRecipe} removeRecipe={removeRecipe} updateRecipe={updateRecipe} products={products} profile={profile} lang={tweaks.lang} userEmail={userEmail} />,
+    recipes: <RecipesScreen recipes={recipes} addRecipe={addRecipe} removeRecipe={removeRecipe} updateRecipe={updateRecipe} favoriteRecipes={favoriteRecipes} favoriteIds={favoriteIds} onToggleFavorite={toggleFavorite} products={products} profile={profile} lang={tweaks.lang} userEmail={userEmail} />,
     products: <ProductsScreen products={products} setProducts={setProducts} addProduct={addProduct} lang={tweaks.lang} />,
     profile: <ProfileScreen profile={profile} setProfile={setProfile} products={products} lang={tweaks.lang} onLogout={handleLogout} onTweaksToggle={() => setTweaksOpen((o) => !o)} onNavigateToProducts={() => setTab('products')} />,
   };
