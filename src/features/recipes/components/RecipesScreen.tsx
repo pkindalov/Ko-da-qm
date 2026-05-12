@@ -35,7 +35,6 @@ const EMPTY_FORM: RecipeFormState = { name: '', emoji: '🍽', time: '', ingredi
 
 export function RecipesScreen({ recipes, addRecipe, removeRecipe, updateRecipe, favoriteRecipes, favoriteIds, onToggleFavorite, products, profile, lang, userEmail }: RecipesScreenProps) {
   const L = lang === 'en';
-  const [search, setSearch] = useState('');
   const [detail, setDetail] = useState<string | null>(null);
   const [addOpen, setAddOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -43,6 +42,7 @@ export function RecipesScreen({ recipes, addRecipe, removeRecipe, updateRecipe, 
   const [filterSafe, setFilterSafe] = useState(false);
   const [dbSearch, setDbSearch] = useState('');
   const [dbResults, setDbResults] = useState<Awaited<ReturnType<typeof searchDatabase>>>([]);
+  const [myRecipeResults, setMyRecipeResults] = useState<Recipe[]>([]);
   const [dbLoading, setDbLoading] = useState(false);
   const [form, setForm] = useState<RecipeFormState>(EMPTY_FORM);
   const [productFilter, setProductFilter] = useState('');
@@ -66,6 +66,13 @@ export function RecipesScreen({ recipes, addRecipe, removeRecipe, updateRecipe, 
     setProductFilter('');
   };
 
+  const closeDbModal = () => {
+    setDbOpen(false);
+    setDbSearch('');
+    setDbResults([]);
+    setMyRecipeResults([]);
+  };
+
   const openEditModal = (r: Recipe) => {
     setForm({
       name: r.name,
@@ -87,6 +94,16 @@ export function RecipesScreen({ recipes, addRecipe, removeRecipe, updateRecipe, 
   };
 
   const runDbSearch = async () => {
+    const term = dbSearch.toLowerCase().trim();
+
+    const matched = term
+      ? recipes.filter(r => {
+          const name = (L && r.nameEn ? r.nameEn : r.name).toLowerCase();
+          return name.includes(term) || r.ingredients.some(i => i.toLowerCase().includes(term));
+        })
+      : [];
+    setMyRecipeResults(matched);
+
     setDbLoading(true);
     try {
       setDbResults(await searchDatabase(dbSearch, blocked));
@@ -95,19 +112,19 @@ export function RecipesScreen({ recipes, addRecipe, removeRecipe, updateRecipe, 
     }
   };
 
+  const viewFromModal = (r: Recipe) => {
+    closeDbModal();
+    setDetail(r.id);
+  };
+
   const importFromDb = (r: Recipe) => {
     if (!recipes.find((x) => x.id === r.id || x.name === r.name)) {
       addRecipe({ ...r, isAI: false, isPublic: false, authorName: undefined, authorEmail: undefined });
     }
-    setDbOpen(false);
-    setDbSearch('');
-    setDbResults([]);
+    closeDbModal();
   };
 
-  const filtered = recipes.filter((r) => {
-    const n = L && r.nameEn ? r.nameEn : r.name;
-    return n.toLowerCase().includes(search.toLowerCase()) && (!filterSafe || isSafe(r, blocked));
-  });
+  const filtered = recipes.filter(r => !filterSafe || isSafe(r, blocked));
 
   const saveRecipe = () => {
     const parsed = parseRecipeForm(form);
@@ -122,6 +139,8 @@ export function RecipesScreen({ recipes, addRecipe, removeRecipe, updateRecipe, 
   };
 
   const detailRecipe = detail ? recipes.find((x) => x.id === detail) : null;
+
+  const hasNoSearchResults = !dbLoading && dbSearch.length > 0 && dbResults.length === 0 && myRecipeResults.length === 0;
 
   return (
     <div className="fade-in">
@@ -160,17 +179,7 @@ export function RecipesScreen({ recipes, addRecipe, removeRecipe, updateRecipe, 
               </div>
             </div>
 
-            <div className="search-wrap">
-              <span className="search-icon">🔍</span>
-              <input
-                className="input-field"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder={L ? 'Search recipes...' : 'Търси рецепти...'}
-              />
-            </div>
-
-            <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+            <div style={{ display: 'flex', gap: 8 }}>
               <button className={`chip${filterSafe ? ' selected' : ''}`} onClick={() => setFilterSafe(!filterSafe)}>
                 ✓ {L ? 'Safe for me' : 'Безопасни за мен'}
               </button>
@@ -316,7 +325,7 @@ export function RecipesScreen({ recipes, addRecipe, removeRecipe, updateRecipe, 
         </div>
       </Modal>
 
-      <Modal open={dbOpen} onClose={() => { setDbOpen(false); setDbSearch(''); setDbResults([]); }} title={L ? 'Search Recipes' : 'Търси рецепти'}>
+      <Modal open={dbOpen} onClose={closeDbModal} title={L ? 'Search Recipes' : 'Търси рецепти'} contentClassName="modal-recipe">
         <div style={{ marginBottom: 12 }}>
           <label className="input-label">{L ? 'Ingredient or recipe name' : 'Съставка или название'}</label>
           <input
@@ -336,12 +345,43 @@ export function RecipesScreen({ recipes, addRecipe, removeRecipe, updateRecipe, 
         <button className="btn btn-primary btn-full" onClick={runDbSearch} disabled={dbLoading}>
           {dbLoading ? (L ? 'Searching...' : 'Търси...') : `🔍 ${L ? 'Search' : 'Търси'}`}
         </button>
-        {dbSearch.length > 0 && dbResults.length === 0 && (
+
+        {hasNoSearchResults && (
           <EmptyState icon="🔍" title={L ? 'No results' : 'Няма резултати'} subtitle={L ? 'Try another keyword' : 'Опитай друга дума'} />
         )}
+
+        {myRecipeResults.length > 0 && (
+          <div style={{ marginTop: 16 }}>
+            <div className="section-title" style={{ marginBottom: 10 }}>
+              📖 {L ? 'My Recipes' : 'Моите рецепти'} ({myRecipeResults.length})
+            </div>
+            <div className="stack">
+              {myRecipeResults.map((r) => (
+                <div key={r.id} className="card-sm">
+                  <div className="row-between" style={{ marginBottom: 4 }}>
+                    <div className="row" style={{ gap: 8 }}>
+                      <span style={{ fontSize: 20 }}>{r.emoji}</span>
+                      <span style={{ fontWeight: 800, fontSize: 14 }}>{L && r.nameEn ? r.nameEn : r.name}</span>
+                    </div>
+                    <span className="badge badge-neutral">⏱ {r.time} {L ? 'min' : 'мин'}</span>
+                  </div>
+                  <div style={{ fontSize: 12, color: 'var(--text2)', fontWeight: 600, marginBottom: 8 }}>
+                    {r.ingredients.slice(0, 4).join(', ')}{r.ingredients.length > 4 ? '...' : ''}
+                  </div>
+                  <button className="btn btn-secondary btn-sm" onClick={() => viewFromModal(r)}>
+                    👁 {L ? 'View' : 'Виж'}
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {dbResults.length > 0 && (
           <div style={{ marginTop: 16 }}>
-            <div className="section-title" style={{ marginBottom: 10 }}>{dbResults.length} {L ? 'results' : 'резултата'}</div>
+            <div className="section-title" style={{ marginBottom: 10 }}>
+              🌐 {L ? 'From Database' : 'От базата данни'} ({dbResults.length})
+            </div>
             <div className="stack">
               {dbResults.map((r) => (
                 <div key={r.id} className="card-sm">
