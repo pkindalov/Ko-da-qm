@@ -191,4 +191,67 @@ describe('useFavorites', () => {
     expect(result.current.favoriteRecipes[0].nameEn).toBeUndefined();
     expect(result.current.favoriteRecipes[0].authorName).toBeUndefined();
   });
+
+  it('loads multiple favorites and maps all rows correctly', async () => {
+    mockGetUser.mockResolvedValue({ data: { user: { id: 'user-1' } } });
+    const row1 = makeDbRow();
+    const row2 = { recipe_id: 'r2', recipes: { ...makeDbRow().recipes, id: 'r2', name: 'Waffles' } };
+    mockSelect.mockResolvedValue({ data: [row1, row2], error: null });
+
+    const { result } = renderHook(() => useFavorites());
+    await act(async () => {});
+
+    expect(result.current.favoriteIds).toEqual(['r1', 'r2']);
+    expect(result.current.favoriteRecipes).toHaveLength(2);
+    expect(result.current.favoriteRecipes[0].name).toBe('Pancakes');
+    expect(result.current.favoriteRecipes[1].name).toBe('Waffles');
+  });
+
+  it('addFavorite is a no-op when user is null — state and DB unchanged', async () => {
+    mockGetUser.mockResolvedValue({ data: { user: null } });
+
+    const { result } = renderHook(() => useFavorites());
+    await act(async () => {});
+
+    await act(async () => { result.current.toggleFavorite(makeRecipe()); });
+
+    expect(result.current.favoriteIds).toEqual([]);
+    expect(result.current.favoriteRecipes).toEqual([]);
+    expect(mockInsert).not.toHaveBeenCalled();
+  });
+
+  it('removeFavorite is a no-op when user becomes null — state and DB unchanged', async () => {
+    mockGetUser
+      .mockResolvedValueOnce({ data: { user: { id: 'user-1' } } })
+      .mockResolvedValueOnce({ data: { user: null } });
+    mockSelect.mockResolvedValue({ data: [makeDbRow()], error: null });
+
+    const { result } = renderHook(() => useFavorites());
+    await act(async () => {});
+
+    expect(result.current.favoriteIds).toContain('r1');
+
+    await act(async () => { result.current.toggleFavorite(makeRecipe()); });
+
+    expect(result.current.favoriteIds).toEqual(['r1']);
+    expect(mockDelete).not.toHaveBeenCalled();
+  });
+
+  it('rapid double-toggle does not create duplicate state entries', async () => {
+    mockGetUser.mockResolvedValue({ data: { user: { id: 'user-1' } } });
+    mockSelect.mockResolvedValue({ data: [], error: null });
+    mockInsert.mockResolvedValue({ error: null });
+
+    const { result } = renderHook(() => useFavorites());
+    await act(async () => {});
+
+    const recipe = makeRecipe();
+    await act(async () => {
+      result.current.toggleFavorite(recipe);
+      result.current.toggleFavorite(recipe);
+    });
+
+    expect(result.current.favoriteIds).toEqual(['r1']);
+    expect(result.current.favoriteRecipes).toHaveLength(1);
+  });
 });

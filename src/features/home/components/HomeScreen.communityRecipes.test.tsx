@@ -105,4 +105,38 @@ describe('HomeScreen – community recipe heart button', () => {
     await user.click(screen.getByRole('button', { name: /Add to favorites/i }));
     expect(screen.queryByText(/INGREDIENTS/i)).not.toBeInTheDocument();
   });
+
+  it('opens recipe detail modal with ingredients when card is clicked', async () => {
+    const user = userEvent.setup();
+    const recipe = makeRecipe();
+    render(<HomeScreen {...makeProps({ publicRecipes: [recipe] })} />);
+    await user.click(screen.getByText('Рецепта'));
+    expect(screen.getByText(/СЪСТАВКИ/i)).toBeInTheDocument();
+  });
+});
+
+describe('HomeScreen – community recipe list rendering', () => {
+  it('renders all public recipes up to 4', () => {
+    const recipes = Array.from({ length: 4 }, (_, i) =>
+      makeRecipe({ id: `r${i}`, name: `Рецепта ${i + 1}` })
+    );
+    render(<HomeScreen {...makeProps({ publicRecipes: recipes })} />);
+    recipes.forEach(r => expect(screen.getByText(r.name)).toBeInTheDocument());
+  });
+
+  it('only shows the first 4 public recipes when more than 4 are provided', () => {
+    const recipes = Array.from({ length: 5 }, (_, i) =>
+      makeRecipe({ id: `r${i}`, name: `Рецепта ${i + 1}` })
+    );
+    render(<HomeScreen {...makeProps({ publicRecipes: recipes })} />);
+    expect(screen.getByText('Рецепта 1')).toBeInTheDocument();
+    expect(screen.getByText('Рецепта 4')).toBeInTheDocument();
+    expect(screen.queryByText('Рецепта 5')).not.toBeInTheDocument();
+  });
+
+  it('does not render author meta when recipe has no authorName', () => {
+    const recipe = makeRecipe({ authorName: undefined });
+    render(<HomeScreen {...makeProps({ publicRecipes: [recipe] })} />);
+    expect(screen.queryByText(/👤/)).not.toBeInTheDocument();
+  });
 });

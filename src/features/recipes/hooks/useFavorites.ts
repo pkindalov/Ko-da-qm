@@ -23,7 +23,7 @@ export const useFavorites = () => {
 
     const ids = data.map(f => f.recipe_id as string);
     const recipes = data
-      .map(f => f.recipes as Record<string, unknown> | null)
+      .map(f => f.recipes as unknown as Record<string, unknown> | null)
       .filter((r): r is Record<string, unknown> => r !== null)
       .map(mapRecipeRow);
 
@@ -35,8 +35,8 @@ export const useFavorites = () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    setFavoriteIds(prev => [...prev, recipe.id]);
-    setFavoriteRecipes(prev => [recipe, ...prev]);
+    setFavoriteIds(prev => prev.includes(recipe.id) ? prev : [...prev, recipe.id]);
+    setFavoriteRecipes(prev => prev.some(r => r.id === recipe.id) ? prev : [recipe, ...prev]);
     await supabase.from('favorites').insert({ user_id: user.id, recipe_id: recipe.id });
   };
 
