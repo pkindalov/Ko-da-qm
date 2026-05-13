@@ -250,7 +250,7 @@ describe('RecipesScreen – unified search modal: db results section', () => {
     });
   });
 
-  it('shows both View and Add buttons when personal and db results both exist', async () => {
+  it('shows View button for personal results and heart button for db results', async () => {
     const user = userEvent.setup();
     const dbRecipe = {
       id: 'db-1',
@@ -274,7 +274,36 @@ describe('RecipesScreen – unified search modal: db results section', () => {
     await typeAndSearch(user, 'pasta');
     await waitFor(() => {
       expect(screen.getByRole('button', { name: /👁 View/i })).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: /Add to my recipes/i })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Add to favorites/i })).toBeInTheDocument();
+    });
+  });
+
+  it('clicking a db result card closes modal and opens its detail view', async () => {
+    const user = userEvent.setup();
+    const dbRecipe = {
+      id: 'db-1',
+      name: 'Pasta Carbonara',
+      nameEn: 'Pasta Carbonara',
+      emoji: '🍝',
+      ingredients: ['pasta', 'eggs'],
+      steps: ['boil pasta', 'mix eggs'],
+      time: 20,
+      tags: [],
+      requiredIngredients: ['pasta'],
+      isAI: false,
+      isPublic: true,
+      matchScore: 1,
+      matchedCount: 1,
+    };
+    mockSearchDatabase.mockResolvedValue([dbRecipe]);
+    render(<RecipesScreen {...makeProps({ recipes: [] })} />);
+    await openSearchModal(user);
+    await typeAndSearch(user, 'pasta');
+    await waitFor(() => expect(screen.getByText('Pasta Carbonara')).toBeInTheDocument());
+    await user.click(screen.getByText('Pasta Carbonara'));
+    await waitFor(() => {
+      expect(screen.queryByPlaceholderText(/e\.g\. eggs/i)).not.toBeInTheDocument();
+      expect(screen.getByText('Pasta Carbonara')).toBeInTheDocument();
     });
   });
 

@@ -117,13 +117,6 @@ export function RecipesScreen({ recipes, addRecipe, removeRecipe, updateRecipe, 
     setDetail(r.id);
   };
 
-  const importFromDb = (r: Recipe) => {
-    if (!recipes.find((x) => x.id === r.id || x.name === r.name)) {
-      addRecipe({ ...r, isAI: false, isPublic: false, authorName: undefined, authorEmail: undefined });
-    }
-    closeDbModal();
-  };
-
   const filtered = recipes.filter(r => !filterSafe || isSafe(r, blocked));
 
   const saveRecipe = () => {
@@ -384,20 +377,26 @@ export function RecipesScreen({ recipes, addRecipe, removeRecipe, updateRecipe, 
             </div>
             <div className="stack">
               {dbResults.map((r) => (
-                <div key={r.id} className="card-sm">
+                <div key={r.id} className="card-sm" style={{ cursor: 'pointer' }} onClick={() => { closeDbModal(); setFavoriteDetail(r); }}>
                   <div className="row-between" style={{ marginBottom: 4 }}>
                     <div className="row" style={{ gap: 8 }}>
                       <span style={{ fontSize: 20 }}>{r.emoji}</span>
                       <span style={{ fontWeight: 800, fontSize: 14 }}>{r.name}</span>
                     </div>
-                    <span className="badge badge-neutral">⏱ {r.time} мин</span>
+                    <div className="row" style={{ gap: 8 }}>
+                      <span className="badge badge-neutral">⏱ {r.time} мин</span>
+                      <button
+                        className="btn-heart"
+                        onClick={(e) => { e.stopPropagation(); onToggleFavorite(r); }}
+                        aria-label={favoriteIds.includes(r.id) ? (L ? 'Remove from favorites' : 'Премахни от любими') : (L ? 'Add to favorites' : 'Добави в любими')}
+                      >
+                        {favoriteIds.includes(r.id) ? '♥' : '♡'}
+                      </button>
+                    </div>
                   </div>
-                  <div style={{ fontSize: 12, color: 'var(--text2)', fontWeight: 600, marginBottom: 8 }}>
+                  <div style={{ fontSize: 12, color: 'var(--text2)', fontWeight: 600 }}>
                     {r.ingredients.slice(0, 4).join(', ')}{r.ingredients.length > 4 ? '...' : ''}
                   </div>
-                  <button className="btn btn-secondary btn-sm" onClick={() => importFromDb(r)}>
-                    + {L ? 'Add to my recipes' : 'Добави в моите рецепти'}
-                  </button>
                 </div>
               ))}
             </div>
