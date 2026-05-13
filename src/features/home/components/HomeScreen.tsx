@@ -26,6 +26,8 @@ export function HomeScreen({ profile, recipes, fridge, publicRecipes, favoriteId
   const L = lang === 'en';
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
   const [communityPage, setCommunityPage] = useState(1);
+  const [openStatModal, setOpenStatModal] = useState<'safeRecipes' | 'fridge' | 'allergies' | 'dislikes' | null>(null);
+  const [allergiesExpanded, setAllergiesExpanded] = useState(false);
 
   const toNames = (list: Product[]) => list.flatMap(p => p.nameEn ? [p.name, p.nameEn] : [p.name]);
   const allergies = [...new Set([...profile.allergies, ...toNames(products.filter(p => p.status === 'allergic'))])];
@@ -46,19 +48,19 @@ export function HomeScreen({ profile, recipes, fridge, publicRecipes, favoriteId
       </div>
 
       <div className="grid-2" style={{ marginBottom: 20 }}>
-        <div className="stat-card" style={{ cursor: 'pointer' }} onClick={() => setTab('recipes')}>
+        <div className="stat-card" style={{ cursor: 'pointer' }} onClick={() => setOpenStatModal('safeRecipes')}>
           <div className="stat-num" style={{ color: 'var(--primary)' }}>{safeRecipes.length}</div>
           <div className="stat-label">{L ? 'safe recipes' : 'безопасни рецепти'}</div>
         </div>
-        <div className="stat-card" style={{ cursor: 'pointer' }} onClick={() => setTab('fridge')}>
+        <div className="stat-card" style={{ cursor: 'pointer' }} onClick={() => setOpenStatModal('fridge')}>
           <div className="stat-num" style={{ color: 'var(--secondary)' }}>{fridge.length}</div>
           <div className="stat-label">{L ? 'fridge items' : 'в хладилника'}</div>
         </div>
-        <div className="stat-card" style={{ cursor: 'pointer' }} onClick={() => setTab('profile')}>
+        <div className="stat-card" style={{ cursor: 'pointer' }} onClick={() => setOpenStatModal('allergies')}>
           <div className="stat-num" style={{ color: 'var(--danger)' }}>{allergies.length}</div>
           <div className="stat-label">{L ? 'allergies' : 'алергии'}</div>
         </div>
-        <div className="stat-card" style={{ cursor: 'pointer' }} onClick={() => setTab('profile')}>
+        <div className="stat-card" style={{ cursor: 'pointer' }} onClick={() => setOpenStatModal('dislikes')}>
           <div className="stat-num" style={{ color: 'var(--warn)' }}>{dislikes.length}</div>
           <div className="stat-label">{L ? 'dislikes' : 'нелюбими'}</div>
         </div>
@@ -66,14 +68,26 @@ export function HomeScreen({ profile, recipes, fridge, publicRecipes, favoriteId
 
       {allergies.length > 0 && (
         <div className="card" style={{ marginBottom: 16, borderColor: 'var(--danger)', background: 'var(--danger-light)' }}>
-          <div style={{ fontWeight: 800, fontSize: 14, color: 'var(--danger)', marginBottom: 6 }}>
-            ⚠ {L ? 'Active Allergies' : 'Активни алергии'}
-          </div>
-          <div className="tag-list">
-            {allergies.map((a) => (
-              <Badge type="allergy" key={a}>{a}</Badge>
-            ))}
-          </div>
+          <button
+            type="button"
+            style={{ background: 'none', border: 'none', padding: 0, width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}
+            onClick={() => setAllergiesExpanded(v => !v)}
+            aria-expanded={allergiesExpanded}
+          >
+            <span style={{ fontWeight: 800, fontSize: 14, color: 'var(--danger)' }}>
+              ⚠ {L ? 'Active Allergies' : 'Активни алергии'} ({allergies.length})
+            </span>
+            <span style={{ fontSize: 12, color: 'var(--danger)' }}>
+              {allergiesExpanded ? '▲' : '▼'}
+            </span>
+          </button>
+          {allergiesExpanded && (
+            <div className="tag-list" style={{ marginTop: 8 }}>
+              {allergies.map((a) => (
+                <Badge type="allergy" key={a}>{a}</Badge>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
@@ -154,6 +168,85 @@ export function HomeScreen({ profile, recipes, fridge, publicRecipes, favoriteId
           📖 {L ? 'All Recipes' : 'Всички рецепти'}
         </button>
       </div>
+
+      <Modal
+        open={openStatModal === 'safeRecipes'}
+        onClose={() => setOpenStatModal(null)}
+        title={L ? `Safe Recipes (${safeRecipes.length})` : `Безопасни рецепти (${safeRecipes.length})`}
+        contentStyle={{ maxWidth: 360 }}
+      >
+        {safeRecipes.length === 0 ? (
+          <p style={{ color: 'var(--text2)', fontSize: 14 }}>
+            {L ? 'No safe recipes yet.' : 'Все още няма безопасни рецепти.'}
+          </p>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 320, overflowY: 'auto' }}>
+            {safeRecipes.map(r => (
+              <div key={r.id} style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 14 }}>
+                <span style={{ fontSize: 20 }}>{r.emoji}</span>
+                <span style={{ fontWeight: 600, flex: 1 }}>{L && r.nameEn ? r.nameEn : r.name}</span>
+                <span style={{ color: 'var(--text2)', whiteSpace: 'nowrap' }}>⏱ {r.time} {L ? 'min' : 'мин'}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </Modal>
+
+      <Modal
+        open={openStatModal === 'fridge'}
+        onClose={() => setOpenStatModal(null)}
+        title={L ? `Fridge (${fridge.length})` : `Хладилник (${fridge.length})`}
+        contentStyle={{ maxWidth: 360 }}
+      >
+        {fridge.length === 0 ? (
+          <p style={{ color: 'var(--text2)', fontSize: 14 }}>
+            {L ? 'Your fridge is empty.' : 'Хладилникът е празен.'}
+          </p>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 320, overflowY: 'auto' }}>
+            {fridge.map(item => (
+              <div key={item.id} style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 14 }}>
+                <span style={{ fontSize: 20 }}>{item.emoji}</span>
+                <span style={{ fontWeight: 600 }}>{item.name}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </Modal>
+
+      <Modal
+        open={openStatModal === 'allergies'}
+        onClose={() => setOpenStatModal(null)}
+        title={L ? `Allergies (${allergies.length})` : `Алергии (${allergies.length})`}
+        contentStyle={{ maxWidth: 360 }}
+      >
+        {allergies.length === 0 ? (
+          <p style={{ color: 'var(--text2)', fontSize: 14 }}>
+            {L ? 'No allergies set.' : 'Няма зададени алергии.'}
+          </p>
+        ) : (
+          <div className="tag-list">
+            {allergies.map(a => <Badge type="allergy" key={a}>{a}</Badge>)}
+          </div>
+        )}
+      </Modal>
+
+      <Modal
+        open={openStatModal === 'dislikes'}
+        onClose={() => setOpenStatModal(null)}
+        title={L ? `Dislikes (${dislikes.length})` : `Нелюбими (${dislikes.length})`}
+        contentStyle={{ maxWidth: 360 }}
+      >
+        {dislikes.length === 0 ? (
+          <p style={{ color: 'var(--text2)', fontSize: 14 }}>
+            {L ? 'No dislikes set.' : 'Няма зададени нелюбими.'}
+          </p>
+        ) : (
+          <div className="tag-list">
+            {dislikes.map(d => <Badge type="dislike" key={d}>{d}</Badge>)}
+          </div>
+        )}
+      </Modal>
 
       <Modal
         open={selectedRecipe !== null}
