@@ -17,12 +17,15 @@ interface HomeScreenProps {
   products: Product[];
   setTab: (tab: Tab) => void;
   lang: Language;
+  onDeleteFridgeItem: (id: string) => void;
+  onRemoveAllergy: (name: string) => void;
+  onRemoveDislike: (name: string) => void;
 }
 
 const RECIPES_PREVIEW_SIZE = 4;
 const COMMUNITY_PAGE_SIZE = 4;
 
-export function HomeScreen({ profile, recipes, fridge, publicRecipes, favoriteIds, onToggleFavorite, products, setTab, lang }: HomeScreenProps) {
+export function HomeScreen({ profile, recipes, fridge, publicRecipes, favoriteIds, onToggleFavorite, products, setTab, lang, onDeleteFridgeItem, onRemoveAllergy, onRemoveDislike }: HomeScreenProps) {
   const L = lang === 'en';
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
   const [communityPage, setCommunityPage] = useState(1);
@@ -190,6 +193,15 @@ export function HomeScreen({ profile, recipes, fridge, publicRecipes, favoriteId
             ))}
           </div>
         )}
+        <div style={{ marginTop: 16 }}>
+          <button
+            type="button"
+            className="btn btn-ghost btn-full btn-sm"
+            onClick={() => { setOpenStatModal(null); setTab('recipes'); }}
+          >
+            {L ? 'Go to Recipes →' : 'Към рецепти →'}
+          </button>
+        </div>
       </Modal>
 
       <Modal
@@ -207,11 +219,28 @@ export function HomeScreen({ profile, recipes, fridge, publicRecipes, favoriteId
             {fridge.map(item => (
               <div key={item.id} style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 14 }}>
                 <span style={{ fontSize: 20 }}>{item.emoji}</span>
-                <span style={{ fontWeight: 600 }}>{item.name}</span>
+                <span style={{ fontWeight: 600, flex: 1 }}>{item.name}</span>
+                <button
+                  type="button"
+                  className="btn btn-sm btn-danger"
+                  onClick={() => onDeleteFridgeItem(item.id)}
+                  aria-label={`${L ? 'Remove' : 'Премахни'} ${item.name}`}
+                >
+                  ✕
+                </button>
               </div>
             ))}
           </div>
         )}
+        <div style={{ marginTop: 16 }}>
+          <button
+            type="button"
+            className="btn btn-ghost btn-full btn-sm"
+            onClick={() => { setOpenStatModal(null); setTab('fridge'); }}
+          >
+            {L ? 'Go to Fridge →' : 'Към хладилника →'}
+          </button>
+        </div>
       </Modal>
 
       <Modal
@@ -226,9 +255,28 @@ export function HomeScreen({ profile, recipes, fridge, publicRecipes, favoriteId
           </p>
         ) : (
           <div className="tag-list">
-            {allergies.map(a => <Badge type="allergy" key={a}>{a}</Badge>)}
+            {allergies.map(a => (
+              <button
+                key={a}
+                type="button"
+                className="badge badge-allergy tag-removable"
+                onClick={() => onRemoveAllergy(a)}
+                aria-label={`${L ? 'Remove allergy' : 'Премахни алергия'} ${a}`}
+              >
+                {a} <span className="rm">✕</span>
+              </button>
+            ))}
           </div>
         )}
+        <div style={{ marginTop: 16 }}>
+          <button
+            type="button"
+            className="btn btn-ghost btn-full btn-sm"
+            onClick={() => { setOpenStatModal(null); setTab('products'); }}
+          >
+            {L ? 'Go to Products →' : 'Към продукти →'}
+          </button>
+        </div>
       </Modal>
 
       <Modal
@@ -243,9 +291,28 @@ export function HomeScreen({ profile, recipes, fridge, publicRecipes, favoriteId
           </p>
         ) : (
           <div className="tag-list">
-            {dislikes.map(d => <Badge type="dislike" key={d}>{d}</Badge>)}
+            {dislikes.map(d => (
+              <button
+                key={d}
+                type="button"
+                className="badge badge-dislike tag-removable"
+                onClick={() => onRemoveDislike(d)}
+                aria-label={`${L ? 'Remove dislike' : 'Премахни нелюбима'} ${d}`}
+              >
+                {d} <span className="rm">✕</span>
+              </button>
+            ))}
           </div>
         )}
+        <div style={{ marginTop: 16 }}>
+          <button
+            type="button"
+            className="btn btn-ghost btn-full btn-sm"
+            onClick={() => { setOpenStatModal(null); setTab('products'); }}
+          >
+            {L ? 'Go to Products →' : 'Към продукти →'}
+          </button>
+        </div>
       </Modal>
 
       <Modal

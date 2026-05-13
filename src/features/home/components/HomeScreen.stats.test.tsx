@@ -48,6 +48,9 @@ const makeProps = (overrides: Partial<Parameters<typeof HomeScreen>[0]> = {}) =>
   products: [] as Product[],
   setTab: vi.fn(),
   lang: 'bg' as const,
+  onDeleteFridgeItem: vi.fn(),
+  onRemoveAllergy: vi.fn(),
+  onRemoveDislike: vi.fn(),
   ...overrides,
 });
 
@@ -229,5 +232,64 @@ describe('HomeScreen – active allergies section', () => {
     const products = [makeProduct({ name: 'лук', status: 'disliked' })];
     render(<HomeScreen {...makeProps({ products })} />);
     expect(screen.queryByRole('button', { name: /Активни алергии/ })).not.toBeInTheDocument();
+  });
+});
+
+describe('HomeScreen – stat modal actions', () => {
+  it('fridge modal delete button calls onDeleteFridgeItem with the item id', async () => {
+    const user = userEvent.setup();
+    const onDeleteFridgeItem = vi.fn();
+    const fridge = [makeFridgeItem({ id: 'f-test', name: 'Домат' })];
+    render(<HomeScreen {...makeProps({ fridge, onDeleteFridgeItem })} />);
+    await user.click(screen.getByText('в хладилника'));
+    await user.click(screen.getByRole('button', { name: 'Премахни Домат' }));
+    expect(onDeleteFridgeItem).toHaveBeenCalledWith('f-test');
+  });
+
+  it('fridge modal Go to Fridge button calls setTab with fridge', async () => {
+    const user = userEvent.setup();
+    const setTab = vi.fn();
+    render(<HomeScreen {...makeProps({ setTab })} />);
+    await user.click(screen.getByText('в хладилника'));
+    await user.click(screen.getByText('Към хладилника →'));
+    expect(setTab).toHaveBeenCalledWith('fridge');
+  });
+
+  it('allergies modal remove button calls onRemoveAllergy with the allergy name', async () => {
+    const user = userEvent.setup();
+    const onRemoveAllergy = vi.fn();
+    const products = [makeProduct({ name: 'мляко', status: 'allergic' })];
+    render(<HomeScreen {...makeProps({ products, onRemoveAllergy })} />);
+    await user.click(screen.getByText('алергии'));
+    await user.click(screen.getByRole('button', { name: 'Премахни алергия мляко' }));
+    expect(onRemoveAllergy).toHaveBeenCalledWith('мляко');
+  });
+
+  it('allergies modal Go to Products button calls setTab with products', async () => {
+    const user = userEvent.setup();
+    const setTab = vi.fn();
+    render(<HomeScreen {...makeProps({ setTab })} />);
+    await user.click(screen.getByText('алергии'));
+    await user.click(screen.getByText('Към продукти →'));
+    expect(setTab).toHaveBeenCalledWith('products');
+  });
+
+  it('dislikes modal remove button calls onRemoveDislike with the dislike name', async () => {
+    const user = userEvent.setup();
+    const onRemoveDislike = vi.fn();
+    const products = [makeProduct({ name: 'лук', status: 'disliked' })];
+    render(<HomeScreen {...makeProps({ products, onRemoveDislike })} />);
+    await user.click(screen.getByText('нелюбими'));
+    await user.click(screen.getByRole('button', { name: 'Премахни нелюбима лук' }));
+    expect(onRemoveDislike).toHaveBeenCalledWith('лук');
+  });
+
+  it('safe recipes modal Go to Recipes button calls setTab with recipes', async () => {
+    const user = userEvent.setup();
+    const setTab = vi.fn();
+    render(<HomeScreen {...makeProps({ setTab })} />);
+    await user.click(screen.getByText('безопасни рецепти'));
+    await user.click(screen.getByText('Към рецепти →'));
+    expect(setTab).toHaveBeenCalledWith('recipes');
   });
 });

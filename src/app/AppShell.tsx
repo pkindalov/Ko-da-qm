@@ -45,7 +45,20 @@ export function AppShell() {
   }
 
   const screens: Record<Tab, React.ReactNode> = {
-    home: <HomeScreen profile={profile} recipes={recipes} fridge={fridge} publicRecipes={publicRecipes} favoriteIds={favoriteIds} onToggleFavorite={toggleFavorite} products={products} setTab={setTab} lang={tweaks.lang} />,
+    home: <HomeScreen
+      profile={profile}
+      recipes={recipes}
+      fridge={fridge}
+      publicRecipes={publicRecipes}
+      favoriteIds={favoriteIds}
+      onToggleFavorite={toggleFavorite}
+      products={products}
+      setTab={setTab}
+      lang={tweaks.lang}
+      onDeleteFridgeItem={removeFridgeItem}
+      onRemoveAllergy={(name) => setProfile({ ...profile, allergies: profile.allergies.filter(a => a !== name) })}
+      onRemoveDislike={(name) => setProfile({ ...profile, dislikes: profile.dislikes.filter(d => d !== name) })}
+    />,
     fridge: <FridgeScreen fridge={fridge} addFridgeItem={addFridgeItem} removeFridgeItem={removeFridgeItem} profile={profile} recipes={recipes} products={products} lang={tweaks.lang} />,
     recipes: <RecipesScreen recipes={recipes} addRecipe={addRecipe} removeRecipe={removeRecipe} updateRecipe={updateRecipe} favoriteRecipes={favoriteRecipes} favoriteIds={favoriteIds} onToggleFavorite={toggleFavorite} products={products} profile={profile} lang={tweaks.lang} userEmail={userEmail} />,
     products: <ProductsScreen products={products} setProducts={setProducts} addProduct={addProduct} lang={tweaks.lang} />,
