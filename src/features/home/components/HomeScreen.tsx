@@ -19,9 +19,13 @@ interface HomeScreenProps {
   lang: Language;
 }
 
+const RECIPES_PREVIEW_SIZE = 4;
+const COMMUNITY_PAGE_SIZE = 4;
+
 export function HomeScreen({ profile, recipes, fridge, publicRecipes, favoriteIds, onToggleFavorite, products, setTab, lang }: HomeScreenProps) {
   const L = lang === 'en';
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
+  const [communityPage, setCommunityPage] = useState(1);
 
   const toNames = (list: Product[]) => list.flatMap(p => p.nameEn ? [p.name, p.nameEn] : [p.name]);
   const allergies = [...profile.allergies, ...toNames(products.filter(p => p.status === 'allergic'))];
@@ -84,7 +88,7 @@ export function HomeScreen({ profile, recipes, fridge, publicRecipes, favoriteId
         />
       ) : (
         <div className="grid-2">
-          {recipes.slice(0, 4).map((r) => {
+          {recipes.slice(0, RECIPES_PREVIEW_SIZE).map((r) => {
             const risk = recipeRisk(r, allergies, dislikes);
             return (
               <div key={r.id} className={`recipe-card${risk === 'allergy' ? ' allergy' : ''}`} onClick={() => setTab('recipes')}>
@@ -107,7 +111,7 @@ export function HomeScreen({ profile, recipes, fridge, publicRecipes, favoriteId
           <div className="divider" />
           <div className="section-title">{L ? 'FROM THE COMMUNITY' : 'ОТ ОБЩНОСТТА'}</div>
           <div className="grid-2">
-            {publicRecipes.slice(0, 4).map((r) => {
+            {publicRecipes.slice(0, communityPage * COMMUNITY_PAGE_SIZE).map((r) => {
               const risk = recipeRisk(r, allergies, dislikes);
               return (
                 <div key={r.id} className={`recipe-card${risk === 'allergy' ? ' allergy' : ''}`} onClick={() => setSelectedRecipe(r)}>
@@ -133,6 +137,11 @@ export function HomeScreen({ profile, recipes, fridge, publicRecipes, favoriteId
               );
             })}
           </div>
+          {publicRecipes.length > communityPage * COMMUNITY_PAGE_SIZE && (
+            <button className="btn btn-ghost btn-full" style={{ marginTop: 8 }} onClick={() => setCommunityPage(p => p + 1)}>
+              {L ? `Show more (${publicRecipes.length - communityPage * COMMUNITY_PAGE_SIZE} left)` : `Покажи още (${publicRecipes.length - communityPage * COMMUNITY_PAGE_SIZE} остават)`}
+            </button>
+          )}
         </>
       )}
 
