@@ -28,8 +28,8 @@ export function HomeScreen({ profile, recipes, fridge, publicRecipes, favoriteId
   const [communityPage, setCommunityPage] = useState(1);
 
   const toNames = (list: Product[]) => list.flatMap(p => p.nameEn ? [p.name, p.nameEn] : [p.name]);
-  const allergies = [...profile.allergies, ...toNames(products.filter(p => p.status === 'allergic'))];
-  const dislikes  = [...profile.dislikes,  ...toNames(products.filter(p => p.status === 'disliked'))];
+  const allergies = [...new Set([...profile.allergies, ...toNames(products.filter(p => p.status === 'allergic'))])];
+  const dislikes  = [...new Set([...profile.dislikes,  ...toNames(products.filter(p => p.status === 'disliked'))])];
   const blocked   = [...allergies, ...dislikes];
   const safeRecipes = recipes.filter((r) => isSafe(r, blocked));
   const greeting = getGreeting(new Date().getHours(), lang);
@@ -46,31 +46,31 @@ export function HomeScreen({ profile, recipes, fridge, publicRecipes, favoriteId
       </div>
 
       <div className="grid-2" style={{ marginBottom: 20 }}>
-        <div className="stat-card">
+        <div className="stat-card" style={{ cursor: 'pointer' }} onClick={() => setTab('recipes')}>
           <div className="stat-num" style={{ color: 'var(--primary)' }}>{safeRecipes.length}</div>
           <div className="stat-label">{L ? 'safe recipes' : 'безопасни рецепти'}</div>
         </div>
-        <div className="stat-card">
+        <div className="stat-card" style={{ cursor: 'pointer' }} onClick={() => setTab('fridge')}>
           <div className="stat-num" style={{ color: 'var(--secondary)' }}>{fridge.length}</div>
           <div className="stat-label">{L ? 'fridge items' : 'в хладилника'}</div>
         </div>
         <div className="stat-card" style={{ cursor: 'pointer' }} onClick={() => setTab('profile')}>
-          <div className="stat-num" style={{ color: 'var(--danger)' }}>{profile.allergies.length}</div>
+          <div className="stat-num" style={{ color: 'var(--danger)' }}>{allergies.length}</div>
           <div className="stat-label">{L ? 'allergies' : 'алергии'}</div>
         </div>
         <div className="stat-card" style={{ cursor: 'pointer' }} onClick={() => setTab('profile')}>
-          <div className="stat-num" style={{ color: 'var(--warn)' }}>{profile.dislikes.length}</div>
+          <div className="stat-num" style={{ color: 'var(--warn)' }}>{dislikes.length}</div>
           <div className="stat-label">{L ? 'dislikes' : 'нелюбими'}</div>
         </div>
       </div>
 
-      {profile.allergies.length > 0 && (
+      {allergies.length > 0 && (
         <div className="card" style={{ marginBottom: 16, borderColor: 'var(--danger)', background: 'var(--danger-light)' }}>
           <div style={{ fontWeight: 800, fontSize: 14, color: 'var(--danger)', marginBottom: 6 }}>
             ⚠ {L ? 'Active Allergies' : 'Активни алергии'}
           </div>
           <div className="tag-list">
-            {profile.allergies.map((a) => (
+            {allergies.map((a) => (
               <Badge type="allergy" key={a}>{a}</Badge>
             ))}
           </div>
