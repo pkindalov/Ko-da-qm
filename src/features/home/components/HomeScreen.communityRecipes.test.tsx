@@ -140,3 +140,56 @@ describe('HomeScreen – community recipe list rendering', () => {
     expect(screen.queryByText(/👤/)).not.toBeInTheDocument();
   });
 });
+
+describe('HomeScreen – community recipe pagination', () => {
+  it('does not show "Show more" button when recipes count is within page size', () => {
+    const recipes = Array.from({ length: 4 }, (_, i) =>
+      makeRecipe({ id: `r${i}`, name: `Рецепта ${i + 1}` })
+    );
+    render(<HomeScreen {...makeProps({ publicRecipes: recipes })} />);
+    expect(screen.queryByRole('button', { name: /Покажи още/i })).not.toBeInTheDocument();
+  });
+
+  it('shows "Show more" button with remaining count when more than 4 recipes exist', () => {
+    const recipes = Array.from({ length: 6 }, (_, i) =>
+      makeRecipe({ id: `r${i}`, name: `Рецепта ${i + 1}` })
+    );
+    render(<HomeScreen {...makeProps({ publicRecipes: recipes })} />);
+    expect(screen.getByRole('button', { name: /Покажи още \(2 остават\)/i })).toBeInTheDocument();
+  });
+
+  it('reveals next batch of recipes after clicking "Show more"', async () => {
+    const user = userEvent.setup();
+    const recipes = Array.from({ length: 5 }, (_, i) =>
+      makeRecipe({ id: `r${i}`, name: `Рецепта ${i + 1}` })
+    );
+    render(<HomeScreen {...makeProps({ publicRecipes: recipes })} />);
+    expect(screen.queryByText('Рецепта 5')).not.toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: /Покажи още/i }));
+    expect(screen.getByText('Рецепта 5')).toBeInTheDocument();
+  });
+
+  it('hides "Show more" button once all recipes are visible', async () => {
+    const user = userEvent.setup();
+    const recipes = Array.from({ length: 5 }, (_, i) =>
+      makeRecipe({ id: `r${i}`, name: `Рецепта ${i + 1}` })
+    );
+    render(<HomeScreen {...makeProps({ publicRecipes: recipes })} />);
+    await user.click(screen.getByRole('button', { name: /Покажи още/i }));
+    expect(screen.queryByRole('button', { name: /Покажи още/i })).not.toBeInTheDocument();
+  });
+
+  it('loads additional pages incrementally when clicked multiple times', async () => {
+    const user = userEvent.setup();
+    const recipes = Array.from({ length: 9 }, (_, i) =>
+      makeRecipe({ id: `r${i}`, name: `Рецепта ${i + 1}` })
+    );
+    render(<HomeScreen {...makeProps({ publicRecipes: recipes })} />);
+    expect(screen.queryByText('Рецепта 5')).not.toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: /Покажи още \(5 остават\)/i }));
+    expect(screen.getByText('Рецепта 8')).toBeInTheDocument();
+    expect(screen.queryByText('Рецепта 9')).not.toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: /Покажи още \(1 остават\)/i }));
+    expect(screen.getByText('Рецепта 9')).toBeInTheDocument();
+  });
+});

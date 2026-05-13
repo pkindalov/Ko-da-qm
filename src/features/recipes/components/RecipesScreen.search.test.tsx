@@ -27,6 +27,22 @@ const makeRecipe = (overrides: Partial<Recipe> = {}): Recipe => ({
   ...overrides,
 });
 
+const makeDbRecipe = (overrides: Record<string, unknown> = {}) => ({
+  id: crypto.randomUUID(),
+  name: 'DB Recipe',
+  emoji: '🍲',
+  ingredients: ['pasta'],
+  steps: ['boil'],
+  time: 20,
+  tags: [],
+  requiredIngredients: ['pasta'],
+  isAI: false,
+  isPublic: true,
+  matchScore: 1,
+  matchedCount: 1,
+  ...overrides,
+});
+
 const makeProps = (overrides: Partial<Parameters<typeof RecipesScreen>[0]> = {}) => ({
   recipes: [] as Recipe[],
   addRecipe: vi.fn(),
@@ -358,5 +374,170 @@ describe('RecipesScreen – Safe for me chip still works without inline search',
     await user.click(chip);
     expect(screen.getByText('Safe Dish')).toBeInTheDocument();
     expect(screen.getByText('Risky Dish')).toBeInTheDocument();
+  });
+});
+
+describe('RecipesScreen – search pagination: db results', () => {
+  it('does not show "Show more" when db results are within page size', async () => {
+    const user = userEvent.setup();
+    mockSearchDatabase.mockResolvedValue(
+      Array.from({ length: 5 }, (_, i) => makeDbRecipe({ id: `db-${i}`, name: `Recipe ${i + 1}` }))
+    );
+    render(<RecipesScreen {...makeProps()} />);
+    await openSearchModal(user);
+    await typeAndSearch(user, 'pasta');
+    await waitFor(() => expect(screen.getByText('Recipe 1')).toBeInTheDocument());
+    expect(screen.queryByRole('button', { name: /Show more/i })).not.toBeInTheDocument();
+  });
+
+  it('shows "Show more" with correct remaining count when more than PAGE_SIZE db results exist', async () => {
+    const user = userEvent.setup();
+    mockSearchDatabase.mockResolvedValue(
+      Array.from({ length: 7 }, (_, i) => makeDbRecipe({ id: `db-${i}`, name: `Recipe ${i + 1}` }))
+    );
+    render(<RecipesScreen {...makeProps()} />);
+    await openSearchModal(user);
+    await typeAndSearch(user, 'pasta');
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: /Show more \(2 left\)/i })).toBeInTheDocument()
+    );
+    expect(screen.queryByText('Recipe 6')).not.toBeInTheDocument();
+  });
+
+  it('reveals next batch after clicking "Show more"', async () => {
+    const user = userEvent.setup();
+    mockSearchDatabase.mockResolvedValue(
+      Array.from({ length: 6 }, (_, i) => makeDbRecipe({ id: `db-${i}`, name: `Recipe ${i + 1}` }))
+    );
+    render(<RecipesScreen {...makeProps()} />);
+    await openSearchModal(user);
+    await typeAndSearch(user, 'pasta');
+    await waitFor(() => screen.getByRole('button', { name: /Show more/i }));
+    await user.click(screen.getByRole('button', { name: /Show more/i }));
+    expect(screen.getByText('Recipe 6')).toBeInTheDocument();
+  });
+
+  it('hides "Show more" once all db results are visible', async () => {
+    const user = userEvent.setup();
+    mockSearchDatabase.mockResolvedValue(
+      Array.from({ length: 6 }, (_, i) => makeDbRecipe({ id: `db-${i}`, name: `Recipe ${i + 1}` }))
+    );
+    render(<RecipesScreen {...makeProps()} />);
+    await openSearchModal(user);
+    await typeAndSearch(user, 'pasta');
+    await waitFor(() => screen.getByRole('button', { name: /Show more/i }));
+    await user.click(screen.getByRole('button', { name: /Show more/i }));
+    expect(screen.queryByRole('button', { name: /Show more/i })).not.toBeInTheDocument();
+  });
+
+  it('resets db results to first page when a new search is run', async () => {
+    const user = userEvent.setup();
+    mockSearchDatabase.mockResolvedValue(
+      Array.from({ length: 6 }, (_, i) => makeDbRecipe({ id: `db-${i}`, name: `Recipe ${i + 1}` }))
+    );
+    render(<RecipesScreen {...makeProps()} />);
+    await openSearchModal(user);
+    await typeAndSearch(user, 'pasta');
+    await waitFor(() => screen.getByRole('button', { name: /Show more/i }));
+    await user.click(screen.getByRole('button', { name: /Show more/i }));
+    expect(screen.queryByRole('button', { name: /Show more/i })).not.toBeInTheDocument();
+    await typeAndSearch(user, ' extra');
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: /Show more/i })).toBeInTheDocument()
+    );
+  });
+});
+
+describe('RecipesScreen – search pagination: my recipe results', () => {
+  const getModal = () =>
+    screen.getByPlaceholderText(/e\.g\. eggs/i).closest('.modal') as HTMLElement;
+
+  it('does not show "Show more" when my recipe results are within page size', async () => {
+    const user = userEvent.setup();
+    const recipes = Array.from({ length: 5 }, (_, i) =>
+      makeRecipe({ id: `my-${i}`, name: `Egg Dish ${i + 1}`, ingredients: ['eggs'] })
+    );
+    render(<RecipesScreen {...makeProps({ recipes })} />);
+    await openSearchModal(user);
+    await typeAndSearch(user, 'egg');
+    await waitFor(() =>
+      expect(within(getModal()).getByText('Egg Dish 1')).toBeInTheDocument()
+    );
+    expect(within(getModal()).queryByRole('button', { name: /Show more/i })).not.toBeInTheDocument();
+  });
+
+  it('shows "Show more" with correct remaining count when more than PAGE_SIZE personal recipes match', async () => {
+    const user = userEvent.setup();
+    const recipes = Array.from({ length: 7 }, (_, i) =>
+      makeRecipe({ id: `my-${i}`, name: `Egg Dish ${i + 1}`, ingredients: ['eggs'] })
+    );
+    render(<RecipesScreen {...makeProps({ recipes })} />);
+    await openSearchModal(user);
+    await typeAndSearch(user, 'egg');
+    await waitFor(() =>
+      expect(within(getModal()).getByRole('button', { name: /Show more \(2 left\)/i })).toBeInTheDocument()
+    );
+    expect(within(getModal()).queryByText('Egg Dish 6')).not.toBeInTheDocument();
+  });
+
+  it('reveals next batch of my recipes after clicking "Show more"', async () => {
+    const user = userEvent.setup();
+    const recipes = Array.from({ length: 6 }, (_, i) =>
+      makeRecipe({ id: `my-${i}`, name: `Egg Dish ${i + 1}`, ingredients: ['eggs'] })
+    );
+    render(<RecipesScreen {...makeProps({ recipes })} />);
+    await openSearchModal(user);
+    await typeAndSearch(user, 'egg');
+    await waitFor(() => within(getModal()).getByRole('button', { name: /Show more/i }));
+    await user.click(within(getModal()).getByRole('button', { name: /Show more \(1 left\)/i }));
+    expect(within(getModal()).getByText('Egg Dish 6')).toBeInTheDocument();
+  });
+});
+
+describe('RecipesScreen – search db results: heart button', () => {
+  it('shows unfilled heart when db recipe is not yet favorited', async () => {
+    const user = userEvent.setup();
+    mockSearchDatabase.mockResolvedValue([makeDbRecipe({ id: 'db-1' })]);
+    render(<RecipesScreen {...makeProps({ favoriteIds: [] })} />);
+    await openSearchModal(user);
+    await typeAndSearch(user, 'pasta');
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: /Add to favorites/i })).toBeInTheDocument()
+    );
+  });
+
+  it('shows filled heart when db recipe is already favorited', async () => {
+    const user = userEvent.setup();
+    mockSearchDatabase.mockResolvedValue([makeDbRecipe({ id: 'db-1' })]);
+    render(<RecipesScreen {...makeProps({ favoriteIds: ['db-1'] })} />);
+    await openSearchModal(user);
+    await typeAndSearch(user, 'pasta');
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: /Remove from favorites/i })).toBeInTheDocument()
+    );
+  });
+
+  it('calls onToggleFavorite with the correct recipe when heart is clicked', async () => {
+    const user = userEvent.setup();
+    const onToggleFavorite = vi.fn();
+    mockSearchDatabase.mockResolvedValue([makeDbRecipe({ id: 'db-1', name: 'Pasta Carbonara' })]);
+    render(<RecipesScreen {...makeProps({ onToggleFavorite })} />);
+    await openSearchModal(user);
+    await typeAndSearch(user, 'pasta');
+    await waitFor(() => screen.getByRole('button', { name: /Add to favorites/i }));
+    await user.click(screen.getByRole('button', { name: /Add to favorites/i }));
+    expect(onToggleFavorite).toHaveBeenCalledWith(expect.objectContaining({ id: 'db-1' }));
+  });
+
+  it('clicking heart keeps the modal open and does not navigate to detail view', async () => {
+    const user = userEvent.setup();
+    mockSearchDatabase.mockResolvedValue([makeDbRecipe({ id: 'db-1' })]);
+    render(<RecipesScreen {...makeProps()} />);
+    await openSearchModal(user);
+    await typeAndSearch(user, 'pasta');
+    await waitFor(() => screen.getByRole('button', { name: /Add to favorites/i }));
+    await user.click(screen.getByRole('button', { name: /Add to favorites/i }));
+    expect(screen.getByPlaceholderText(/e\.g\. eggs/i)).toBeInTheDocument();
+    expect(screen.queryByText(/INGREDIENTS/i)).not.toBeInTheDocument();
   });
 });

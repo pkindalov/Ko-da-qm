@@ -74,6 +74,8 @@ export function RecipesScreen({ recipes, addRecipe, removeRecipe, updateRecipe, 
     setDbSearch('');
     setDbResults([]);
     setMyRecipeResults([]);
+    setMyPage(1);
+    setDbPage(1);
   };
 
   const openEditModal = (r: Recipe) => {
