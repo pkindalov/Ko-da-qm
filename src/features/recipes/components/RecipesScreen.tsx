@@ -32,6 +32,7 @@ interface RecipeFormState {
 }
 
 const EMPTY_FORM: RecipeFormState = { name: '', emoji: '🍽', time: '', ingredients: '', steps: '', isPublic: false };
+const PAGE_SIZE = 5;
 
 export function RecipesScreen({ recipes, addRecipe, removeRecipe, updateRecipe, favoriteRecipes, favoriteIds, onToggleFavorite, products, profile, lang, userEmail }: RecipesScreenProps) {
   const L = lang === 'en';
@@ -44,6 +45,8 @@ export function RecipesScreen({ recipes, addRecipe, removeRecipe, updateRecipe, 
   const [dbResults, setDbResults] = useState<Awaited<ReturnType<typeof searchDatabase>>>([]);
   const [myRecipeResults, setMyRecipeResults] = useState<Recipe[]>([]);
   const [dbLoading, setDbLoading] = useState(false);
+  const [myPage, setMyPage] = useState(1);
+  const [dbPage, setDbPage] = useState(1);
   const [form, setForm] = useState<RecipeFormState>(EMPTY_FORM);
   const [productFilter, setProductFilter] = useState('');
   const [favoriteDetail, setFavoriteDetail] = useState<Recipe | null>(null);
@@ -103,6 +106,8 @@ export function RecipesScreen({ recipes, addRecipe, removeRecipe, updateRecipe, 
         })
       : [];
     setMyRecipeResults(matched);
+    setMyPage(1);
+    setDbPage(1);
 
     setDbLoading(true);
     try {
@@ -349,7 +354,7 @@ export function RecipesScreen({ recipes, addRecipe, removeRecipe, updateRecipe, 
               📖 {L ? 'My Recipes' : 'Моите рецепти'} ({myRecipeResults.length})
             </div>
             <div className="stack">
-              {myRecipeResults.map((r) => (
+              {myRecipeResults.slice(0, myPage * PAGE_SIZE).map((r) => (
                 <div key={r.id} className="card-sm">
                   <div className="row-between" style={{ marginBottom: 4 }}>
                     <div className="row" style={{ gap: 8 }}>
@@ -367,6 +372,11 @@ export function RecipesScreen({ recipes, addRecipe, removeRecipe, updateRecipe, 
                 </div>
               ))}
             </div>
+            {myRecipeResults.length > myPage * PAGE_SIZE && (
+              <button className="btn btn-ghost btn-full" style={{ marginTop: 8 }} onClick={() => setMyPage(p => p + 1)}>
+                {L ? `Show more (${myRecipeResults.length - myPage * PAGE_SIZE} left)` : `Покажи още (${myRecipeResults.length - myPage * PAGE_SIZE} остават)`}
+              </button>
+            )}
           </div>
         )}
 
@@ -376,7 +386,7 @@ export function RecipesScreen({ recipes, addRecipe, removeRecipe, updateRecipe, 
               🌐 {L ? 'From Database' : 'От базата данни'} ({dbResults.length})
             </div>
             <div className="stack">
-              {dbResults.map((r) => (
+              {dbResults.slice(0, dbPage * PAGE_SIZE).map((r) => (
                 <div key={r.id} className="card-sm" style={{ cursor: 'pointer' }} onClick={() => { closeDbModal(); setFavoriteDetail(r); }}>
                   <div className="row-between" style={{ marginBottom: 4 }}>
                     <div className="row" style={{ gap: 8 }}>
@@ -400,6 +410,11 @@ export function RecipesScreen({ recipes, addRecipe, removeRecipe, updateRecipe, 
                 </div>
               ))}
             </div>
+            {dbResults.length > dbPage * PAGE_SIZE && (
+              <button className="btn btn-ghost btn-full" style={{ marginTop: 8 }} onClick={() => setDbPage(p => p + 1)}>
+                {L ? `Show more (${dbResults.length - dbPage * PAGE_SIZE} left)` : `Покажи още (${dbResults.length - dbPage * PAGE_SIZE} остават)`}
+              </button>
+            )}
           </div>
         )}
       </Modal>
