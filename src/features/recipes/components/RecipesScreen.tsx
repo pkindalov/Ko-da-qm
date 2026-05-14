@@ -204,7 +204,10 @@ export function RecipesScreen({ recipes, addRecipe, removeRecipe, updateRecipe, 
                         >
                           ♥
                         </button>
-                        <div className="recipe-emoji">{r.emoji}</div>
+                        {r.imageUrl
+                          ? <img src={r.imageUrl} alt={L && r.nameEn ? r.nameEn : r.name} className="recipe-card-img" />
+                          : <div className="recipe-emoji">{r.emoji}</div>
+                        }
                         <div className="recipe-name">{L && r.nameEn ? r.nameEn : r.name}</div>
                         <div className="recipe-meta">⏱ {r.time} {L ? 'min' : 'мин'}</div>
                         {r.authorName && (
@@ -237,7 +240,10 @@ export function RecipesScreen({ recipes, addRecipe, removeRecipe, updateRecipe, 
                 return (
                   <div key={r.id} className={`recipe-card${risk === 'allergy' ? ' allergy' : ''}`} onClick={() => setDetail(r.id)}>
                     {r.isAI && <div style={{ position: 'absolute', top: 12, right: 12 }}><Badge type="primary">✨ AI</Badge></div>}
-                    <div className="recipe-emoji">{r.emoji}</div>
+                    {r.imageUrl
+                      ? <img src={r.imageUrl} alt={L && r.nameEn ? r.nameEn : r.name} className="recipe-card-img" />
+                      : <div className="recipe-emoji">{r.emoji}</div>
+                    }
                     <div className="recipe-name">{L && r.nameEn ? r.nameEn : r.name}</div>
                     <div className="recipe-meta">⏱ {r.time} {L ? 'min' : 'мин'}</div>
                     <div style={{ marginTop: 6 }}>

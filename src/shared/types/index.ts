@@ -51,6 +51,7 @@ export interface Recipe {
   name: string;
   nameEn?: string;
   emoji: string;
+  imageUrl?: string;
   ingredients: string[];
   steps: string[];
   time: number;

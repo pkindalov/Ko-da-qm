@@ -73,7 +73,7 @@ export function toEnglish(name: string): string {
 }
 
 interface FilterMeal { idMeal: string; strMeal: string }
-interface DetailMeal { idMeal: string; strMeal: string; strCategory: string; strArea: string; strInstructions: string; strTags: string | null; [key: string]: string | null }
+interface DetailMeal { idMeal: string; strMeal: string; strCategory: string; strArea: string; strInstructions: string; strTags: string | null; strMealThumb: string | null; [key: string]: string | null }
 
 async function filterByIngredient(ingredient: string): Promise<string[]> {
   try {
@@ -123,6 +123,7 @@ function mealToMatchedRecipe(meal: DetailMeal, matchedCount: number, totalFridge
     name: meal.strMeal,
     nameEn: meal.strMeal,
     emoji: CATEGORY_EMOJI[meal.strCategory] ?? '🍽',
+    imageUrl: meal.strMealThumb ?? undefined,
     ingredients,
     steps,
     time: 30,

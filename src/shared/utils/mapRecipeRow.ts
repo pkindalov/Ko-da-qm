@@ -5,6 +5,7 @@ export const mapRecipeRow = (r: Record<string, unknown>): Recipe => ({
   name: r.name as string,
   nameEn: (r.name_en as string | null) ?? undefined,
   emoji: r.emoji as string,
+  imageUrl: (r.image_url as string | null) ?? undefined,
   ingredients: (r.ingredients as string[]) ?? [],
   steps: (r.steps as string[]) ?? [],
   time: r.time as number,

@@ -42,7 +42,10 @@ export const RecipeDetailView = ({
       )}
 
       <div className="recipe-detail-hero">
-        <span className="recipe-detail-emoji">{recipe.emoji}</span>
+        {recipe.imageUrl
+          ? <img src={recipe.imageUrl} alt={name} className="recipe-detail-hero-img" />
+          : <span className="recipe-detail-emoji">{recipe.emoji}</span>
+        }
         <div className="recipe-detail-name">{name}</div>
         <div className="recipe-detail-badges">
           <Badge type={risk === 'safe' ? 'safe' : risk === 'allergy' ? 'allergy' : 'dislike'}>

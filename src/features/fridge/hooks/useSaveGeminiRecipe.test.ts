@@ -229,6 +229,27 @@ describe('useSaveGeminiRecipe', () => {
     expect(mockAddRecipe.mock.calls[0][0].nameEn).toBeUndefined();
   });
 
+  it('passes imageUrl through to the saved recipe', async () => {
+    const { result } = renderSaveHook();
+    const imageUrl = 'https://www.themealdb.com/images/media/meals/abc123.jpg';
+
+    await act(async () => {
+      await result.current.saveRecipe(makeMatchedRecipe({ imageUrl }), false);
+    });
+
+    expect(mockAddRecipe.mock.calls[0][0].imageUrl).toBe(imageUrl);
+  });
+
+  it('saves recipe with imageUrl undefined when not provided', async () => {
+    const { result } = renderSaveHook();
+
+    await act(async () => {
+      await result.current.saveRecipe(makeMatchedRecipe({ imageUrl: undefined }), false);
+    });
+
+    expect(mockAddRecipe.mock.calls[0][0].imageUrl).toBeUndefined();
+  });
+
   describe('unsaveRecipe', () => {
     it('calls removeRecipe with the real recipe id', async () => {
       const { result } = renderSaveHook();

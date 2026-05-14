@@ -194,7 +194,10 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, addRecip
             <div className="stack" style={{ marginBottom: 20 }}>
               {matchingRecipes.map((r) => (
                 <div key={r.id} className="card-sm row">
-                  <span style={{ fontSize: 24 }}>{r.emoji}</span>
+                  {r.imageUrl
+                    ? <img src={r.imageUrl} alt={L && r.nameEn ? r.nameEn : r.name} className="recipe-suggestion-img" />
+                    : <span style={{ fontSize: 24 }}>{r.emoji}</span>
+                  }
                   <div style={{ flex: 1 }}>
                     <div style={{ fontWeight: 700 }}>{L && r.nameEn ? r.nameEn : r.name}</div>
                     <div style={{ fontSize: 12, color: 'var(--text2)', marginTop: 2 }}>⏱ {r.time} {L ? 'min' : 'мин'}</div>
@@ -272,7 +275,10 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, addRecip
                 <div key={r.id} className="card-sm" style={{ borderLeft: `3px solid ${r.isAI ? 'var(--secondary)' : 'var(--primary)'}` }}>
                   <div className="row-between" style={{ marginBottom: 6 }}>
                     <div className="row" style={{ gap: 8 }}>
-                      <span style={{ fontSize: 22 }}>{r.emoji}</span>
+                      {r.imageUrl
+                        ? <img src={r.imageUrl} alt={r.name} className="recipe-suggestion-img" />
+                        : <span style={{ fontSize: 22 }}>{r.emoji}</span>
+                      }
                       <span style={{ fontWeight: 800, fontSize: 15 }}>{r.name}</span>
                       {r.isAI && <span className="badge badge-neutral" style={{ fontSize: 11 }}>✨ AI</span>}
                     </div>

@@ -6,6 +6,7 @@ export interface MatchedRecipe {
   name: string;
   nameEn?: string;
   emoji: string;
+  imageUrl?: string;
   ingredients: string[];
   steps: string[];
   time: number;
@@ -22,6 +23,7 @@ type DbRow = {
   name: string;
   name_en: string | null;
   emoji: string;
+  image_url?: string | null;
   ingredients: string[];
   steps: string[];
   time: number;
@@ -45,6 +47,7 @@ function toMatched(row: DbRow, fridgeLow: string[], blocked: string[]): MatchedR
     name: row.name,
     nameEn: row.name_en ?? undefined,
     emoji: row.emoji,
+    imageUrl: row.image_url ?? undefined,
     ingredients: row.ingredients,
     steps: row.steps,
     time: row.time,

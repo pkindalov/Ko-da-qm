@@ -27,6 +27,7 @@ export const useSaveGeminiRecipe = (
         name: matched.name,
         nameEn: matched.nameEn,
         emoji: matched.emoji,
+        imageUrl: matched.imageUrl,
         ingredients: matched.ingredients,
         steps: matched.steps,
         time: matched.time,
