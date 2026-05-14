@@ -5,7 +5,8 @@ import { FridgeScreen } from './FridgeScreen';
 import type { FridgeItem, Product, Profile, Recipe } from '../../../shared/types';
 import type { MatchedRecipe } from '../utils/matchFromFridge';
 
-const mockSaveRecipe = vi.hoisted(() => vi.fn<[MatchedRecipe, boolean], Promise<boolean>>());
+const mockSaveRecipe = vi.hoisted(() => vi.fn());
+const mockUnsaveRecipe = vi.hoisted(() => vi.fn());
 const mockClearSaveError = vi.hoisted(() => vi.fn());
 const mockUseSaveGeminiRecipe = vi.hoisted(() => vi.fn());
 
@@ -30,6 +31,8 @@ const makeProps = (overrides: Partial<Parameters<typeof FridgeScreen>[0]> = {}) 
   fridge: [{ id: 'f1', name: 'Eggs', emoji: '🥚', category: 'egg' }] as FridgeItem[],
   addFridgeItem: vi.fn().mockResolvedValue(undefined),
   removeFridgeItem: vi.fn().mockResolvedValue(undefined),
+  addRecipe: vi.fn(),
+  removeRecipe: vi.fn(),
   profile: { name: 'Test User', allergies: [], dislikes: [], dietaryPrefs: [] } as Profile,
   recipes: [] as Recipe[],
   products: [] as Product[],
@@ -61,10 +64,11 @@ const enableGeminiAndSearch = async (user: ReturnType<typeof userEvent.setup>) =
 };
 
 const defaultHookState = () => ({
-  savedIds: new Set<string>(),
+  savedIdMap: new Map<string, string>(),
   savingId: null as string | null,
   saveError: null as string | null,
   saveRecipe: mockSaveRecipe,
+  unsaveRecipe: mockUnsaveRecipe,
   clearSaveError: mockClearSaveError,
 });
 
@@ -180,11 +184,11 @@ describe('FridgeScreen – save Gemini recipe', () => {
     expect(screen.getByText('Failed to save. Please try again.')).toBeInTheDocument();
   });
 
-  it('shows Saved button (disabled) for recipes already in savedIds', async () => {
+  it('shows Remove button for recipes already in savedIdMap', async () => {
     const recipe = makeAiRecipe();
     mockUseSaveGeminiRecipe.mockReturnValue({
       ...defaultHookState(),
-      savedIds: new Set([recipe.id]),
+      savedIdMap: new Map([[recipe.id, 'real-uuid-1']]),
     });
     (searchWithGemini as ReturnType<typeof vi.fn>).mockResolvedValue([recipe]);
     const user = userEvent.setup();
@@ -192,10 +196,24 @@ describe('FridgeScreen – save Gemini recipe', () => {
 
     await enableGeminiAndSearch(user);
 
-    const savedBtn = screen.getByRole('button', { name: /✓ Saved/i });
-    expect(savedBtn).toBeInTheDocument();
-    expect(savedBtn).toBeDisabled();
+    expect(screen.getByRole('button', { name: /Remove/i })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Save recipe/i })).not.toBeInTheDocument();
+  });
+
+  it('calls unsaveRecipe with geminiId when Remove is clicked', async () => {
+    const recipe = makeAiRecipe();
+    mockUseSaveGeminiRecipe.mockReturnValue({
+      ...defaultHookState(),
+      savedIdMap: new Map([[recipe.id, 'real-uuid-1']]),
+    });
+    (searchWithGemini as ReturnType<typeof vi.fn>).mockResolvedValue([recipe]);
+    const user = userEvent.setup();
+    render(<FridgeScreen {...makeProps()} />);
+
+    await enableGeminiAndSearch(user);
+    await user.click(screen.getByRole('button', { name: /Remove/i }));
+
+    expect(mockUnsaveRecipe).toHaveBeenCalledWith(recipe.id);
   });
 
   it('disables Save button while saving is in progress for that recipe', async () => {

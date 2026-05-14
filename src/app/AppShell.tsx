@@ -66,7 +66,7 @@ export function AppShell() {
       onEditDislike={(oldName, newName) => setProfile({ ...profile, dislikes: profile.dislikes.map(d => d === oldName ? newName : d) })}
       onUpdateProductStatus={(productId, status) => setProducts(products.map(p => p.id === productId ? { ...p, status } : p))}
     />,
-    fridge: <FridgeScreen fridge={fridge} addFridgeItem={addFridgeItem} removeFridgeItem={removeFridgeItem} profile={profile} recipes={recipes} products={products} lang={tweaks.lang} />,
+    fridge: <FridgeScreen fridge={fridge} addFridgeItem={addFridgeItem} removeFridgeItem={removeFridgeItem} addRecipe={addRecipe} removeRecipe={removeRecipe} profile={profile} recipes={recipes} products={products} lang={tweaks.lang} />,
     recipes: <RecipesScreen recipes={recipes} addRecipe={addRecipe} removeRecipe={removeRecipe} updateRecipe={updateRecipe} favoriteRecipes={favoriteRecipes} favoriteIds={favoriteIds} onToggleFavorite={toggleFavorite} products={products} profile={profile} lang={tweaks.lang} userEmail={userEmail} />,
     products: <ProductsScreen products={products} setProducts={setProducts} addProduct={addProduct} lang={tweaks.lang} />,
     profile: <ProfileScreen profile={profile} setProfile={setProfile} products={products} lang={tweaks.lang} onLogout={handleLogout} onTweaksToggle={() => setTweaksOpen((o) => !o)} onNavigateToProducts={() => setTab('products')} />,

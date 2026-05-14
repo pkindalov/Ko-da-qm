@@ -1,43 +1,45 @@
 import { useState } from 'react';
 import { supabase } from '../../../lib/supabase';
+import type { Recipe } from '../../../shared/types';
 import type { MatchedRecipe } from '../utils/matchFromFridge';
 
-export const useSaveGeminiRecipe = (authorName: string) => {
-  const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
+export const useSaveGeminiRecipe = (
+  authorName: string,
+  addRecipe: (recipe: Recipe) => void,
+  removeRecipe: (id: string) => void,
+) => {
+  const [savedIdMap, setSavedIdMap] = useState(new Map<string, string>()); // geminiId → realId
   const [savingId, setSavingId] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
 
-  const saveRecipe = async (recipe: MatchedRecipe, isPublic: boolean): Promise<boolean> => {
-    if (savedIds.has(recipe.id)) return true;
+  const saveRecipe = async (matched: MatchedRecipe, isPublic: boolean): Promise<boolean> => {
+    if (savedIdMap.has(matched.id)) return true;
 
-    setSavingId(recipe.id);
+    setSavingId(matched.id);
     setSaveError(null);
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
-      const newId = crypto.randomUUID();
-      const { error } = await supabase.from('recipes').insert({
-        id: newId,
-        user_id: user.id,
-        name: recipe.name,
-        name_en: recipe.nameEn ?? null,
-        emoji: recipe.emoji,
-        ingredients: recipe.ingredients,
-        steps: recipe.steps,
-        time: recipe.time,
-        tags: recipe.tags,
-        required_ingredients: recipe.requiredIngredients,
-        is_ai: true,
-        is_public: isPublic,
-        author_name: authorName || null,
-        author_email: user.email ?? null,
-      });
+      const recipe: Recipe = {
+        id: crypto.randomUUID(),
+        name: matched.name,
+        nameEn: matched.nameEn,
+        emoji: matched.emoji,
+        ingredients: matched.ingredients,
+        steps: matched.steps,
+        time: matched.time,
+        tags: matched.tags,
+        requiredIngredients: matched.requiredIngredients,
+        isAI: true,
+        isPublic,
+        authorName: authorName || undefined,
+        authorEmail: user.email ?? undefined,
+      };
 
-      if (error) throw error;
-
-      setSavedIds(prev => new Set([...prev, recipe.id]));
+      addRecipe(recipe);
+      setSavedIdMap(prev => new Map([...prev, [matched.id, recipe.id]]));
       return true;
     } catch {
       setSaveError('save_failed');
@@ -47,7 +49,18 @@ export const useSaveGeminiRecipe = (authorName: string) => {
     }
   };
 
+  const unsaveRecipe = (geminiId: string) => {
+    const realId = savedIdMap.get(geminiId);
+    if (!realId) return;
+    removeRecipe(realId);
+    setSavedIdMap(prev => {
+      const next = new Map(prev);
+      next.delete(geminiId);
+      return next;
+    });
+  };
+
   const clearSaveError = () => setSaveError(null);
 
-  return { savedIds, savingId, saveError, saveRecipe, clearSaveError };
+  return { savedIdMap, savingId, saveError, saveRecipe, unsaveRecipe, clearSaveError };
 };

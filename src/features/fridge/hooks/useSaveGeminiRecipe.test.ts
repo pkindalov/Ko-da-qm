@@ -2,14 +2,13 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useSaveGeminiRecipe } from './useSaveGeminiRecipe';
 import type { MatchedRecipe } from '../utils/matchFromFridge';
+import type { Recipe } from '../../../shared/types';
 
 const mockGetUser = vi.hoisted(() => vi.fn());
-const mockInsert = vi.hoisted(() => vi.fn());
 
 vi.mock('../../../lib/supabase', () => ({
   supabase: {
     auth: { getUser: mockGetUser },
-    from: () => ({ insert: mockInsert }),
   },
 }));
 
@@ -33,103 +32,100 @@ const makeMatchedRecipe = (overrides: Partial<MatchedRecipe> = {}): MatchedRecip
 const authenticatedUser = { id: 'user-1', email: 'test@example.com' };
 
 describe('useSaveGeminiRecipe', () => {
+  let mockAddRecipe: ReturnType<typeof vi.fn>;
+  let mockRemoveRecipe: ReturnType<typeof vi.fn>;
+
   beforeEach(() => {
     vi.clearAllMocks();
     mockGetUser.mockResolvedValue({ data: { user: authenticatedUser } });
-    mockInsert.mockResolvedValue({ error: null });
+    mockAddRecipe = vi.fn();
+    mockRemoveRecipe = vi.fn();
   });
 
-  it('returns empty savedIds initially', () => {
-    const { result } = renderHook(() => useSaveGeminiRecipe('Test User'));
-    expect(result.current.savedIds.size).toBe(0);
+  const renderSaveHook = (authorName = 'Test User') =>
+    renderHook(() => useSaveGeminiRecipe(
+      authorName,
+      mockAddRecipe as unknown as (recipe: Recipe) => void,
+      mockRemoveRecipe as unknown as (id: string) => void,
+    ));
+
+  it('returns empty savedIdMap initially', () => {
+    const { result } = renderSaveHook();
+    expect(result.current.savedIdMap.size).toBe(0);
     expect(result.current.savingId).toBeNull();
     expect(result.current.saveError).toBeNull();
   });
 
-  it('saves a recipe successfully and adds id to savedIds', async () => {
-    const { result } = renderHook(() => useSaveGeminiRecipe('Test User'));
-    const recipe = makeMatchedRecipe();
+  it('saves a recipe and adds geminiId → realId mapping', async () => {
+    const { result } = renderSaveHook();
+    const matched = makeMatchedRecipe();
 
     let success: boolean;
     await act(async () => {
-      success = await result.current.saveRecipe(recipe, false);
+      success = await result.current.saveRecipe(matched, false);
     });
 
     expect(success!).toBe(true);
-    expect(result.current.savedIds.has(recipe.id)).toBe(true);
+    expect(result.current.savedIdMap.has(matched.id)).toBe(true);
     expect(result.current.saveError).toBeNull();
   });
 
-  it('inserts correct fields into the recipes table', async () => {
-    const { result } = renderHook(() => useSaveGeminiRecipe('Chef Name'));
-    const recipe = makeMatchedRecipe();
+  it('calls addRecipe with a correctly built Recipe object', async () => {
+    const { result } = renderSaveHook('Chef Name');
+    const matched = makeMatchedRecipe();
 
     await act(async () => {
-      await result.current.saveRecipe(recipe, true);
+      await result.current.saveRecipe(matched, true);
     });
 
-    const insertArg = mockInsert.mock.calls[0][0];
-    expect(insertArg.name).toBe(recipe.name);
-    expect(insertArg.name_en).toBe(recipe.nameEn);
-    expect(insertArg.emoji).toBe(recipe.emoji);
-    expect(insertArg.ingredients).toEqual(recipe.ingredients);
-    expect(insertArg.steps).toEqual(recipe.steps);
-    expect(insertArg.time).toBe(recipe.time);
-    expect(insertArg.tags).toEqual(recipe.tags);
-    expect(insertArg.required_ingredients).toEqual(recipe.requiredIngredients);
-    expect(insertArg.is_ai).toBe(true);
-    expect(insertArg.is_public).toBe(true);
-    expect(insertArg.user_id).toBe(authenticatedUser.id);
-    expect(insertArg.author_name).toBe('Chef Name');
-    expect(insertArg.author_email).toBe(authenticatedUser.email);
-    expect(typeof insertArg.id).toBe('string');
-    expect(insertArg.id.length).toBeGreaterThan(0);
+    expect(mockAddRecipe).toHaveBeenCalledTimes(1);
+    const recipe: Recipe = mockAddRecipe.mock.calls[0][0];
+    expect(recipe.name).toBe(matched.name);
+    expect(recipe.nameEn).toBe(matched.nameEn);
+    expect(recipe.emoji).toBe(matched.emoji);
+    expect(recipe.ingredients).toEqual(matched.ingredients);
+    expect(recipe.steps).toEqual(matched.steps);
+    expect(recipe.time).toBe(matched.time);
+    expect(recipe.tags).toEqual(matched.tags);
+    expect(recipe.requiredIngredients).toEqual(matched.requiredIngredients);
+    expect(recipe.isAI).toBe(true);
+    expect(recipe.isPublic).toBe(true);
+    expect(recipe.authorName).toBe('Chef Name');
+    expect(recipe.authorEmail).toBe(authenticatedUser.email);
+    expect(typeof recipe.id).toBe('string');
+    expect(recipe.id.length).toBeGreaterThan(0);
   });
 
-  it('inserts with is_public false when user picks private', async () => {
-    const { result } = renderHook(() => useSaveGeminiRecipe('Test User'));
+  it('calls addRecipe with isPublic false when user picks private', async () => {
+    const { result } = renderSaveHook();
 
     await act(async () => {
       await result.current.saveRecipe(makeMatchedRecipe(), false);
     });
 
-    expect(mockInsert.mock.calls[0][0].is_public).toBe(false);
+    expect(mockAddRecipe.mock.calls[0][0].isPublic).toBe(false);
   });
 
-  it('prevents double save: returns true and skips insert on second call', async () => {
-    const { result } = renderHook(() => useSaveGeminiRecipe('Test User'));
-    const recipe = makeMatchedRecipe();
+  it('prevents double save: returns true and skips addRecipe on second call', async () => {
+    const { result } = renderSaveHook();
+    const matched = makeMatchedRecipe();
 
     await act(async () => {
-      await result.current.saveRecipe(recipe, false);
+      await result.current.saveRecipe(matched, false);
     });
 
     let secondResult: boolean;
     await act(async () => {
-      secondResult = await result.current.saveRecipe(recipe, false);
+      secondResult = await result.current.saveRecipe(matched, false);
     });
 
     expect(secondResult!).toBe(true);
-    expect(mockInsert).toHaveBeenCalledTimes(1);
-  });
-
-  it('sets saveError and returns false on DB error', async () => {
-    mockInsert.mockResolvedValue({ error: new Error('DB error') });
-    const { result } = renderHook(() => useSaveGeminiRecipe('Test User'));
-
-    let success: boolean;
-    await act(async () => {
-      success = await result.current.saveRecipe(makeMatchedRecipe(), false);
-    });
-
-    expect(success!).toBe(false);
-    expect(result.current.saveError).toBe('save_failed');
-    expect(result.current.savedIds.size).toBe(0);
+    expect(mockAddRecipe).toHaveBeenCalledTimes(1);
   });
 
   it('sets saveError and returns false when not authenticated', async () => {
     mockGetUser.mockResolvedValue({ data: { user: null } });
-    const { result } = renderHook(() => useSaveGeminiRecipe('Test User'));
+    const { result } = renderSaveHook();
 
     let success: boolean;
     await act(async () => {
@@ -138,13 +134,27 @@ describe('useSaveGeminiRecipe', () => {
 
     expect(success!).toBe(false);
     expect(result.current.saveError).toBe('save_failed');
-    expect(mockInsert).not.toHaveBeenCalled();
+    expect(mockAddRecipe).not.toHaveBeenCalled();
+    expect(result.current.savedIdMap.size).toBe(0);
+  });
+
+  it('sets saveError and returns false when getUser throws', async () => {
+    mockGetUser.mockRejectedValue(new Error('Network error'));
+    const { result } = renderSaveHook();
+
+    let success: boolean;
+    await act(async () => {
+      success = await result.current.saveRecipe(makeMatchedRecipe(), false);
+    });
+
+    expect(success!).toBe(false);
+    expect(result.current.saveError).toBe('save_failed');
   });
 
   it('clears saveError at the start of a new save attempt', async () => {
-    mockInsert.mockResolvedValueOnce({ error: new Error('DB error') });
-    mockInsert.mockResolvedValueOnce({ error: null });
-    const { result } = renderHook(() => useSaveGeminiRecipe('Test User'));
+    mockGetUser.mockResolvedValueOnce({ data: { user: null } });
+    mockGetUser.mockResolvedValueOnce({ data: { user: authenticatedUser } });
+    const { result } = renderSaveHook();
 
     await act(async () => {
       await result.current.saveRecipe(makeMatchedRecipe({ id: 'r1' }), false);
@@ -158,13 +168,12 @@ describe('useSaveGeminiRecipe', () => {
   });
 
   it('clearSaveError removes the error', async () => {
-    mockInsert.mockResolvedValue({ error: new Error('DB error') });
-    const { result } = renderHook(() => useSaveGeminiRecipe('Test User'));
+    mockGetUser.mockResolvedValue({ data: { user: null } });
+    const { result } = renderSaveHook();
 
     await act(async () => {
       await result.current.saveRecipe(makeMatchedRecipe(), false);
     });
-    expect(result.current.saveError).toBe('save_failed');
 
     act(() => {
       result.current.clearSaveError();
@@ -172,43 +181,85 @@ describe('useSaveGeminiRecipe', () => {
     expect(result.current.saveError).toBeNull();
   });
 
-  it('savingId is set during save and null after', async () => {
-    let savingIdDuringSave: string | null = null;
-
-    mockInsert.mockImplementationOnce(async () => {
-      savingIdDuringSave = 'captured-during-save';
-      return { error: null };
+  it('savingId is set to geminiId during save and null after', async () => {
+    let capturedSavingId: string | null = null;
+    mockGetUser.mockImplementationOnce(async () => {
+      capturedSavingId = 'captured';
+      return { data: { user: authenticatedUser } };
     });
 
-    const { result } = renderHook(() => useSaveGeminiRecipe('Test User'));
-    const recipe = makeMatchedRecipe();
+    const { result } = renderSaveHook();
+    const matched = makeMatchedRecipe();
 
     await act(async () => {
-      await result.current.saveRecipe(recipe, false);
+      await result.current.saveRecipe(matched, false);
     });
 
-    expect(savingIdDuringSave).toBe('captured-during-save');
+    expect(capturedSavingId).toBe('captured');
     expect(result.current.savingId).toBeNull();
   });
 
-  it('uses null for author_name when authorName is empty string', async () => {
-    const { result } = renderHook(() => useSaveGeminiRecipe(''));
+  it('uses null authorName when authorName is empty string', async () => {
+    const { result } = renderSaveHook('');
 
     await act(async () => {
       await result.current.saveRecipe(makeMatchedRecipe(), false);
     });
 
-    expect(mockInsert.mock.calls[0][0].author_name).toBeNull();
+    expect(mockAddRecipe.mock.calls[0][0].authorName).toBeUndefined();
   });
 
-  it('uses null for name_en when nameEn is undefined', async () => {
-    const { result } = renderHook(() => useSaveGeminiRecipe('Test User'));
-    const recipe = makeMatchedRecipe({ nameEn: undefined });
+  it('uses undefined for nameEn when nameEn is undefined', async () => {
+    const { result } = renderSaveHook();
 
     await act(async () => {
-      await result.current.saveRecipe(recipe, false);
+      await result.current.saveRecipe(makeMatchedRecipe({ nameEn: undefined }), false);
     });
 
-    expect(mockInsert.mock.calls[0][0].name_en).toBeNull();
+    expect(mockAddRecipe.mock.calls[0][0].nameEn).toBeUndefined();
+  });
+
+  describe('unsaveRecipe', () => {
+    it('calls removeRecipe with the real recipe id', async () => {
+      const { result } = renderSaveHook();
+      const matched = makeMatchedRecipe();
+
+      await act(async () => {
+        await result.current.saveRecipe(matched, false);
+      });
+
+      const realId = mockAddRecipe.mock.calls[0][0].id as string;
+
+      act(() => {
+        result.current.unsaveRecipe(matched.id);
+      });
+
+      expect(mockRemoveRecipe).toHaveBeenCalledWith(realId);
+    });
+
+    it('removes geminiId from savedIdMap after unsave', async () => {
+      const { result } = renderSaveHook();
+      const matched = makeMatchedRecipe();
+
+      await act(async () => {
+        await result.current.saveRecipe(matched, false);
+      });
+      expect(result.current.savedIdMap.has(matched.id)).toBe(true);
+
+      act(() => {
+        result.current.unsaveRecipe(matched.id);
+      });
+      expect(result.current.savedIdMap.has(matched.id)).toBe(false);
+    });
+
+    it('does nothing when geminiId is not in savedIdMap', () => {
+      const { result } = renderSaveHook();
+
+      act(() => {
+        result.current.unsaveRecipe('nonexistent-id');
+      });
+
+      expect(mockRemoveRecipe).not.toHaveBeenCalled();
+    });
   });
 });

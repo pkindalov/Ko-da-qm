@@ -245,6 +245,13 @@ export function RecipesScreen({ recipes, addRecipe, removeRecipe, updateRecipe, 
                       {risk === 'dislike' && <Badge type="dislike">{L ? 'Check' : 'Провери!'}</Badge>}
                       {risk === 'allergy' && <Badge type="allergy">⚠ {L ? 'Allergy risk!' : 'Алергия!'}</Badge>}
                     </div>
+                    <button
+                      className="btn btn-danger btn-sm"
+                      style={{ marginTop: 8, width: '100%' }}
+                      onClick={(e) => { e.stopPropagation(); removeRecipe(r.id); }}
+                    >
+                      🗑 {L ? 'Delete' : 'Изтрий'}
+                    </button>
                   </div>
                 );
               })}

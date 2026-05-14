@@ -14,13 +14,15 @@ interface FridgeScreenProps {
   fridge: FridgeItem[];
   addFridgeItem: (item: Omit<FridgeItem, 'id'>) => Promise<void>;
   removeFridgeItem: (id: string) => Promise<void>;
+  addRecipe: (recipe: Recipe) => void;
+  removeRecipe: (id: string) => void;
   profile: Profile;
   recipes: Recipe[];
   products: Product[];
   lang: Language;
 }
 
-export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, profile, recipes, products, lang }: FridgeScreenProps) {
+export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, addRecipe, removeRecipe, profile, recipes, products, lang }: FridgeScreenProps) {
   const L = lang === 'en';
   const [newItem, setNewItem] = useState('');
   const [newEmoji, setNewEmoji] = useState('📦');
@@ -33,7 +35,7 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, profile,
   const [fridgeExpanded, setFridgeExpanded] = useState(true);
   const [matchingExpanded, setMatchingExpanded] = useState(false);
   const [pendingSaveRecipe, setPendingSaveRecipe] = useState<MatchedRecipe | null>(null);
-  const { savedIds, savingId, saveError, saveRecipe, clearSaveError } = useSaveGeminiRecipe(profile.name);
+  const { savedIdMap, savingId, saveError, saveRecipe, unsaveRecipe, clearSaveError } = useSaveGeminiRecipe(profile.name, addRecipe, removeRecipe);
 
   const removeItem = (id: string) => removeFridgeItem(id);
 
@@ -315,9 +317,12 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, profile,
                   </div>
                   {r.isAI && (
                     <div style={{ marginTop: 10 }}>
-                      {savedIds.has(r.id) ? (
-                        <button className="btn btn-ghost btn-sm" disabled>
-                          ✓ {L ? 'Saved' : 'Запазена'}
+                      {savedIdMap.has(r.id) ? (
+                        <button
+                          className="btn btn-danger btn-sm"
+                          onClick={() => unsaveRecipe(r.id)}
+                        >
+                          🗑 {L ? 'Remove' : 'Премахни'}
                         </button>
                       ) : (
                         <button
