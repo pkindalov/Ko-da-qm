@@ -29,6 +29,8 @@ const makeProps = (overrides: Partial<Parameters<typeof HomeScreen>[0]> = {}) =>
   favoriteIds: [] as string[],
   onToggleFavorite: vi.fn(),
   onDeleteFridgeItem: vi.fn(),
+  onAddFridgeItem: vi.fn(),
+  onEditFridgeItem: vi.fn(),
   onRemoveAllergy: vi.fn(),
   onRemoveDislike: vi.fn(),
   products: [] as Product[],

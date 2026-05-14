@@ -129,6 +129,17 @@ export function useAppData() {
     await supabase.from('fridge_items').delete().eq('id', id).eq('user_id', user.id);
   }, []);
 
+  const updateFridgeItem = useCallback(async (item: FridgeItem) => {
+    setFridgeState(prev => prev.map(f => f.id === item.id ? item : f));
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    const { error } = await supabase.from('fridge_items')
+      .update({ name: item.name, emoji: item.emoji, category: item.category })
+      .eq('id', item.id)
+      .eq('user_id', user.id);
+    if (error) console.error('updateFridgeItem error:', error);
+  }, []);
+
   const addRecipe = useCallback(async (recipe: Recipe) => {
     setRecipesState(prev => [...prev, recipe]);
     const { data: { user } } = await supabase.auth.getUser();
@@ -233,5 +244,5 @@ export function useAppData() {
     setProductsState(prev => [...prev, { ...newProduct, id: data.id }]);
   }, []);
 
-  return { loading, userEmail, profile, setProfile, fridge, addFridgeItem, removeFridgeItem, recipes, addRecipe, removeRecipe, updateRecipe, products, setProducts, addProduct };
+  return { loading, userEmail, profile, setProfile, fridge, addFridgeItem, removeFridgeItem, updateFridgeItem, recipes, addRecipe, removeRecipe, updateRecipe, products, setProducts, addProduct };
 }

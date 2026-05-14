@@ -18,7 +18,7 @@ import type { Tab } from '../shared/types';
 export function AppShell() {
   const [tab, setTab] = useLocalStorage<Tab>('kdq_tab', 'home');
   const [tweaks, setTweaks] = useLocalStorage('kdq_tweaks', DEFAULT_TWEAKS);
-  const { loading, userEmail, profile, setProfile, fridge, addFridgeItem, removeFridgeItem, recipes, addRecipe, removeRecipe, updateRecipe, products, setProducts, addProduct } = useAppData();
+  const { loading, userEmail, profile, setProfile, fridge, addFridgeItem, removeFridgeItem, updateFridgeItem, recipes, addRecipe, removeRecipe, updateRecipe, products, setProducts, addProduct } = useAppData();
   const { publicRecipes } = usePublicRecipes();
   const { favoriteIds, favoriteRecipes, toggleFavorite } = useFavorites();
   const [tweaksOpen, setTweaksOpen] = useState(false);
@@ -56,6 +56,8 @@ export function AppShell() {
       setTab={setTab}
       lang={tweaks.lang}
       onDeleteFridgeItem={removeFridgeItem}
+      onAddFridgeItem={addFridgeItem}
+      onEditFridgeItem={updateFridgeItem}
       onRemoveAllergy={(name) => setProfile({ ...profile, allergies: profile.allergies.filter(a => a !== name) })}
       onRemoveDislike={(name) => setProfile({ ...profile, dislikes: profile.dislikes.filter(d => d !== name) })}
     />,

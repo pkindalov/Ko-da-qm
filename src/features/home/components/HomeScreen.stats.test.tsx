@@ -49,6 +49,8 @@ const makeProps = (overrides: Partial<Parameters<typeof HomeScreen>[0]> = {}) =>
   setTab: vi.fn(),
   lang: 'bg' as const,
   onDeleteFridgeItem: vi.fn(),
+  onAddFridgeItem: vi.fn(),
+  onEditFridgeItem: vi.fn(),
   onRemoveAllergy: vi.fn(),
   onRemoveDislike: vi.fn(),
   ...overrides,
@@ -291,5 +293,116 @@ describe('HomeScreen – stat modal actions', () => {
     await user.click(screen.getByText('безопасни рецепти'));
     await user.click(screen.getByText('Към рецепти →'));
     expect(setTab).toHaveBeenCalledWith('recipes');
+  });
+});
+
+describe('HomeScreen – fridge modal add/edit', () => {
+  it('fridge modal shows add button', async () => {
+    const user = userEvent.setup();
+    render(<HomeScreen {...makeProps()} />);
+    await user.click(screen.getByText('в хладилника'));
+    expect(screen.getByRole('button', { name: /Добави/ })).toBeInTheDocument();
+  });
+
+  it('clicking add button shows the name input form', async () => {
+    const user = userEvent.setup();
+    render(<HomeScreen {...makeProps()} />);
+    await user.click(screen.getByText('в хладилника'));
+    await user.click(screen.getByRole('button', { name: /Добави/ }));
+    expect(screen.getByPlaceholderText(/Домати/)).toBeInTheDocument();
+  });
+
+  it('submitting the add form calls onAddFridgeItem with name and emoji', async () => {
+    const user = userEvent.setup();
+    const onAddFridgeItem = vi.fn();
+    render(<HomeScreen {...makeProps({ onAddFridgeItem })} />);
+    await user.click(screen.getByText('в хладилника'));
+    await user.click(screen.getByRole('button', { name: /Добави/ }));
+    await user.type(screen.getByPlaceholderText(/Домати/), 'Картофи');
+    await user.click(screen.getByRole('button', { name: 'Запази' }));
+    expect(onAddFridgeItem).toHaveBeenCalledWith({ name: 'Картофи', emoji: '📦', category: 'other' });
+  });
+
+  it('does not call onAddFridgeItem when name is empty', async () => {
+    const user = userEvent.setup();
+    const onAddFridgeItem = vi.fn();
+    render(<HomeScreen {...makeProps({ onAddFridgeItem })} />);
+    await user.click(screen.getByText('в хладилника'));
+    await user.click(screen.getByRole('button', { name: /Добави/ }));
+    await user.click(screen.getByRole('button', { name: 'Запази' }));
+    expect(onAddFridgeItem).not.toHaveBeenCalled();
+  });
+
+  it('cancel button hides the add form', async () => {
+    const user = userEvent.setup();
+    render(<HomeScreen {...makeProps()} />);
+    await user.click(screen.getByText('в хладилника'));
+    await user.click(screen.getByRole('button', { name: /Добави/ }));
+    await user.click(screen.getByRole('button', { name: 'Отказ' }));
+    expect(screen.queryByPlaceholderText(/Домати/)).not.toBeInTheDocument();
+  });
+
+  it('each fridge item has an edit button', async () => {
+    const user = userEvent.setup();
+    const fridge = [makeFridgeItem({ id: 'f1', name: 'Домат' })];
+    render(<HomeScreen {...makeProps({ fridge })} />);
+    await user.click(screen.getByText('в хладилника'));
+    expect(screen.getByRole('button', { name: 'Редактирай Домат' })).toBeInTheDocument();
+  });
+
+  it('edit button appears before delete button in the DOM', async () => {
+    const user = userEvent.setup();
+    const fridge = [makeFridgeItem({ id: 'f1', name: 'Домат' })];
+    render(<HomeScreen {...makeProps({ fridge })} />);
+    await user.click(screen.getByText('в хладилника'));
+    const editBtn = screen.getByRole('button', { name: 'Редактирай Домат' });
+    const deleteBtn = screen.getByRole('button', { name: 'Премахни Домат' });
+    expect(editBtn.compareDocumentPosition(deleteBtn) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it('clicking edit button shows the form pre-filled with item data', async () => {
+    const user = userEvent.setup();
+    const fridge = [makeFridgeItem({ id: 'f1', name: 'Домат', emoji: '🍅' })];
+    render(<HomeScreen {...makeProps({ fridge })} />);
+    await user.click(screen.getByText('в хладилника'));
+    await user.click(screen.getByRole('button', { name: 'Редактирай Домат' }));
+    expect(screen.getByDisplayValue('Домат')).toBeInTheDocument();
+  });
+
+  it('submitting the edit form calls onEditFridgeItem with updated data', async () => {
+    const user = userEvent.setup();
+    const onEditFridgeItem = vi.fn();
+    const fridge = [makeFridgeItem({ id: 'f1', name: 'Домат', emoji: '🍅', category: 'veg' })];
+    render(<HomeScreen {...makeProps({ fridge, onEditFridgeItem })} />);
+    await user.click(screen.getByText('в хладилника'));
+    await user.click(screen.getByRole('button', { name: 'Редактирай Домат' }));
+    const input = screen.getByDisplayValue('Домат');
+    await user.clear(input);
+    await user.type(input, 'Тиквичка');
+    await user.click(screen.getByRole('button', { name: 'Запази' }));
+    expect(onEditFridgeItem).toHaveBeenCalledWith({ id: 'f1', name: 'Тиквичка', emoji: '🍅', category: 'veg' });
+  });
+
+  it('does not call onEditFridgeItem when name is cleared to empty', async () => {
+    const user = userEvent.setup();
+    const onEditFridgeItem = vi.fn();
+    const fridge = [makeFridgeItem({ id: 'f1', name: 'Домат' })];
+    render(<HomeScreen {...makeProps({ fridge, onEditFridgeItem })} />);
+    await user.click(screen.getByText('в хладилника'));
+    await user.click(screen.getByRole('button', { name: 'Редактирай Домат' }));
+    await user.clear(screen.getByDisplayValue('Домат'));
+    await user.click(screen.getByRole('button', { name: 'Запази' }));
+    expect(onEditFridgeItem).not.toHaveBeenCalled();
+  });
+
+  it('form is hidden after closing and reopening the modal', async () => {
+    const user = userEvent.setup();
+    render(<HomeScreen {...makeProps()} />);
+    await user.click(screen.getByText('в хладилника'));
+    await user.click(screen.getByRole('button', { name: /Добави/ }));
+    expect(screen.getByPlaceholderText(/Домати/)).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: '✕' }));
+    await user.click(screen.getByText('в хладилника'));
+    expect(screen.queryByPlaceholderText(/Домати/)).not.toBeInTheDocument();
   });
 });
