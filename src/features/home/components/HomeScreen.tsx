@@ -70,7 +70,7 @@ export function HomeScreen({ profile, recipes, fridge, publicRecipes, favoriteId
       </div>
 
       {allergies.length > 0 && (
-        <div className="card" style={{ marginBottom: 16, borderColor: 'var(--danger)', background: 'var(--danger-light)' }}>
+        <div className="card" style={{ marginBottom: 16 }}>
           <button
             type="button"
             style={{ background: 'none', border: 'none', padding: 0, width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}
