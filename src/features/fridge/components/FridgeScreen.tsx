@@ -5,6 +5,7 @@ import { EmptyState } from '../../../shared/components/EmptyState';
 import { matchFromFridge, type MatchedRecipe } from '../utils/matchFromFridge';
 import { searchByFridge, toEnglish } from '../utils/searchTheMealDB';
 import { searchWithGemini } from '../utils/searchWithGemini';
+import { useSaveGeminiRecipe } from '../hooks/useSaveGeminiRecipe';
 import type { FridgeItem, Profile, Recipe, Language, Product } from '../../../shared/types';
 
 const FRIDGE_EMOJIS = ['🥚', '🧀', '🍞', '🧈', '🥛', '🍚', '🍗', '🥔', '🍎', '🍅', '🥕', '🥦', '🧅', '🫙', '📦'];
@@ -31,6 +32,8 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, profile,
   const [geminiMode, setGeminiMode] = useState(false);
   const [fridgeExpanded, setFridgeExpanded] = useState(true);
   const [matchingExpanded, setMatchingExpanded] = useState(false);
+  const [pendingSaveRecipe, setPendingSaveRecipe] = useState<MatchedRecipe | null>(null);
+  const { savedIds, savingId, saveError, saveRecipe, clearSaveError } = useSaveGeminiRecipe(profile.name);
 
   const removeItem = (id: string) => removeFridgeItem(id);
 
@@ -117,6 +120,17 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, profile,
     } finally {
       setLoadingSuggestions(false);
     }
+  };
+
+  const handleOpenSaveModal = (recipe: MatchedRecipe) => {
+    clearSaveError();
+    setPendingSaveRecipe(recipe);
+  };
+
+  const handleSaveWithVisibility = async (isPublic: boolean) => {
+    if (!pendingSaveRecipe) return;
+    const success = await saveRecipe(pendingSaveRecipe, isPublic);
+    if (success) setPendingSaveRecipe(null);
   };
 
   const matchingRecipes = recipes.filter((r) => {
@@ -299,6 +313,25 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, profile,
                       </div>
                     ))}
                   </div>
+                  {r.isAI && (
+                    <div style={{ marginTop: 10 }}>
+                      {savedIds.has(r.id) ? (
+                        <button className="btn btn-ghost btn-sm" disabled>
+                          ✓ {L ? 'Saved' : 'Запазена'}
+                        </button>
+                      ) : (
+                        <button
+                          className="btn btn-primary btn-sm"
+                          disabled={savingId === r.id}
+                          onClick={() => handleOpenSaveModal(r)}
+                        >
+                          {savingId === r.id
+                            ? (L ? 'Saving...' : 'Запазване...')
+                            : `💾 ${L ? 'Save recipe' : 'Запази рецептата'}`}
+                        </button>
+                      )}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -308,6 +341,39 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, profile,
           </button>
         </div>
       )}
+
+      <Modal
+        open={pendingSaveRecipe !== null}
+        onClose={() => setPendingSaveRecipe(null)}
+        title={L ? 'Save recipe' : 'Запази рецепта'}
+      >
+        <p style={{ marginBottom: 16, fontWeight: 600, fontSize: 14 }}>
+          {L ? 'Who can see this recipe?' : 'Кой може да види тази рецепта?'}
+        </p>
+        {saveError && (
+          <p style={{ color: 'var(--danger)', fontSize: 13, marginBottom: 12 }}>
+            {L ? 'Failed to save. Please try again.' : 'Неуспешно запазване. Опитай отново.'}
+          </p>
+        )}
+        <div style={{ display: 'flex', gap: 10 }}>
+          <button
+            className="btn btn-ghost"
+            style={{ flex: 1 }}
+            disabled={savingId !== null}
+            onClick={() => handleSaveWithVisibility(false)}
+          >
+            🔒 {L ? 'Only me' : 'Само аз'}
+          </button>
+          <button
+            className="btn btn-primary"
+            style={{ flex: 1 }}
+            disabled={savingId !== null}
+            onClick={() => handleSaveWithVisibility(true)}
+          >
+            🌍 {L ? 'Everyone' : 'Всички'}
+          </button>
+        </div>
+      </Modal>
 
       <Modal open={addOpen} onClose={closeAddModal} title={L ? 'Add to Fridge' : 'Добави в хладилника'}>
         <div className="chip-group" style={{ marginBottom: 16 }}>
