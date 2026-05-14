@@ -109,6 +109,35 @@ describe('useAppData – addRecipe', () => {
     );
   });
 
+  it('saves image_url to DB when imageUrl is provided', async () => {
+    setupLoadAllMocks();
+    mockInsert.mockResolvedValue({ data: null, error: null });
+
+    const { result } = renderHook(() => useAppData());
+    await act(async () => {});
+
+    const imageUrl = 'https://www.themealdb.com/images/media/meals/abc123.jpg';
+    await act(async () => { await result.current.addRecipe(makeRecipe({ imageUrl })); });
+
+    expect(mockInsert).toHaveBeenCalledWith(
+      expect.objectContaining({ image_url: imageUrl }),
+    );
+  });
+
+  it('saves image_url as null when imageUrl is undefined', async () => {
+    setupLoadAllMocks();
+    mockInsert.mockResolvedValue({ data: null, error: null });
+
+    const { result } = renderHook(() => useAppData());
+    await act(async () => {});
+
+    await act(async () => { await result.current.addRecipe(makeRecipe({ imageUrl: undefined })); });
+
+    expect(mockInsert).toHaveBeenCalledWith(
+      expect.objectContaining({ image_url: null }),
+    );
+  });
+
   it('does not insert when no user is authenticated', async () => {
     mockGetUser.mockResolvedValue({ data: { user: null } });
     mockFrom.mockImplementation(() => ({
@@ -170,6 +199,98 @@ describe('useAppData – updateRecipe', () => {
     expect(mockUpdate).toHaveBeenCalledWith(
       expect.objectContaining({ name_en: null, author_name: null, author_email: null }),
     );
+  });
+
+  it('saves image_url to DB when imageUrl is provided on update', async () => {
+    setupLoadAllMocks();
+    mockEq.mockReturnValue({ eq: mockEq });
+
+    const { result } = renderHook(() => useAppData());
+    await act(async () => {});
+
+    const imageUrl = 'https://www.themealdb.com/images/media/meals/xyz.jpg';
+    await act(async () => { await result.current.updateRecipe(makeRecipe({ imageUrl })); });
+
+    expect(mockUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({ image_url: imageUrl }),
+    );
+  });
+});
+
+describe('useAppData – loadAll recipe imageUrl', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('loads imageUrl from image_url column when present', async () => {
+    const imageUrl = 'https://www.themealdb.com/images/media/meals/abc.jpg';
+    mockGetUser.mockResolvedValue({ data: { user: { id: 'user-1', user_metadata: {} } } });
+    mockFrom.mockImplementation((table: string) => {
+      if (table === 'users') {
+        return {
+          select: () => ({ eq: () => ({ single: () => Promise.resolve({ data: { name: 'Alice', allergies: [], dislikes: [], dietary_prefs: [] }, error: null }) }) }),
+          insert: mockInsert,
+        };
+      }
+      if (table === 'recipes') {
+        return {
+          select: () => ({
+            eq: () => Promise.resolve({
+              data: [{
+                id: 'r1', name: 'Chicken', name_en: null, emoji: '🍗', image_url: imageUrl,
+                ingredients: [], steps: [], time: 20, tags: [], required_ingredients: [],
+                is_ai: false, is_public: false, author_name: null, author_email: null,
+              }],
+              error: null,
+            }),
+          }),
+          insert: mockInsert,
+          delete: mockDelete,
+          update: mockUpdate,
+        };
+      }
+      return { select: () => ({ eq: () => Promise.resolve({ data: [], error: null }) }) };
+    });
+
+    const { result } = renderHook(() => useAppData());
+    await act(async () => {});
+
+    expect(result.current.recipes[0].imageUrl).toBe(imageUrl);
+  });
+
+  it('sets imageUrl to undefined when image_url is null in DB', async () => {
+    mockGetUser.mockResolvedValue({ data: { user: { id: 'user-1', user_metadata: {} } } });
+    mockFrom.mockImplementation((table: string) => {
+      if (table === 'users') {
+        return {
+          select: () => ({ eq: () => ({ single: () => Promise.resolve({ data: { name: 'Alice', allergies: [], dislikes: [], dietary_prefs: [] }, error: null }) }) }),
+          insert: mockInsert,
+        };
+      }
+      if (table === 'recipes') {
+        return {
+          select: () => ({
+            eq: () => Promise.resolve({
+              data: [{
+                id: 'r1', name: 'Chicken', name_en: null, emoji: '🍗', image_url: null,
+                ingredients: [], steps: [], time: 20, tags: [], required_ingredients: [],
+                is_ai: false, is_public: false, author_name: null, author_email: null,
+              }],
+              error: null,
+            }),
+          }),
+          insert: mockInsert,
+          delete: mockDelete,
+          update: mockUpdate,
+        };
+      }
+      return { select: () => ({ eq: () => Promise.resolve({ data: [], error: null }) }) };
+    });
+
+    const { result } = renderHook(() => useAppData());
+    await act(async () => {});
+
+    expect(result.current.recipes[0].imageUrl).toBeUndefined();
   });
 });
 

@@ -74,27 +74,34 @@ export const RecipeDetailView = ({
       </div>
 
       <div className="card recipe-detail-card">
-        <div className="recipe-detail-section-label">
-          {L ? 'INGREDIENTS' : 'СЪСТАВКИ'} · {recipe.ingredients.length}
-        </div>
-        <div className="recipe-detail-ingredients">
-          {recipe.ingredients.map((ing, i) => {
-            const isAllergyIng = allergies.some((b) => ing.toLowerCase().includes(b.toLowerCase()));
-            const isBlockedIng = isAllergyIng || dislikes.some((b) => ing.toLowerCase().includes(b.toLowerCase()));
-            return (
-              <div key={i} className="recipe-detail-ingredient">
-                <span className={`ingredient-bullet ${isBlockedIng ? 'ingredient-bullet-blocked' : 'ingredient-bullet-safe'}`} />
-                <span className={isBlockedIng ? 'ingredient-text-blocked' : ''}>
-                  {ing}
-                </span>
-                {isBlockedIng && (
-                  <Badge type={isAllergyIng ? 'allergy' : 'dislike'}>
-                    {isAllergyIng ? (L ? 'Allergy' : 'Алергия') : (L ? 'Dislike' : 'Нелюбимо')}
-                  </Badge>
-                )}
-              </div>
-            );
-          })}
+        <div className="recipe-detail-ingredients-row">
+          {recipe.imageUrl && (
+            <img src={recipe.imageUrl} alt={name} className="recipe-detail-photo" />
+          )}
+          <div className="recipe-detail-ingredients-col">
+            <div className="recipe-detail-section-label">
+              {L ? 'INGREDIENTS' : 'СЪСТАВКИ'} · {recipe.ingredients.length}
+            </div>
+            <div className="recipe-detail-ingredients">
+              {recipe.ingredients.map((ing, i) => {
+                const isAllergyIng = allergies.some((b) => ing.toLowerCase().includes(b.toLowerCase()));
+                const isBlockedIng = isAllergyIng || dislikes.some((b) => ing.toLowerCase().includes(b.toLowerCase()));
+                return (
+                  <div key={i} className="recipe-detail-ingredient">
+                    <span className={`ingredient-bullet ${isBlockedIng ? 'ingredient-bullet-blocked' : 'ingredient-bullet-safe'}`} />
+                    <span className={isBlockedIng ? 'ingredient-text-blocked' : ''}>
+                      {ing}
+                    </span>
+                    {isBlockedIng && (
+                      <Badge type={isAllergyIng ? 'allergy' : 'dislike'}>
+                        {isAllergyIng ? (L ? 'Allergy' : 'Алергия') : (L ? 'Dislike' : 'Нелюбимо')}
+                      </Badge>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
         </div>
       </div>
 

@@ -260,7 +260,10 @@ export function HomeScreen({ profile, recipes, fridge, publicRecipes, favoriteId
             const risk = recipeRisk(r, allergies, dislikes);
             return (
               <div key={r.id} className={`recipe-card${risk === 'allergy' ? ' allergy' : ''}`} onClick={() => setTab('recipes')}>
-                <div className="recipe-emoji">{r.emoji}</div>
+                {r.imageUrl
+                  ? <img src={r.imageUrl} alt={isEnglish && r.nameEn ? r.nameEn : r.name} className="recipe-card-img" />
+                  : <div className="recipe-emoji">{r.emoji}</div>
+                }
                 <div className="recipe-name">{isEnglish && r.nameEn ? r.nameEn : r.name}</div>
                 <div className="recipe-meta">⏱ {r.time} {isEnglish ? 'min' : 'мин'}</div>
                 <div style={{ marginTop: 6 }}>
@@ -290,7 +293,10 @@ export function HomeScreen({ profile, recipes, fridge, publicRecipes, favoriteId
                   >
                     {favoriteIds.includes(r.id) ? '♥' : '♡'}
                   </button>
-                  <div className="recipe-emoji">{r.emoji}</div>
+                  {r.imageUrl
+                    ? <img src={r.imageUrl} alt={isEnglish && r.nameEn ? r.nameEn : r.name} className="recipe-card-img" />
+                    : <div className="recipe-emoji">{r.emoji}</div>
+                  }
                   <div className="recipe-name">{isEnglish && r.nameEn ? r.nameEn : r.name}</div>
                   <div className="recipe-meta">⏱ {r.time} {isEnglish ? 'min' : 'мин'}</div>
                   {r.authorName && (
