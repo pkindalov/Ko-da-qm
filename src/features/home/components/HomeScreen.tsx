@@ -315,6 +315,18 @@ export function HomeScreen({ profile, recipes, fridge, publicRecipes, favoriteId
                   </span>
                 ))}
               </div>
+              <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ fontSize: 13, color: 'var(--text2)', whiteSpace: 'nowrap' }}>
+                  {isEnglish ? 'or type your own:' : 'или въведи свое:'}
+                </span>
+                <input
+                  className="input-field"
+                  value={fridgeFormEmoji}
+                  onChange={(e) => setFridgeFormEmoji(e.target.value)}
+                  aria-label={isEnglish ? 'Custom emoji' : 'Персонален емоджи'}
+                  style={{ width: 64, textAlign: 'center', fontSize: 20, padding: '4px 8px' }}
+                />
+              </div>
             </div>
             <div style={{ display: 'flex', gap: 8 }}>
               <button

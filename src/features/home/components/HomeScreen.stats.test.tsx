@@ -405,4 +405,26 @@ describe('HomeScreen – fridge modal add/edit', () => {
     await user.click(screen.getByText('в хладилника'));
     expect(screen.queryByPlaceholderText(/Домати/)).not.toBeInTheDocument();
   });
+
+  it('custom emoji input is shown when form is open', async () => {
+    const user = userEvent.setup();
+    render(<HomeScreen {...makeProps()} />);
+    await user.click(screen.getByText('в хладилника'));
+    await user.click(screen.getByRole('button', { name: /Добави/ }));
+    expect(screen.getByRole('textbox', { name: 'Персонален емоджи' })).toBeInTheDocument();
+  });
+
+  it('typing in the custom emoji input updates the emoji used on submit', async () => {
+    const user = userEvent.setup();
+    const onAddFridgeItem = vi.fn();
+    render(<HomeScreen {...makeProps({ onAddFridgeItem })} />);
+    await user.click(screen.getByText('в хладилника'));
+    await user.click(screen.getByRole('button', { name: /Добави/ }));
+    await user.type(screen.getByPlaceholderText(/Домати/), 'Картофи');
+    const emojiInput = screen.getByRole('textbox', { name: 'Персонален емоджи' });
+    await user.clear(emojiInput);
+    await user.type(emojiInput, '🥔');
+    await user.click(screen.getByRole('button', { name: 'Запази' }));
+    expect(onAddFridgeItem).toHaveBeenCalledWith({ name: 'Картофи', emoji: '🥔', category: 'other' });
+  });
 });
