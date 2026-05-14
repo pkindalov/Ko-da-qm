@@ -36,10 +36,10 @@ const makeProps = (overrides: Partial<Parameters<typeof RecipesScreen>[0]> = {})
 });
 
 describe('RecipesScreen – delete button on recipe card', () => {
-  let removeRecipe: ReturnType<typeof vi.fn>;
+  let removeRecipe: ReturnType<typeof vi.fn<(id: string) => void>>;
 
   beforeEach(() => {
-    removeRecipe = vi.fn();
+    removeRecipe = vi.fn<(id: string) => void>();
   });
 
   it('shows a Delete button on each recipe card', () => {
