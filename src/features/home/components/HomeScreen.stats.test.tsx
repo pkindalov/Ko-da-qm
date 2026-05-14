@@ -52,7 +52,12 @@ const makeProps = (overrides: Partial<Parameters<typeof HomeScreen>[0]> = {}) =>
   onAddFridgeItem: vi.fn(),
   onEditFridgeItem: vi.fn(),
   onRemoveAllergy: vi.fn(),
+  onAddAllergy: vi.fn(),
+  onEditAllergy: vi.fn(),
   onRemoveDislike: vi.fn(),
+  onAddDislike: vi.fn(),
+  onEditDislike: vi.fn(),
+  onUpdateProductStatus: vi.fn(),
   ...overrides,
 });
 
@@ -164,20 +169,42 @@ describe('HomeScreen – stat card modals', () => {
     expect(screen.getByText('Тиквички')).toBeInTheDocument();
   });
 
-  it('allergies modal shows allergy badges', async () => {
+  it('allergies modal shows all allergies in a single unified list', async () => {
     const user = userEvent.setup();
+    const profile: Profile = { ...baseProfile, allergies: ['орехи'] };
     const products = [makeProduct({ name: 'мляко', status: 'allergic' })];
-    render(<HomeScreen {...makeProps({ products })} />);
+    render(<HomeScreen {...makeProps({ profile, products })} />);
     await user.click(screen.getByText('алергии'));
+    expect(screen.getByText('орехи')).toBeInTheDocument();
     expect(screen.getByText('мляко')).toBeInTheDocument();
   });
 
-  it('dislikes modal shows dislike badges', async () => {
+  it('dislikes modal shows all dislikes in a single unified list', async () => {
     const user = userEvent.setup();
+    const profile: Profile = { ...baseProfile, dislikes: ['гъби'] };
     const products = [makeProduct({ name: 'лук', status: 'disliked' })];
-    render(<HomeScreen {...makeProps({ products })} />);
+    render(<HomeScreen {...makeProps({ profile, products })} />);
     await user.click(screen.getByText('нелюбими'));
+    expect(screen.getByText('гъби')).toBeInTheDocument();
     expect(screen.getByText('лук')).toBeInTheDocument();
+  });
+
+  it('deduped allergy appears only once in the modal', async () => {
+    const user = userEvent.setup();
+    const profile: Profile = { ...baseProfile, allergies: ['мляко'] };
+    const products = [makeProduct({ name: 'мляко', status: 'allergic' })];
+    render(<HomeScreen {...makeProps({ profile, products })} />);
+    await user.click(screen.getByText('алергии'));
+    expect(screen.getAllByText('мляко')).toHaveLength(1);
+  });
+
+  it('deduped dislike appears only once in the modal', async () => {
+    const user = userEvent.setup();
+    const profile: Profile = { ...baseProfile, dislikes: ['лук'] };
+    const products = [makeProduct({ name: 'лук', status: 'disliked' })];
+    render(<HomeScreen {...makeProps({ profile, products })} />);
+    await user.click(screen.getByText('нелюбими'));
+    expect(screen.getAllByText('лук')).toHaveLength(1);
   });
 });
 
@@ -257,14 +284,55 @@ describe('HomeScreen – stat modal actions', () => {
     expect(setTab).toHaveBeenCalledWith('fridge');
   });
 
-  it('allergies modal remove button calls onRemoveAllergy with the allergy name', async () => {
+  it('allergies modal remove button calls onRemoveAllergy for profile allergies', async () => {
     const user = userEvent.setup();
     const onRemoveAllergy = vi.fn();
+    const profile: Profile = { ...baseProfile, allergies: ['орехи'] };
+    render(<HomeScreen {...makeProps({ profile, onRemoveAllergy })} />);
+    await user.click(screen.getByText('алергии'));
+    await user.click(screen.getByRole('button', { name: 'Премахни алергия орехи' }));
+    expect(onRemoveAllergy).toHaveBeenCalledWith('орехи');
+  });
+
+  it('product-derived allergy has a remove button', async () => {
+    const user = userEvent.setup();
     const products = [makeProduct({ name: 'мляко', status: 'allergic' })];
-    render(<HomeScreen {...makeProps({ products, onRemoveAllergy })} />);
+    render(<HomeScreen {...makeProps({ products })} />);
+    await user.click(screen.getByText('алергии'));
+    expect(screen.getByRole('button', { name: 'Премахни алергия мляко' })).toBeInTheDocument();
+  });
+
+  it('removing a product-derived allergy calls onUpdateProductStatus with liked', async () => {
+    const user = userEvent.setup();
+    const onUpdateProductStatus = vi.fn();
+    const products = [makeProduct({ id: 'prod-1', name: 'мляко', status: 'allergic' })];
+    render(<HomeScreen {...makeProps({ products, onUpdateProductStatus })} />);
+    await user.click(screen.getByText('алергии'));
+    await user.click(screen.getByRole('button', { name: 'Премахни алергия мляко' }));
+    expect(onUpdateProductStatus).toHaveBeenCalledWith('prod-1', 'liked');
+  });
+
+  it('removing a profile allergy does not call onUpdateProductStatus', async () => {
+    const user = userEvent.setup();
+    const onUpdateProductStatus = vi.fn();
+    const profile: Profile = { ...baseProfile, allergies: ['орехи'] };
+    render(<HomeScreen {...makeProps({ profile, onUpdateProductStatus })} />);
+    await user.click(screen.getByText('алергии'));
+    await user.click(screen.getByRole('button', { name: 'Премахни алергия орехи' }));
+    expect(onUpdateProductStatus).not.toHaveBeenCalled();
+  });
+
+  it('removing an allergy in both profile and products calls both onRemoveAllergy and onUpdateProductStatus', async () => {
+    const user = userEvent.setup();
+    const onRemoveAllergy = vi.fn();
+    const onUpdateProductStatus = vi.fn();
+    const profile: Profile = { ...baseProfile, allergies: ['мляко'] };
+    const products = [makeProduct({ id: 'prod-1', name: 'мляко', status: 'allergic' })];
+    render(<HomeScreen {...makeProps({ profile, products, onRemoveAllergy, onUpdateProductStatus })} />);
     await user.click(screen.getByText('алергии'));
     await user.click(screen.getByRole('button', { name: 'Премахни алергия мляко' }));
     expect(onRemoveAllergy).toHaveBeenCalledWith('мляко');
+    expect(onUpdateProductStatus).toHaveBeenCalledWith('prod-1', 'liked');
   });
 
   it('allergies modal Go to Products button calls setTab with products', async () => {
@@ -276,14 +344,42 @@ describe('HomeScreen – stat modal actions', () => {
     expect(setTab).toHaveBeenCalledWith('products');
   });
 
-  it('dislikes modal remove button calls onRemoveDislike with the dislike name', async () => {
+  it('dislikes modal remove button calls onRemoveDislike for profile dislikes', async () => {
     const user = userEvent.setup();
     const onRemoveDislike = vi.fn();
+    const profile: Profile = { ...baseProfile, dislikes: ['гъби'] };
+    render(<HomeScreen {...makeProps({ profile, onRemoveDislike })} />);
+    await user.click(screen.getByText('нелюбими'));
+    await user.click(screen.getByRole('button', { name: 'Премахни нелюбима гъби' }));
+    expect(onRemoveDislike).toHaveBeenCalledWith('гъби');
+  });
+
+  it('product-derived dislike has a remove button', async () => {
+    const user = userEvent.setup();
     const products = [makeProduct({ name: 'лук', status: 'disliked' })];
-    render(<HomeScreen {...makeProps({ products, onRemoveDislike })} />);
+    render(<HomeScreen {...makeProps({ products })} />);
+    await user.click(screen.getByText('нелюбими'));
+    expect(screen.getByRole('button', { name: 'Премахни нелюбима лук' })).toBeInTheDocument();
+  });
+
+  it('removing a product-derived dislike calls onUpdateProductStatus with liked', async () => {
+    const user = userEvent.setup();
+    const onUpdateProductStatus = vi.fn();
+    const products = [makeProduct({ id: 'prod-2', name: 'лук', status: 'disliked' })];
+    render(<HomeScreen {...makeProps({ products, onUpdateProductStatus })} />);
     await user.click(screen.getByText('нелюбими'));
     await user.click(screen.getByRole('button', { name: 'Премахни нелюбима лук' }));
-    expect(onRemoveDislike).toHaveBeenCalledWith('лук');
+    expect(onUpdateProductStatus).toHaveBeenCalledWith('prod-2', 'liked');
+  });
+
+  it('removing a profile dislike does not call onUpdateProductStatus', async () => {
+    const user = userEvent.setup();
+    const onUpdateProductStatus = vi.fn();
+    const profile: Profile = { ...baseProfile, dislikes: ['гъби'] };
+    render(<HomeScreen {...makeProps({ profile, onUpdateProductStatus })} />);
+    await user.click(screen.getByText('нелюбими'));
+    await user.click(screen.getByRole('button', { name: 'Премахни нелюбима гъби' }));
+    expect(onUpdateProductStatus).not.toHaveBeenCalled();
   });
 
   it('safe recipes modal Go to Recipes button calls setTab with recipes', async () => {
@@ -426,5 +522,291 @@ describe('HomeScreen – fridge modal add/edit', () => {
     await user.type(emojiInput, '🥔');
     await user.click(screen.getByRole('button', { name: 'Запази' }));
     expect(onAddFridgeItem).toHaveBeenCalledWith({ name: 'Картофи', emoji: '🥔', category: 'other' });
+  });
+});
+
+describe('HomeScreen – allergies modal add/edit', () => {
+  it('allergies modal shows add button', async () => {
+    const user = userEvent.setup();
+    render(<HomeScreen {...makeProps()} />);
+    await user.click(screen.getByText('алергии'));
+    expect(screen.getByRole('button', { name: /Добави алергия/ })).toBeInTheDocument();
+  });
+
+  it('clicking add button shows the allergy name input', async () => {
+    const user = userEvent.setup();
+    render(<HomeScreen {...makeProps()} />);
+    await user.click(screen.getByText('алергии'));
+    await user.click(screen.getByRole('button', { name: /Добави алергия/ }));
+    expect(screen.getByPlaceholderText(/Фъстъци/)).toBeInTheDocument();
+  });
+
+  it('submitting the add form calls onAddAllergy with the entered name', async () => {
+    const user = userEvent.setup();
+    const onAddAllergy = vi.fn();
+    render(<HomeScreen {...makeProps({ onAddAllergy })} />);
+    await user.click(screen.getByText('алергии'));
+    await user.click(screen.getByRole('button', { name: /Добави алергия/ }));
+    await user.type(screen.getByPlaceholderText(/Фъстъци/), 'Орехи');
+    await user.click(screen.getByRole('button', { name: 'Запази' }));
+    expect(onAddAllergy).toHaveBeenCalledWith('Орехи');
+  });
+
+  it('does not call onAddAllergy when the allergy name is empty', async () => {
+    const user = userEvent.setup();
+    const onAddAllergy = vi.fn();
+    render(<HomeScreen {...makeProps({ onAddAllergy })} />);
+    await user.click(screen.getByText('алергии'));
+    await user.click(screen.getByRole('button', { name: /Добави алергия/ }));
+    await user.click(screen.getByRole('button', { name: 'Запази' }));
+    expect(onAddAllergy).not.toHaveBeenCalled();
+  });
+
+  it('cancel hides the add form', async () => {
+    const user = userEvent.setup();
+    render(<HomeScreen {...makeProps()} />);
+    await user.click(screen.getByText('алергии'));
+    await user.click(screen.getByRole('button', { name: /Добави алергия/ }));
+    await user.click(screen.getByRole('button', { name: 'Отказ' }));
+    expect(screen.queryByPlaceholderText(/Фъстъци/)).not.toBeInTheDocument();
+  });
+
+  it('each allergy in the unified list has an edit button', async () => {
+    const user = userEvent.setup();
+    const profile: Profile = { ...baseProfile, allergies: ['орехи'] };
+    const products = [makeProduct({ name: 'мляко', status: 'allergic' })];
+    render(<HomeScreen {...makeProps({ profile, products })} />);
+    await user.click(screen.getByText('алергии'));
+    expect(screen.getByRole('button', { name: 'Редактирай алергия орехи' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Редактирай алергия мляко' })).toBeInTheDocument();
+  });
+
+  it('edit button appears before delete button for allergies', async () => {
+    const user = userEvent.setup();
+    const profile: Profile = { ...baseProfile, allergies: ['орехи'] };
+    render(<HomeScreen {...makeProps({ profile })} />);
+    await user.click(screen.getByText('алергии'));
+    const editBtn = screen.getByRole('button', { name: 'Редактирай алергия орехи' });
+    const deleteBtn = screen.getByRole('button', { name: 'Премахни алергия орехи' });
+    expect(editBtn.compareDocumentPosition(deleteBtn) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it('clicking edit button on a profile allergy shows the form pre-filled', async () => {
+    const user = userEvent.setup();
+    const profile: Profile = { ...baseProfile, allergies: ['орехи'] };
+    render(<HomeScreen {...makeProps({ profile })} />);
+    await user.click(screen.getByText('алергии'));
+    await user.click(screen.getByRole('button', { name: 'Редактирай алергия орехи' }));
+    expect(screen.getByDisplayValue('орехи')).toBeInTheDocument();
+  });
+
+  it('editing a profile allergy calls onEditAllergy', async () => {
+    const user = userEvent.setup();
+    const onEditAllergy = vi.fn();
+    const profile: Profile = { ...baseProfile, allergies: ['орехи'] };
+    render(<HomeScreen {...makeProps({ profile, onEditAllergy })} />);
+    await user.click(screen.getByText('алергии'));
+    await user.click(screen.getByRole('button', { name: 'Редактирай алергия орехи' }));
+    const input = screen.getByDisplayValue('орехи');
+    await user.clear(input);
+    await user.type(input, 'фъстъци');
+    await user.click(screen.getByRole('button', { name: 'Запази' }));
+    expect(onEditAllergy).toHaveBeenCalledWith('орехи', 'фъстъци');
+  });
+
+  it('editing a profile allergy does not call onUpdateProductStatus', async () => {
+    const user = userEvent.setup();
+    const onUpdateProductStatus = vi.fn();
+    const profile: Profile = { ...baseProfile, allergies: ['орехи'] };
+    render(<HomeScreen {...makeProps({ profile, onUpdateProductStatus })} />);
+    await user.click(screen.getByText('алергии'));
+    await user.click(screen.getByRole('button', { name: 'Редактирай алергия орехи' }));
+    const input = screen.getByDisplayValue('орехи');
+    await user.clear(input);
+    await user.type(input, 'фъстъци');
+    await user.click(screen.getByRole('button', { name: 'Запази' }));
+    expect(onUpdateProductStatus).not.toHaveBeenCalled();
+  });
+
+  it('editing a product-derived allergy calls onAddAllergy with new name and onUpdateProductStatus', async () => {
+    const user = userEvent.setup();
+    const onAddAllergy = vi.fn();
+    const onUpdateProductStatus = vi.fn();
+    const products = [makeProduct({ id: 'prod-1', name: 'мляко', status: 'allergic' })];
+    render(<HomeScreen {...makeProps({ products, onAddAllergy, onUpdateProductStatus })} />);
+    await user.click(screen.getByText('алергии'));
+    await user.click(screen.getByRole('button', { name: 'Редактирай алергия мляко' }));
+    const input = screen.getByDisplayValue('мляко');
+    await user.clear(input);
+    await user.type(input, 'dairy');
+    await user.click(screen.getByRole('button', { name: 'Запази' }));
+    expect(onAddAllergy).toHaveBeenCalledWith('dairy');
+    expect(onUpdateProductStatus).toHaveBeenCalledWith('prod-1', 'liked');
+  });
+
+  it('does not call onEditAllergy when name is cleared to empty', async () => {
+    const user = userEvent.setup();
+    const onEditAllergy = vi.fn();
+    const profile: Profile = { ...baseProfile, allergies: ['орехи'] };
+    render(<HomeScreen {...makeProps({ profile, onEditAllergy })} />);
+    await user.click(screen.getByText('алергии'));
+    await user.click(screen.getByRole('button', { name: 'Редактирай алергия орехи' }));
+    await user.clear(screen.getByDisplayValue('орехи'));
+    await user.click(screen.getByRole('button', { name: 'Запази' }));
+    expect(onEditAllergy).not.toHaveBeenCalled();
+  });
+
+  it('allergy form is hidden after closing and reopening the modal', async () => {
+    const user = userEvent.setup();
+    render(<HomeScreen {...makeProps()} />);
+    await user.click(screen.getByText('алергии'));
+    await user.click(screen.getByRole('button', { name: /Добави алергия/ }));
+    expect(screen.getByPlaceholderText(/Фъстъци/)).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: '✕' }));
+    await user.click(screen.getByText('алергии'));
+    expect(screen.queryByPlaceholderText(/Фъстъци/)).not.toBeInTheDocument();
+  });
+});
+
+describe('HomeScreen – dislikes modal add/edit', () => {
+  it('dislikes modal shows add button', async () => {
+    const user = userEvent.setup();
+    render(<HomeScreen {...makeProps()} />);
+    await user.click(screen.getByText('нелюбими'));
+    expect(screen.getByRole('button', { name: /Добави нелюбима/ })).toBeInTheDocument();
+  });
+
+  it('clicking add button shows the dislike name input', async () => {
+    const user = userEvent.setup();
+    render(<HomeScreen {...makeProps()} />);
+    await user.click(screen.getByText('нелюбими'));
+    await user.click(screen.getByRole('button', { name: /Добави нелюбима/ }));
+    expect(screen.getByPlaceholderText(/Гъби/)).toBeInTheDocument();
+  });
+
+  it('submitting the add form calls onAddDislike with the entered name', async () => {
+    const user = userEvent.setup();
+    const onAddDislike = vi.fn();
+    render(<HomeScreen {...makeProps({ onAddDislike })} />);
+    await user.click(screen.getByText('нелюбими'));
+    await user.click(screen.getByRole('button', { name: /Добави нелюбима/ }));
+    await user.type(screen.getByPlaceholderText(/Гъби/), 'Лук');
+    await user.click(screen.getByRole('button', { name: 'Запази' }));
+    expect(onAddDislike).toHaveBeenCalledWith('Лук');
+  });
+
+  it('does not call onAddDislike when the dislike name is empty', async () => {
+    const user = userEvent.setup();
+    const onAddDislike = vi.fn();
+    render(<HomeScreen {...makeProps({ onAddDislike })} />);
+    await user.click(screen.getByText('нелюбими'));
+    await user.click(screen.getByRole('button', { name: /Добави нелюбима/ }));
+    await user.click(screen.getByRole('button', { name: 'Запази' }));
+    expect(onAddDislike).not.toHaveBeenCalled();
+  });
+
+  it('cancel hides the add form', async () => {
+    const user = userEvent.setup();
+    render(<HomeScreen {...makeProps()} />);
+    await user.click(screen.getByText('нелюбими'));
+    await user.click(screen.getByRole('button', { name: /Добави нелюбима/ }));
+    await user.click(screen.getByRole('button', { name: 'Отказ' }));
+    expect(screen.queryByPlaceholderText(/Гъби/)).not.toBeInTheDocument();
+  });
+
+  it('each dislike in the unified list has an edit button', async () => {
+    const user = userEvent.setup();
+    const profile: Profile = { ...baseProfile, dislikes: ['гъби'] };
+    const products = [makeProduct({ name: 'лук', status: 'disliked' })];
+    render(<HomeScreen {...makeProps({ profile, products })} />);
+    await user.click(screen.getByText('нелюбими'));
+    expect(screen.getByRole('button', { name: 'Редактирай нелюбима гъби' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Редактирай нелюбима лук' })).toBeInTheDocument();
+  });
+
+  it('edit button appears before delete button for dislikes', async () => {
+    const user = userEvent.setup();
+    const profile: Profile = { ...baseProfile, dislikes: ['гъби'] };
+    render(<HomeScreen {...makeProps({ profile })} />);
+    await user.click(screen.getByText('нелюбими'));
+    const editBtn = screen.getByRole('button', { name: 'Редактирай нелюбима гъби' });
+    const deleteBtn = screen.getByRole('button', { name: 'Премахни нелюбима гъби' });
+    expect(editBtn.compareDocumentPosition(deleteBtn) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it('clicking edit button on a profile dislike shows the form pre-filled', async () => {
+    const user = userEvent.setup();
+    const profile: Profile = { ...baseProfile, dislikes: ['гъби'] };
+    render(<HomeScreen {...makeProps({ profile })} />);
+    await user.click(screen.getByText('нелюбими'));
+    await user.click(screen.getByRole('button', { name: 'Редактирай нелюбима гъби' }));
+    expect(screen.getByDisplayValue('гъби')).toBeInTheDocument();
+  });
+
+  it('editing a profile dislike calls onEditDislike', async () => {
+    const user = userEvent.setup();
+    const onEditDislike = vi.fn();
+    const profile: Profile = { ...baseProfile, dislikes: ['гъби'] };
+    render(<HomeScreen {...makeProps({ profile, onEditDislike })} />);
+    await user.click(screen.getByText('нелюбими'));
+    await user.click(screen.getByRole('button', { name: 'Редактирай нелюбима гъби' }));
+    const input = screen.getByDisplayValue('гъби');
+    await user.clear(input);
+    await user.type(input, 'лук');
+    await user.click(screen.getByRole('button', { name: 'Запази' }));
+    expect(onEditDislike).toHaveBeenCalledWith('гъби', 'лук');
+  });
+
+  it('editing a profile dislike does not call onUpdateProductStatus', async () => {
+    const user = userEvent.setup();
+    const onUpdateProductStatus = vi.fn();
+    const profile: Profile = { ...baseProfile, dislikes: ['гъби'] };
+    render(<HomeScreen {...makeProps({ profile, onUpdateProductStatus })} />);
+    await user.click(screen.getByText('нелюбими'));
+    await user.click(screen.getByRole('button', { name: 'Редактирай нелюбима гъби' }));
+    const input = screen.getByDisplayValue('гъби');
+    await user.clear(input);
+    await user.type(input, 'лук');
+    await user.click(screen.getByRole('button', { name: 'Запази' }));
+    expect(onUpdateProductStatus).not.toHaveBeenCalled();
+  });
+
+  it('editing a product-derived dislike calls onAddDislike with new name and onUpdateProductStatus', async () => {
+    const user = userEvent.setup();
+    const onAddDislike = vi.fn();
+    const onUpdateProductStatus = vi.fn();
+    const products = [makeProduct({ id: 'prod-2', name: 'лук', status: 'disliked' })];
+    render(<HomeScreen {...makeProps({ products, onAddDislike, onUpdateProductStatus })} />);
+    await user.click(screen.getByText('нелюбими'));
+    await user.click(screen.getByRole('button', { name: 'Редактирай нелюбима лук' }));
+    const input = screen.getByDisplayValue('лук');
+    await user.clear(input);
+    await user.type(input, 'чесън');
+    await user.click(screen.getByRole('button', { name: 'Запази' }));
+    expect(onAddDislike).toHaveBeenCalledWith('чесън');
+    expect(onUpdateProductStatus).toHaveBeenCalledWith('prod-2', 'liked');
+  });
+
+  it('does not call onEditDislike when name is cleared to empty', async () => {
+    const user = userEvent.setup();
+    const onEditDislike = vi.fn();
+    const profile: Profile = { ...baseProfile, dislikes: ['гъби'] };
+    render(<HomeScreen {...makeProps({ profile, onEditDislike })} />);
+    await user.click(screen.getByText('нелюбими'));
+    await user.click(screen.getByRole('button', { name: 'Редактирай нелюбима гъби' }));
+    await user.clear(screen.getByDisplayValue('гъби'));
+    await user.click(screen.getByRole('button', { name: 'Запази' }));
+    expect(onEditDislike).not.toHaveBeenCalled();
+  });
+
+  it('dislike form is hidden after closing and reopening the modal', async () => {
+    const user = userEvent.setup();
+    render(<HomeScreen {...makeProps()} />);
+    await user.click(screen.getByText('нелюбими'));
+    await user.click(screen.getByRole('button', { name: /Добави нелюбима/ }));
+    expect(screen.getByPlaceholderText(/Гъби/)).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: '✕' }));
+    await user.click(screen.getByText('нелюбими'));
+    expect(screen.queryByPlaceholderText(/Гъби/)).not.toBeInTheDocument();
   });
 });

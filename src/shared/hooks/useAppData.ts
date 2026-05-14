@@ -94,19 +94,19 @@ export function useAppData() {
     setLoading(false);
   }
 
-  const setProfile = useCallback((next: Profile) => {
+  const setProfile = useCallback(async (next: Profile) => {
     setProfileState(next);
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (!user) return;
-      supabase.from('users').upsert({
-        id: user.id,
-        name: next.name,
-        allergies: next.allergies,
-        dislikes: next.dislikes,
-        dietary_prefs: next.dietaryPrefs,
-        updated_at: new Date().toISOString(),
-      });
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    const { error } = await supabase.from('users').upsert({
+      id: user.id,
+      name: next.name,
+      allergies: next.allergies,
+      dislikes: next.dislikes,
+      dietary_prefs: next.dietaryPrefs,
+      updated_at: new Date().toISOString(),
     });
+    if (error) console.error('setProfile error:', error);
   }, []);
 
   const addFridgeItem = useCallback(async (newItem: Omit<FridgeItem, 'id'>) => {

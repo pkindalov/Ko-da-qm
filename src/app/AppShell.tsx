@@ -59,7 +59,12 @@ export function AppShell() {
       onAddFridgeItem={addFridgeItem}
       onEditFridgeItem={updateFridgeItem}
       onRemoveAllergy={(name) => setProfile({ ...profile, allergies: profile.allergies.filter(a => a !== name) })}
+      onAddAllergy={(name) => setProfile({ ...profile, allergies: [...profile.allergies, name] })}
+      onEditAllergy={(oldName, newName) => setProfile({ ...profile, allergies: profile.allergies.map(a => a === oldName ? newName : a) })}
       onRemoveDislike={(name) => setProfile({ ...profile, dislikes: profile.dislikes.filter(d => d !== name) })}
+      onAddDislike={(name) => setProfile({ ...profile, dislikes: [...profile.dislikes, name] })}
+      onEditDislike={(oldName, newName) => setProfile({ ...profile, dislikes: profile.dislikes.map(d => d === oldName ? newName : d) })}
+      onUpdateProductStatus={(productId, status) => setProducts(products.map(p => p.id === productId ? { ...p, status } : p))}
     />,
     fridge: <FridgeScreen fridge={fridge} addFridgeItem={addFridgeItem} removeFridgeItem={removeFridgeItem} profile={profile} recipes={recipes} products={products} lang={tweaks.lang} />,
     recipes: <RecipesScreen recipes={recipes} addRecipe={addRecipe} removeRecipe={removeRecipe} updateRecipe={updateRecipe} favoriteRecipes={favoriteRecipes} favoriteIds={favoriteIds} onToggleFavorite={toggleFavorite} products={products} profile={profile} lang={tweaks.lang} userEmail={userEmail} />,

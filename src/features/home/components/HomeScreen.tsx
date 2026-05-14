@@ -5,7 +5,7 @@ import { Modal } from '../../../shared/components/Modal';
 import { RecipeDetailView } from '../../../shared/components/RecipeDetailView';
 import { isSafe, recipeRisk } from '../../../shared/utils/recipeUtils';
 import { getGreeting } from '../../../shared/utils/greeting';
-import type { Profile, Recipe, FridgeItem, Language, Tab, Product } from '../../../shared/types';
+import type { Profile, Recipe, FridgeItem, Language, Tab, Product, ProductStatus } from '../../../shared/types';
 
 const FRIDGE_MODAL_EMOJIS = ['🥚', '🧀', '🍞', '🧈', '🥛', '🍚', '🍗', '🥔', '🍎', '🍅', '🥕', '🥦', '🧅', '🫙', '📦'];
 
@@ -23,22 +23,36 @@ interface HomeScreenProps {
   onAddFridgeItem: (item: Omit<FridgeItem, 'id'>) => void;
   onEditFridgeItem: (item: FridgeItem) => void;
   onRemoveAllergy: (name: string) => void;
+  onAddAllergy: (name: string) => void;
+  onEditAllergy: (oldName: string, newName: string) => void;
   onRemoveDislike: (name: string) => void;
+  onAddDislike: (name: string) => void;
+  onEditDislike: (oldName: string, newName: string) => void;
+  onUpdateProductStatus: (productId: string, status: ProductStatus) => void;
 }
 
 const RECIPES_PREVIEW_SIZE = 4;
 const COMMUNITY_PAGE_SIZE = 4;
 
-export function HomeScreen({ profile, recipes, fridge, publicRecipes, favoriteIds, onToggleFavorite, products, setTab, lang, onDeleteFridgeItem, onAddFridgeItem, onEditFridgeItem, onRemoveAllergy, onRemoveDislike }: HomeScreenProps) {
+export function HomeScreen({ profile, recipes, fridge, publicRecipes, favoriteIds, onToggleFavorite, products, setTab, lang, onDeleteFridgeItem, onAddFridgeItem, onEditFridgeItem, onRemoveAllergy, onAddAllergy, onEditAllergy, onRemoveDislike, onAddDislike, onEditDislike, onUpdateProductStatus }: HomeScreenProps) {
   const isEnglish = lang === 'en';
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
   const [communityPage, setCommunityPage] = useState(1);
   const [openStatModal, setOpenStatModal] = useState<'safeRecipes' | 'fridge' | 'allergies' | 'dislikes' | null>(null);
   const [allergiesExpanded, setAllergiesExpanded] = useState(false);
+
   const [fridgeFormMode, setFridgeFormMode] = useState<'add' | 'edit' | null>(null);
   const [fridgeFormItem, setFridgeFormItem] = useState<FridgeItem | null>(null);
   const [fridgeFormName, setFridgeFormName] = useState('');
   const [fridgeFormEmoji, setFridgeFormEmoji] = useState('📦');
+
+  const [allergyFormMode, setAllergyFormMode] = useState<'add' | 'edit' | null>(null);
+  const [allergyFormOriginal, setAllergyFormOriginal] = useState('');
+  const [allergyFormValue, setAllergyFormValue] = useState('');
+
+  const [dislikeFormMode, setDislikeFormMode] = useState<'add' | 'edit' | null>(null);
+  const [dislikeFormOriginal, setDislikeFormOriginal] = useState('');
+  const [dislikeFormValue, setDislikeFormValue] = useState('');
 
   const openAddForm = () => {
     setFridgeFormMode('add');
@@ -69,6 +83,104 @@ export function HomeScreen({ profile, recipes, fridge, publicRecipes, favoriteId
       onEditFridgeItem({ ...fridgeFormItem, name: fridgeFormName.trim(), emoji: fridgeFormEmoji });
     }
     closeFridgeForm();
+  };
+
+  const openAddAllergyForm = () => {
+    setAllergyFormMode('add');
+    setAllergyFormOriginal('');
+    setAllergyFormValue('');
+  };
+
+  const openEditAllergyForm = (name: string) => {
+    setAllergyFormMode('edit');
+    setAllergyFormOriginal(name);
+    setAllergyFormValue(name);
+  };
+
+  const closeAllergyForm = () => {
+    setAllergyFormMode(null);
+    setAllergyFormOriginal('');
+    setAllergyFormValue('');
+  };
+
+  const submitAllergyForm = () => {
+    if (!allergyFormValue.trim()) return;
+    const newName = allergyFormValue.trim();
+
+    if (allergyFormMode === 'add') {
+      onAddAllergy(newName);
+    } else if (allergyFormMode === 'edit') {
+      const oldName = allergyFormOriginal;
+      const contributingProducts = products.filter(
+        p => p.status === 'allergic' && (p.name === oldName || p.nameEn === oldName)
+      );
+
+      if (profile.allergies.includes(oldName)) {
+        onEditAllergy(oldName, newName);
+      } else {
+        onAddAllergy(newName);
+      }
+
+      contributingProducts.forEach(p => onUpdateProductStatus(p.id, 'liked'));
+    }
+
+    closeAllergyForm();
+  };
+
+  const handleDeleteAllergy = (name: string) => {
+    onRemoveAllergy(name);
+    products
+      .filter(p => p.status === 'allergic' && (p.name === name || p.nameEn === name))
+      .forEach(p => onUpdateProductStatus(p.id, 'liked'));
+  };
+
+  const openAddDislikeForm = () => {
+    setDislikeFormMode('add');
+    setDislikeFormOriginal('');
+    setDislikeFormValue('');
+  };
+
+  const openEditDislikeForm = (name: string) => {
+    setDislikeFormMode('edit');
+    setDislikeFormOriginal(name);
+    setDislikeFormValue(name);
+  };
+
+  const closeDislikeForm = () => {
+    setDislikeFormMode(null);
+    setDislikeFormOriginal('');
+    setDislikeFormValue('');
+  };
+
+  const submitDislikeForm = () => {
+    if (!dislikeFormValue.trim()) return;
+    const newName = dislikeFormValue.trim();
+
+    if (dislikeFormMode === 'add') {
+      onAddDislike(newName);
+    } else if (dislikeFormMode === 'edit') {
+      const oldName = dislikeFormOriginal;
+      const contributingProducts = products.filter(
+        p => p.status === 'disliked' && (p.name === oldName || p.nameEn === oldName)
+      );
+
+      if (profile.dislikes.includes(oldName)) {
+        onEditDislike(oldName, newName);
+      } else {
+        onAddDislike(newName);
+      }
+
+      contributingProducts.forEach(p => onUpdateProductStatus(p.id, 'liked'));
+    }
+
+    closeDislikeForm();
+  };
+
+  const handleDeleteDislike = (name: string) => {
+    onRemoveDislike(name);
+    products
+      .filter(p => p.status === 'disliked' && (p.name === name || p.nameEn === name))
+      .forEach(p => onUpdateProductStatus(p.id, 'liked'));
   };
 
   const toNames = (list: Product[]) => list.flatMap(p => p.nameEn ? [p.name, p.nameEn] : [p.name]);
@@ -360,10 +472,19 @@ export function HomeScreen({ profile, recipes, fridge, publicRecipes, favoriteId
 
       <Modal
         open={openStatModal === 'allergies'}
-        onClose={() => setOpenStatModal(null)}
+        onClose={() => { setOpenStatModal(null); closeAllergyForm(); }}
         title={isEnglish ? `Allergies (${allergies.length})` : `Алергии (${allergies.length})`}
         contentStyle={{ maxWidth: 360 }}
       >
+        <div style={{ marginBottom: 12 }}>
+          <button
+            type="button"
+            className="btn btn-sm btn-primary"
+            onClick={openAddAllergyForm}
+          >
+            + {isEnglish ? 'Add allergy' : 'Добави алергия'}
+          </button>
+        </div>
         {allergies.length === 0 ? (
           <p style={{ color: 'var(--text2)', fontSize: 14 }}>
             {isEnglish ? 'No allergies set.' : 'Няма зададени алергии.'}
@@ -371,16 +492,58 @@ export function HomeScreen({ profile, recipes, fridge, publicRecipes, favoriteId
         ) : (
           <div className="tag-list">
             {allergies.map(a => (
-              <button
-                key={a}
-                type="button"
-                className="badge badge-allergy tag-removable"
-                onClick={() => onRemoveAllergy(a)}
-                aria-label={`${isEnglish ? 'Remove allergy' : 'Премахни алергия'} ${a}`}
-              >
-                {a} <span className="rm">✕</span>
-              </button>
+              <span key={a} className="badge badge-allergy">
+                {a}
+                <button
+                  type="button"
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, opacity: 0.6, fontSize: 11, lineHeight: 1, color: 'inherit' }}
+                  onClick={() => openEditAllergyForm(a)}
+                  aria-label={`${isEnglish ? 'Edit allergy' : 'Редактирай алергия'} ${a}`}
+                >
+                  ✎
+                </button>
+                <button
+                  type="button"
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, opacity: 0.6, fontSize: 11, lineHeight: 1, color: 'inherit' }}
+                  onClick={() => handleDeleteAllergy(a)}
+                  aria-label={`${isEnglish ? 'Remove allergy' : 'Премахни алергия'} ${a}`}
+                >
+                  ✕
+                </button>
+              </span>
             ))}
+          </div>
+        )}
+        {allergyFormMode !== null && (
+          <div style={{ marginTop: 12, borderTop: '1px solid var(--border)', paddingTop: 12 }}>
+            <div style={{ marginBottom: 10 }}>
+              <label className="input-label">{isEnglish ? 'Allergy name' : 'Алергия'}</label>
+              <input
+                className="input-field"
+                value={allergyFormValue}
+                onChange={(e) => setAllergyFormValue(e.target.value)}
+                placeholder={isEnglish ? 'e.g. Peanuts' : 'напр. Фъстъци'}
+                onKeyDown={(e) => e.key === 'Enter' && submitAllergyForm()}
+                autoFocus
+              />
+            </div>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button
+                type="button"
+                className="btn btn-primary btn-sm"
+                style={{ flex: 1 }}
+                onClick={submitAllergyForm}
+              >
+                {isEnglish ? 'Save' : 'Запази'}
+              </button>
+              <button
+                type="button"
+                className="btn btn-ghost btn-sm"
+                onClick={closeAllergyForm}
+              >
+                {isEnglish ? 'Cancel' : 'Отказ'}
+              </button>
+            </div>
           </div>
         )}
         <div style={{ marginTop: 16 }}>
@@ -396,10 +559,19 @@ export function HomeScreen({ profile, recipes, fridge, publicRecipes, favoriteId
 
       <Modal
         open={openStatModal === 'dislikes'}
-        onClose={() => setOpenStatModal(null)}
+        onClose={() => { setOpenStatModal(null); closeDislikeForm(); }}
         title={isEnglish ? `Dislikes (${dislikes.length})` : `Нелюбими (${dislikes.length})`}
         contentStyle={{ maxWidth: 360 }}
       >
+        <div style={{ marginBottom: 12 }}>
+          <button
+            type="button"
+            className="btn btn-sm btn-primary"
+            onClick={openAddDislikeForm}
+          >
+            + {isEnglish ? 'Add dislike' : 'Добави нелюбима'}
+          </button>
+        </div>
         {dislikes.length === 0 ? (
           <p style={{ color: 'var(--text2)', fontSize: 14 }}>
             {isEnglish ? 'No dislikes set.' : 'Няма зададени нелюбими.'}
@@ -407,16 +579,58 @@ export function HomeScreen({ profile, recipes, fridge, publicRecipes, favoriteId
         ) : (
           <div className="tag-list">
             {dislikes.map(d => (
-              <button
-                key={d}
-                type="button"
-                className="badge badge-dislike tag-removable"
-                onClick={() => onRemoveDislike(d)}
-                aria-label={`${isEnglish ? 'Remove dislike' : 'Премахни нелюбима'} ${d}`}
-              >
-                {d} <span className="rm">✕</span>
-              </button>
+              <span key={d} className="badge badge-dislike">
+                {d}
+                <button
+                  type="button"
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, opacity: 0.6, fontSize: 11, lineHeight: 1, color: 'inherit' }}
+                  onClick={() => openEditDislikeForm(d)}
+                  aria-label={`${isEnglish ? 'Edit dislike' : 'Редактирай нелюбима'} ${d}`}
+                >
+                  ✎
+                </button>
+                <button
+                  type="button"
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, opacity: 0.6, fontSize: 11, lineHeight: 1, color: 'inherit' }}
+                  onClick={() => handleDeleteDislike(d)}
+                  aria-label={`${isEnglish ? 'Remove dislike' : 'Премахни нелюбима'} ${d}`}
+                >
+                  ✕
+                </button>
+              </span>
             ))}
+          </div>
+        )}
+        {dislikeFormMode !== null && (
+          <div style={{ marginTop: 12, borderTop: '1px solid var(--border)', paddingTop: 12 }}>
+            <div style={{ marginBottom: 10 }}>
+              <label className="input-label">{isEnglish ? 'Dislike name' : 'Нелюбима'}</label>
+              <input
+                className="input-field"
+                value={dislikeFormValue}
+                onChange={(e) => setDislikeFormValue(e.target.value)}
+                placeholder={isEnglish ? 'e.g. Mushrooms' : 'напр. Гъби'}
+                onKeyDown={(e) => e.key === 'Enter' && submitDislikeForm()}
+                autoFocus
+              />
+            </div>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button
+                type="button"
+                className="btn btn-primary btn-sm"
+                style={{ flex: 1 }}
+                onClick={submitDislikeForm}
+              >
+                {isEnglish ? 'Save' : 'Запази'}
+              </button>
+              <button
+                type="button"
+                className="btn btn-ghost btn-sm"
+                onClick={closeDislikeForm}
+              >
+                {isEnglish ? 'Cancel' : 'Отказ'}
+              </button>
+            </div>
           </div>
         )}
         <div style={{ marginTop: 16 }}>
