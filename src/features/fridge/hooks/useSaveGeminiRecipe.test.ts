@@ -96,6 +96,16 @@ describe('useSaveGeminiRecipe', () => {
     expect(recipe.id.length).toBeGreaterThan(0);
   });
 
+  it('preserves isAI=false when saving a non-AI (API) recipe', async () => {
+    const { result } = renderSaveHook();
+
+    await act(async () => {
+      await result.current.saveRecipe(makeMatchedRecipe({ isAI: false }), false);
+    });
+
+    expect(mockAddRecipe.mock.calls[0][0].isAI).toBe(false);
+  });
+
   it('calls addRecipe with isPublic false when user picks private', async () => {
     const { result } = renderSaveHook();
 

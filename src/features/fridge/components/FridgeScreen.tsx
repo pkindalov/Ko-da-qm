@@ -135,6 +135,8 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, addRecip
     if (success) setPendingSaveRecipe(null);
   };
 
+  const savedRecipeByName = new Map(recipes.map((r) => [r.name, r.id]));
+
   const matchingRecipes = recipes.filter((r) => {
     const safe = !r.requiredIngredients?.some((i) => blocked.some((b) => i.toLowerCase().includes(b)));
     const hasIngredients = r.requiredIngredients?.some((i) =>
@@ -315,28 +317,32 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, addRecip
                       </div>
                     ))}
                   </div>
-                  {r.isAI && (
-                    <div style={{ marginTop: 10 }}>
-                      {savedIdMap.has(r.id) ? (
-                        <button
-                          className="btn btn-danger btn-sm"
-                          onClick={() => unsaveRecipe(r.id)}
-                        >
-                          🗑 {L ? 'Remove' : 'Премахни'}
-                        </button>
-                      ) : (
-                        <button
-                          className="btn btn-primary btn-sm"
-                          disabled={savingId === r.id}
-                          onClick={() => handleOpenSaveModal(r)}
-                        >
-                          {savingId === r.id
-                            ? (L ? 'Saving...' : 'Запазване...')
-                            : `💾 ${L ? 'Save recipe' : 'Запази рецептата'}`}
-                        </button>
-                      )}
-                    </div>
-                  )}
+                  <div style={{ marginTop: 10 }}>
+                    {(savedIdMap.has(r.id) || savedRecipeByName.has(r.name)) ? (
+                      <button
+                        className="btn btn-danger btn-sm"
+                        onClick={() => {
+                          if (savedIdMap.has(r.id)) {
+                            unsaveRecipe(r.id);
+                          } else {
+                            removeRecipe(savedRecipeByName.get(r.name)!);
+                          }
+                        }}
+                      >
+                        🗑 {L ? 'Remove' : 'Премахни'}
+                      </button>
+                    ) : (
+                      <button
+                        className="btn btn-primary btn-sm"
+                        disabled={savingId === r.id}
+                        onClick={() => handleOpenSaveModal(r)}
+                      >
+                        {savingId === r.id
+                          ? (L ? 'Saving...' : 'Запазване...')
+                          : `💾 ${L ? 'Save recipe' : 'Запази рецептата'}`}
+                      </button>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>

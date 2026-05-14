@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { FridgeScreen } from './FridgeScreen';
 import type { FridgeItem, Product, Profile, Recipe } from '../../../shared/types';
 import type { MatchedRecipe } from '../utils/matchFromFridge';
+import { matchFromFridge } from '../utils/matchFromFridge';
 
 const mockSaveRecipe = vi.hoisted(() => vi.fn());
 const mockUnsaveRecipe = vi.hoisted(() => vi.fn());
@@ -89,7 +90,7 @@ describe('FridgeScreen – save Gemini recipe', () => {
     expect(screen.getByRole('button', { name: /Save recipe/i })).toBeInTheDocument();
   });
 
-  it('does not show Save recipe button on non-AI recipe cards', async () => {
+  it('shows Save recipe button on non-AI recipe cards', async () => {
     const user = userEvent.setup();
     (searchWithGemini as ReturnType<typeof vi.fn>).mockResolvedValue([
       makeAiRecipe({ isAI: false }),
@@ -98,7 +99,7 @@ describe('FridgeScreen – save Gemini recipe', () => {
 
     await enableGeminiAndSearch(user);
 
-    expect(screen.queryByRole('button', { name: /Save recipe/i })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Save recipe/i })).toBeInTheDocument();
   });
 
   it('opens visibility modal when Save recipe is clicked', async () => {
@@ -241,5 +242,191 @@ describe('FridgeScreen – save Gemini recipe', () => {
     await user.click(screen.getByRole('button', { name: /Save recipe/i }));
 
     expect(mockClearSaveError).toHaveBeenCalled();
+  });
+});
+
+const makeApiRecipe = (overrides: Partial<MatchedRecipe> = {}): MatchedRecipe => ({
+  id: 'mealdb-52772',
+  name: 'Teriyaki Chicken Casserole',
+  nameEn: 'Teriyaki Chicken Casserole',
+  emoji: '🍗',
+  ingredients: ['chicken', 'soy sauce', 'rice'],
+  requiredIngredients: ['chicken', 'soy sauce'],
+  steps: ['Mix sauce', 'Bake chicken'],
+  time: 30,
+  tags: ['Chicken'],
+  isAI: false,
+  isPublic: false,
+  matchScore: 1,
+  matchedCount: 2,
+  ...overrides,
+});
+
+const searchApiRecipes = async (user: ReturnType<typeof userEvent.setup>) => {
+  await user.click(screen.getByRole('button', { name: /What can I cook/i }));
+  await waitFor(() => expect(matchFromFridge).toHaveBeenCalled());
+};
+
+describe('FridgeScreen – save API recipe', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockUseSaveGeminiRecipe.mockReturnValue(defaultHookState());
+    mockSaveRecipe.mockResolvedValue(true);
+    (matchFromFridge as ReturnType<typeof vi.fn>).mockResolvedValue([makeApiRecipe()]);
+  });
+
+  it('shows Save recipe button on API recipe cards', async () => {
+    const user = userEvent.setup();
+    render(<FridgeScreen {...makeProps()} />);
+
+    await searchApiRecipes(user);
+
+    expect(screen.getByRole('button', { name: /Save recipe/i })).toBeInTheDocument();
+  });
+
+  it('opens visibility modal when Save recipe is clicked on an API recipe', async () => {
+    const user = userEvent.setup();
+    render(<FridgeScreen {...makeProps()} />);
+
+    await searchApiRecipes(user);
+    await user.click(screen.getByRole('button', { name: /Save recipe/i }));
+
+    expect(screen.getByText('Who can see this recipe?')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Only me/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Everyone/i })).toBeInTheDocument();
+  });
+
+  it('calls saveRecipe with the API recipe and isPublic=false', async () => {
+    const user = userEvent.setup();
+    const recipe = makeApiRecipe();
+    (matchFromFridge as ReturnType<typeof vi.fn>).mockResolvedValue([recipe]);
+    render(<FridgeScreen {...makeProps()} />);
+
+    await searchApiRecipes(user);
+    await user.click(screen.getByRole('button', { name: /Save recipe/i }));
+    await user.click(screen.getByRole('button', { name: /Only me/i }));
+
+    await waitFor(() => expect(mockSaveRecipe).toHaveBeenCalledWith(recipe, false));
+  });
+
+  it('calls saveRecipe with the API recipe and isPublic=true', async () => {
+    const user = userEvent.setup();
+    const recipe = makeApiRecipe();
+    (matchFromFridge as ReturnType<typeof vi.fn>).mockResolvedValue([recipe]);
+    render(<FridgeScreen {...makeProps()} />);
+
+    await searchApiRecipes(user);
+    await user.click(screen.getByRole('button', { name: /Save recipe/i }));
+    await user.click(screen.getByRole('button', { name: /Everyone/i }));
+
+    await waitFor(() => expect(mockSaveRecipe).toHaveBeenCalledWith(recipe, true));
+  });
+
+  it('shows Remove button for an API recipe already in savedIdMap', async () => {
+    const recipe = makeApiRecipe();
+    mockUseSaveGeminiRecipe.mockReturnValue({
+      ...defaultHookState(),
+      savedIdMap: new Map([[recipe.id, 'real-uuid-api-1']]),
+    });
+    (matchFromFridge as ReturnType<typeof vi.fn>).mockResolvedValue([recipe]);
+    const user = userEvent.setup();
+    render(<FridgeScreen {...makeProps()} />);
+
+    await searchApiRecipes(user);
+
+    expect(screen.getByRole('button', { name: /Remove/i })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Save recipe/i })).not.toBeInTheDocument();
+  });
+
+  it('closes the modal after a successful API recipe save', async () => {
+    const user = userEvent.setup();
+    mockSaveRecipe.mockResolvedValue(true);
+    render(<FridgeScreen {...makeProps()} />);
+
+    await searchApiRecipes(user);
+    await user.click(screen.getByRole('button', { name: /Save recipe/i }));
+    await user.click(screen.getByRole('button', { name: /Only me/i }));
+
+    await waitFor(() =>
+      expect(screen.queryByText('Who can see this recipe?')).not.toBeInTheDocument(),
+    );
+  });
+});
+
+const makeExistingRecipe = (name: string, id = 'existing-uuid-1'): Recipe => ({
+  id,
+  name,
+  emoji: '🍳',
+  ingredients: [],
+  steps: [],
+  time: 10,
+  tags: [],
+  requiredIngredients: [],
+  isAI: false,
+  isPublic: false,
+});
+
+describe('FridgeScreen – duplicate recipe prevention', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockUseSaveGeminiRecipe.mockReturnValue(defaultHookState());
+    mockSaveRecipe.mockResolvedValue(true);
+  });
+
+  it('shows Remove instead of Save when suggestion name matches an already-saved recipe', async () => {
+    const user = userEvent.setup();
+    const recipe = makeAiRecipe({ name: 'Scrambled Eggs' });
+    (searchWithGemini as ReturnType<typeof vi.fn>).mockResolvedValue([recipe]);
+    render(<FridgeScreen {...makeProps({ recipes: [makeExistingRecipe('Scrambled Eggs')] })} />);
+
+    await enableGeminiAndSearch(user);
+
+    expect(screen.getByRole('button', { name: /Remove/i })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Save recipe/i })).not.toBeInTheDocument();
+  });
+
+  it('calls removeRecipe (not unsaveRecipe) with the existing recipe id on Remove click', async () => {
+    const user = userEvent.setup();
+    const existingId = 'existing-uuid-abc';
+    const recipe = makeAiRecipe({ name: 'Scrambled Eggs' });
+    (searchWithGemini as ReturnType<typeof vi.fn>).mockResolvedValue([recipe]);
+    const removeRecipe = vi.fn();
+    render(<FridgeScreen {...makeProps({ recipes: [makeExistingRecipe('Scrambled Eggs', existingId)], removeRecipe })} />);
+
+    await enableGeminiAndSearch(user);
+    await user.click(screen.getByRole('button', { name: /Remove/i }));
+
+    expect(removeRecipe).toHaveBeenCalledWith(existingId);
+    expect(mockUnsaveRecipe).not.toHaveBeenCalled();
+  });
+
+  it('shows Remove for an API recipe whose name already exists in saved recipes', async () => {
+    const user = userEvent.setup();
+    const recipe = makeApiRecipe();
+    (matchFromFridge as ReturnType<typeof vi.fn>).mockResolvedValue([recipe]);
+    render(<FridgeScreen {...makeProps({ recipes: [makeExistingRecipe(recipe.name)] })} />);
+
+    await searchApiRecipes(user);
+
+    expect(screen.getByRole('button', { name: /Remove/i })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Save recipe/i })).not.toBeInTheDocument();
+  });
+
+  it('calls unsaveRecipe (not removeRecipe) when recipe is in savedIdMap and recipes both', async () => {
+    const recipe = makeAiRecipe({ name: 'Scrambled Eggs' });
+    mockUseSaveGeminiRecipe.mockReturnValue({
+      ...defaultHookState(),
+      savedIdMap: new Map([[recipe.id, 'real-uuid-1']]),
+    });
+    (searchWithGemini as ReturnType<typeof vi.fn>).mockResolvedValue([recipe]);
+    const removeRecipe = vi.fn();
+    render(<FridgeScreen {...makeProps({ recipes: [makeExistingRecipe('Scrambled Eggs')], removeRecipe })} />);
+
+    const user = userEvent.setup();
+    await enableGeminiAndSearch(user);
+    await user.click(screen.getByRole('button', { name: /Remove/i }));
+
+    expect(mockUnsaveRecipe).toHaveBeenCalledWith(recipe.id);
+    expect(removeRecipe).not.toHaveBeenCalled();
   });
 });

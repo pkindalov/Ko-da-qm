@@ -32,7 +32,7 @@ export const useSaveGeminiRecipe = (
         time: matched.time,
         tags: matched.tags,
         requiredIngredients: matched.requiredIngredients,
-        isAI: true,
+        isAI: matched.isAI,
         isPublic,
         authorName: authorName || undefined,
         authorEmail: user.email ?? undefined,
