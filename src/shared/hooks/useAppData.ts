@@ -5,6 +5,7 @@ import type { Profile, FridgeItem, Recipe, Product } from '../types';
 
 export function useAppData() {
   const [loading, setLoading] = useState(true);
+  const [userId, setUserId] = useState('');
   const [userEmail, setUserEmail] = useState('');
   const [profile, setProfileState] = useState<Profile>(DEFAULT_PROFILE);
   const [fridge, setFridgeState] = useState<FridgeItem[]>(DEFAULT_FRIDGE);
@@ -18,6 +19,7 @@ export function useAppData() {
   async function loadAll() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { setLoading(false); return; }
+    setUserId(user.id);
     setUserEmail(user.email ?? '');
 
     const [profileRes, fridgeRes, recipesRes, productsRes] = await Promise.all([
@@ -247,5 +249,5 @@ export function useAppData() {
     setProductsState(prev => [...prev, { ...newProduct, id: data.id }]);
   }, []);
 
-  return { loading, userEmail, profile, setProfile, fridge, addFridgeItem, removeFridgeItem, updateFridgeItem, recipes, addRecipe, removeRecipe, updateRecipe, products, setProducts, addProduct };
+  return { loading, userId, userEmail, profile, setProfile, fridge, addFridgeItem, removeFridgeItem, updateFridgeItem, recipes, addRecipe, removeRecipe, updateRecipe, products, setProducts, addProduct };
 }

@@ -104,4 +104,23 @@ describe('useAppData – loadProfile', () => {
     expect(mockFrom).not.toHaveBeenCalled();
     expect(result.current.loading).toBe(false);
   });
+
+  it('exposes the authenticated userId', async () => {
+    mockGetUser.mockResolvedValue({ data: { user: { id: 'user-42', user_metadata: {} } } });
+    makeFromChain({ name: 'Test', allergies: [], dislikes: [], dietary_prefs: [] });
+
+    const { result } = renderHook(() => useAppData());
+    await act(async () => {});
+
+    expect(result.current.userId).toBe('user-42');
+  });
+
+  it('exposes empty userId when there is no authenticated user', async () => {
+    mockGetUser.mockResolvedValue({ data: { user: null } });
+
+    const { result } = renderHook(() => useAppData());
+    await act(async () => {});
+
+    expect(result.current.userId).toBe('');
+  });
 });

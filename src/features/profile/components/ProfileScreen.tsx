@@ -18,9 +18,10 @@ interface ProfileScreenProps {
   onLogout?: () => void;
   onTweaksToggle?: () => void;
   onNavigateToProducts?: () => void;
+  onViewPublicProfile?: () => void;
 }
 
-export function ProfileScreen({ profile, setProfile, products, lang, onLogout, onTweaksToggle, onNavigateToProducts }: ProfileScreenProps) {
+export function ProfileScreen({ profile, setProfile, products, lang, onLogout, onTweaksToggle, onNavigateToProducts, onViewPublicProfile }: ProfileScreenProps) {
   const L = lang === 'en';
   const [name, setName] = useState(profile.name);
 
@@ -40,6 +41,11 @@ export function ProfileScreen({ profile, setProfile, products, lang, onLogout, o
       <div className="page-header">
         <div className="page-title">👤 {L ? 'My Profile' : 'Моят профил'}</div>
         <div className="page-sub">{L ? 'Manage your food restrictions' : 'Управлявай хранителните си ограничения'}</div>
+        {onViewPublicProfile && (
+          <button className="btn btn-ghost btn-sm" onClick={onViewPublicProfile} style={{ marginTop: 8 }}>
+            {L ? '→ View my public profile' : '→ Виж моя публичен профил'}
+          </button>
+        )}
       </div>
 
       <div className="card" style={{ marginBottom: 16 }}>

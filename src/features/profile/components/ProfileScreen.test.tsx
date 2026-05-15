@@ -20,11 +20,12 @@ interface RenderOptions {
   onLogout?: () => void;
   onTweaksToggle?: () => void;
   onNavigateToProducts?: () => void;
+  onViewPublicProfile?: () => void;
   profile?: Profile;
   products?: Product[];
 }
 
-const renderProfile = ({ lang = 'en', onLogout, onTweaksToggle, onNavigateToProducts, profile = baseProfile, products = [] }: RenderOptions = {}) =>
+const renderProfile = ({ lang = 'en', onLogout, onTweaksToggle, onNavigateToProducts, onViewPublicProfile, profile = baseProfile, products = [] }: RenderOptions = {}) =>
   render(
     <ProfileScreen
       profile={profile}
@@ -34,6 +35,7 @@ const renderProfile = ({ lang = 'en', onLogout, onTweaksToggle, onNavigateToProd
       onLogout={onLogout}
       onTweaksToggle={onTweaksToggle}
       onNavigateToProducts={onNavigateToProducts}
+      onViewPublicProfile={onViewPublicProfile}
     />
   );
 
@@ -134,6 +136,32 @@ describe('ProfileScreen dietary preferences language', () => {
     renderProfile({ lang: 'bg' });
     expect(screen.queryByText('Vegetarian')).not.toBeInTheDocument();
     expect(screen.queryByText('Vegan')).not.toBeInTheDocument();
+  });
+});
+
+describe('ProfileScreen view public profile button', () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it('renders view public profile button when onViewPublicProfile is provided', () => {
+    renderProfile({ onViewPublicProfile: vi.fn() });
+    expect(screen.getByRole('button', { name: /view my public profile/i })).toBeInTheDocument();
+  });
+
+  it('does not render view public profile button when onViewPublicProfile is not provided', () => {
+    renderProfile();
+    expect(screen.queryByRole('button', { name: /view my public profile/i })).not.toBeInTheDocument();
+  });
+
+  it('calls onViewPublicProfile when the button is clicked', async () => {
+    const onViewPublicProfile = vi.fn();
+    renderProfile({ onViewPublicProfile });
+    await userEvent.click(screen.getByRole('button', { name: /view my public profile/i }));
+    expect(onViewPublicProfile).toHaveBeenCalledOnce();
+  });
+
+  it('shows bulgarian label when lang is bg', () => {
+    renderProfile({ lang: 'bg', onViewPublicProfile: vi.fn() });
+    expect(screen.getByRole('button', { name: /виж моя публичен профил/i })).toBeInTheDocument();
   });
 });
 
