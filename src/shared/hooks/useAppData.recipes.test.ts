@@ -229,8 +229,84 @@ describe('useAppData – loadAll recipe select fields', () => {
     await act(async () => {});
 
     expect(mockSelect).toHaveBeenCalledWith(
-      'id, name, name_en, emoji, image_url, ingredients, steps, time, tags, required_ingredients, is_ai, is_public, author_name, author_email',
+      'id, user_id, name, name_en, emoji, image_url, ingredients, steps, time, tags, required_ingredients, is_ai, is_public, author_name, author_email',
     );
+  });
+});
+
+describe('useAppData – loadAll recipe authorId', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('maps user_id to authorId when loading personal recipes', async () => {
+    mockGetUser.mockResolvedValue({ data: { user: { id: 'user-1', user_metadata: {} } } });
+    mockFrom.mockImplementation((table: string) => {
+      if (table === 'users') {
+        return {
+          select: () => ({ eq: () => ({ single: () => Promise.resolve({ data: { name: 'Alice', allergies: [], dislikes: [], dietary_prefs: [] }, error: null }) }) }),
+          insert: mockInsert,
+        };
+      }
+      if (table === 'recipes') {
+        return {
+          select: () => ({
+            eq: () => Promise.resolve({
+              data: [{
+                id: 'r1', user_id: 'user-1', name: 'Chicken', name_en: null, emoji: '🍗', image_url: null,
+                ingredients: [], steps: [], time: 20, tags: [], required_ingredients: [],
+                is_ai: false, is_public: false, author_name: 'Alice', author_email: null,
+              }],
+              error: null,
+            }),
+          }),
+          insert: mockInsert,
+          delete: mockDelete,
+          update: mockUpdate,
+        };
+      }
+      return { select: () => ({ eq: () => Promise.resolve({ data: [], error: null }) }) };
+    });
+
+    const { result } = renderHook(() => useAppData());
+    await act(async () => {});
+
+    expect(result.current.recipes[0].authorId).toBe('user-1');
+  });
+
+  it('sets authorId to undefined when user_id is null', async () => {
+    mockGetUser.mockResolvedValue({ data: { user: { id: 'user-1', user_metadata: {} } } });
+    mockFrom.mockImplementation((table: string) => {
+      if (table === 'users') {
+        return {
+          select: () => ({ eq: () => ({ single: () => Promise.resolve({ data: { name: 'Alice', allergies: [], dislikes: [], dietary_prefs: [] }, error: null }) }) }),
+          insert: mockInsert,
+        };
+      }
+      if (table === 'recipes') {
+        return {
+          select: () => ({
+            eq: () => Promise.resolve({
+              data: [{
+                id: 'r1', user_id: null, name: 'Chicken', name_en: null, emoji: '🍗', image_url: null,
+                ingredients: [], steps: [], time: 20, tags: [], required_ingredients: [],
+                is_ai: false, is_public: false, author_name: null, author_email: null,
+              }],
+              error: null,
+            }),
+          }),
+          insert: mockInsert,
+          delete: mockDelete,
+          update: mockUpdate,
+        };
+      }
+      return { select: () => ({ eq: () => Promise.resolve({ data: [], error: null }) }) };
+    });
+
+    const { result } = renderHook(() => useAppData());
+    await act(async () => {});
+
+    expect(result.current.recipes[0].authorId).toBeUndefined();
   });
 });
 

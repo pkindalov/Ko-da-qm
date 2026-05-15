@@ -25,7 +25,7 @@ export function useAppData() {
     const [profileRes, fridgeRes, recipesRes, productsRes] = await Promise.all([
       supabase.from('users').select('name, allergies, dislikes, dietary_prefs').eq('id', user.id).single(),
       supabase.from('fridge_items').select('id, name, emoji, category').eq('user_id', user.id),
-      supabase.from('recipes').select('id, name, name_en, emoji, image_url, ingredients, steps, time, tags, required_ingredients, is_ai, is_public, author_name, author_email').eq('user_id', user.id),
+      supabase.from('recipes').select('id, user_id, name, name_en, emoji, image_url, ingredients, steps, time, tags, required_ingredients, is_ai, is_public, author_name, author_email').eq('user_id', user.id),
       supabase.from('products').select('id, name, name_en, category, status, emoji').eq('user_id', user.id),
     ]);
 
@@ -77,6 +77,7 @@ export function useAppData() {
         requiredIngredients: r.required_ingredients ?? [],
         isAI: r.is_ai,
         isPublic: r.is_public ?? false,
+        authorId: r.user_id ?? undefined,
         authorName: r.author_name ?? undefined,
         authorEmail: r.author_email ?? undefined,
       })));

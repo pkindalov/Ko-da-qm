@@ -717,6 +717,58 @@ describe('HomeScreen – safe recipe click to detail', () => {
     expect(screen.getByRole('button', { name: 'Рецепта едно' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Рецепта две' })).toBeInTheDocument();
   });
+
+  it('author name is a clickable button in the detail view when authorId and onNavigateToUser are provided', async () => {
+    const user = userEvent.setup();
+    const recipes = [makeRecipe({ id: 'r1', name: 'Пиле с ориз', authorName: 'Иван', authorId: 'user-42' })];
+    const onNavigateToUser = vi.fn();
+    render(<HomeScreen {...makeProps({ recipes, onNavigateToUser })} />);
+    await user.click(screen.getByText('безопасни рецепти'));
+    await user.click(screen.getByRole('button', { name: 'Пиле с ориз' }));
+    expect(screen.getByRole('button', { name: 'Иван' })).toBeInTheDocument();
+  });
+
+  it('clicking the author name in the detail calls onNavigateToUser with the authorId', async () => {
+    const user = userEvent.setup();
+    const recipes = [makeRecipe({ id: 'r1', name: 'Пиле с ориз', authorName: 'Иван', authorId: 'user-42' })];
+    const onNavigateToUser = vi.fn();
+    render(<HomeScreen {...makeProps({ recipes, onNavigateToUser })} />);
+    await user.click(screen.getByText('безопасни рецепти'));
+    await user.click(screen.getByRole('button', { name: 'Пиле с ориз' }));
+    await user.click(screen.getByRole('button', { name: 'Иван' }));
+    expect(onNavigateToUser).toHaveBeenCalledWith('user-42');
+  });
+
+  it('clicking the author name closes the detail modal', async () => {
+    const user = userEvent.setup();
+    const recipes = [makeRecipe({ id: 'r1', name: 'Пиле с ориз', authorName: 'Иван', authorId: 'user-42' })];
+    const onNavigateToUser = vi.fn();
+    render(<HomeScreen {...makeProps({ recipes, onNavigateToUser })} />);
+    await user.click(screen.getByText('безопасни рецепти'));
+    await user.click(screen.getByRole('button', { name: 'Пиле с ориз' }));
+    await user.click(screen.getByRole('button', { name: 'Иван' }));
+    expect(screen.queryByRole('button', { name: '✕' })).not.toBeInTheDocument();
+  });
+
+  it('author name is plain text (not a button) when onNavigateToUser is not provided', async () => {
+    const user = userEvent.setup();
+    const recipes = [makeRecipe({ id: 'r1', name: 'Пиле с ориз', authorName: 'Иван', authorId: 'user-42' })];
+    render(<HomeScreen {...makeProps({ recipes })} />);
+    await user.click(screen.getByText('безопасни рецепти'));
+    await user.click(screen.getByRole('button', { name: 'Пиле с ориз' }));
+    expect(screen.queryByRole('button', { name: 'Иван' })).not.toBeInTheDocument();
+    expect(screen.getByText('Иван')).toBeInTheDocument();
+  });
+
+  it('author name is not shown when recipe has no authorName', async () => {
+    const user = userEvent.setup();
+    const recipes = [makeRecipe({ id: 'r1', name: 'Пиле с ориз', authorId: 'user-42' })];
+    const onNavigateToUser = vi.fn();
+    render(<HomeScreen {...makeProps({ recipes, onNavigateToUser })} />);
+    await user.click(screen.getByText('безопасни рецепти'));
+    await user.click(screen.getByRole('button', { name: 'Пиле с ориз' }));
+    expect(screen.queryByText('👤')).not.toBeInTheDocument();
+  });
 });
 
 describe('HomeScreen – dislikes modal add/edit', () => {

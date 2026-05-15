@@ -688,6 +688,9 @@ export function HomeScreen({ profile, recipes, fridge, publicRecipes, favoriteId
             isOwner={false}
             showBackButton={false}
             onBack={() => setSelectedSafeRecipe(null)}
+            onAuthorClick={selectedSafeRecipe.authorId && onNavigateToUser
+              ? () => { setSelectedSafeRecipe(null); onNavigateToUser(selectedSafeRecipe.authorId!); }
+              : undefined}
           />
         )}
       </Modal>
