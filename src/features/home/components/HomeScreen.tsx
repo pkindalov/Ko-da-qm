@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Badge } from '../../../shared/components/Badge';
+import { ConfirmDeleteModal } from '../../../shared/components/ConfirmDeleteModal';
 import { EmptyState } from '../../../shared/components/EmptyState';
 import { Modal } from '../../../shared/components/Modal';
 import { RecipeDetailView } from '../../../shared/components/RecipeDetailView';
@@ -56,6 +57,10 @@ export function HomeScreen({ profile, recipes, fridge, publicRecipes, favoriteId
   const [dislikeFormMode, setDislikeFormMode] = useState<'add' | 'edit' | null>(null);
   const [dislikeFormOriginal, setDislikeFormOriginal] = useState('');
   const [dislikeFormValue, setDislikeFormValue] = useState('');
+
+  const [pendingDeleteFridgeId, setPendingDeleteFridgeId] = useState<string | null>(null);
+  const [pendingDeleteAllergyName, setPendingDeleteAllergyName] = useState<string | null>(null);
+  const [pendingDeleteDislikeName, setPendingDeleteDislikeName] = useState<string | null>(null);
 
   const openAddForm = () => {
     setFridgeFormMode('add');
@@ -421,7 +426,7 @@ export function HomeScreen({ profile, recipes, fridge, publicRecipes, favoriteId
                 <button
                   type="button"
                   className="btn btn-sm btn-danger"
-                  onClick={() => onDeleteFridgeItem(item.id)}
+                  onClick={() => setPendingDeleteFridgeId(item.id)}
                   aria-label={`${isEnglish ? 'Remove' : 'Премахни'} ${item.name}`}
                 >
                   ✕
@@ -535,7 +540,7 @@ export function HomeScreen({ profile, recipes, fridge, publicRecipes, favoriteId
                 <button
                   type="button"
                   style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, opacity: 0.6, fontSize: 11, lineHeight: 1, color: 'inherit' }}
-                  onClick={() => handleDeleteAllergy(a)}
+                  onClick={() => setPendingDeleteAllergyName(a)}
                   aria-label={`${isEnglish ? 'Remove allergy' : 'Премахни алергия'} ${a}`}
                 >
                   ✕
@@ -622,7 +627,7 @@ export function HomeScreen({ profile, recipes, fridge, publicRecipes, favoriteId
                 <button
                   type="button"
                   style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, opacity: 0.6, fontSize: 11, lineHeight: 1, color: 'inherit' }}
-                  onClick={() => handleDeleteDislike(d)}
+                  onClick={() => setPendingDeleteDislikeName(d)}
                   aria-label={`${isEnglish ? 'Remove dislike' : 'Премахни нелюбима'} ${d}`}
                 >
                   ✕
@@ -716,6 +721,28 @@ export function HomeScreen({ profile, recipes, fridge, publicRecipes, favoriteId
           />
         )}
       </Modal>
+
+      <ConfirmDeleteModal
+        open={pendingDeleteFridgeId !== null}
+        itemName={fridge.find(f => f.id === pendingDeleteFridgeId)?.name ?? ''}
+        lang={lang}
+        onConfirm={() => { if (pendingDeleteFridgeId) onDeleteFridgeItem(pendingDeleteFridgeId); setPendingDeleteFridgeId(null); }}
+        onCancel={() => setPendingDeleteFridgeId(null)}
+      />
+      <ConfirmDeleteModal
+        open={pendingDeleteAllergyName !== null}
+        itemName={pendingDeleteAllergyName ?? ''}
+        lang={lang}
+        onConfirm={() => { if (pendingDeleteAllergyName) handleDeleteAllergy(pendingDeleteAllergyName); setPendingDeleteAllergyName(null); }}
+        onCancel={() => setPendingDeleteAllergyName(null)}
+      />
+      <ConfirmDeleteModal
+        open={pendingDeleteDislikeName !== null}
+        itemName={pendingDeleteDislikeName ?? ''}
+        lang={lang}
+        onConfirm={() => { if (pendingDeleteDislikeName) handleDeleteDislike(pendingDeleteDislikeName); setPendingDeleteDislikeName(null); }}
+        onCancel={() => setPendingDeleteDislikeName(null)}
+      />
     </div>
   );
 }

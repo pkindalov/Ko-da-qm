@@ -272,6 +272,7 @@ describe('HomeScreen – stat modal actions', () => {
     render(<HomeScreen {...makeProps({ fridge, onDeleteFridgeItem })} />);
     await user.click(screen.getByText('в хладилника'));
     await user.click(screen.getByRole('button', { name: 'Премахни Домат' }));
+    await user.click(screen.getByRole('button', { name: 'Потвърди' }));
     expect(onDeleteFridgeItem).toHaveBeenCalledWith('f-test');
   });
 
@@ -291,6 +292,7 @@ describe('HomeScreen – stat modal actions', () => {
     render(<HomeScreen {...makeProps({ profile, onRemoveAllergy })} />);
     await user.click(screen.getByText('алергии'));
     await user.click(screen.getByRole('button', { name: 'Премахни алергия орехи' }));
+    await user.click(screen.getByRole('button', { name: 'Потвърди' }));
     expect(onRemoveAllergy).toHaveBeenCalledWith('орехи');
   });
 
@@ -309,6 +311,7 @@ describe('HomeScreen – stat modal actions', () => {
     render(<HomeScreen {...makeProps({ products, onUpdateProductStatus })} />);
     await user.click(screen.getByText('алергии'));
     await user.click(screen.getByRole('button', { name: 'Премахни алергия мляко' }));
+    await user.click(screen.getByRole('button', { name: 'Потвърди' }));
     expect(onUpdateProductStatus).toHaveBeenCalledWith('prod-1', 'liked');
   });
 
@@ -319,6 +322,7 @@ describe('HomeScreen – stat modal actions', () => {
     render(<HomeScreen {...makeProps({ profile, onUpdateProductStatus })} />);
     await user.click(screen.getByText('алергии'));
     await user.click(screen.getByRole('button', { name: 'Премахни алергия орехи' }));
+    await user.click(screen.getByRole('button', { name: 'Потвърди' }));
     expect(onUpdateProductStatus).not.toHaveBeenCalled();
   });
 
@@ -331,6 +335,7 @@ describe('HomeScreen – stat modal actions', () => {
     render(<HomeScreen {...makeProps({ profile, products, onRemoveAllergy, onUpdateProductStatus })} />);
     await user.click(screen.getByText('алергии'));
     await user.click(screen.getByRole('button', { name: 'Премахни алергия мляко' }));
+    await user.click(screen.getByRole('button', { name: 'Потвърди' }));
     expect(onRemoveAllergy).toHaveBeenCalledWith('мляко');
     expect(onUpdateProductStatus).toHaveBeenCalledWith('prod-1', 'liked');
   });
@@ -351,6 +356,7 @@ describe('HomeScreen – stat modal actions', () => {
     render(<HomeScreen {...makeProps({ profile, onRemoveDislike })} />);
     await user.click(screen.getByText('нелюбими'));
     await user.click(screen.getByRole('button', { name: 'Премахни нелюбима гъби' }));
+    await user.click(screen.getByRole('button', { name: 'Потвърди' }));
     expect(onRemoveDislike).toHaveBeenCalledWith('гъби');
   });
 
@@ -369,6 +375,7 @@ describe('HomeScreen – stat modal actions', () => {
     render(<HomeScreen {...makeProps({ products, onUpdateProductStatus })} />);
     await user.click(screen.getByText('нелюбими'));
     await user.click(screen.getByRole('button', { name: 'Премахни нелюбима лук' }));
+    await user.click(screen.getByRole('button', { name: 'Потвърди' }));
     expect(onUpdateProductStatus).toHaveBeenCalledWith('prod-2', 'liked');
   });
 
@@ -379,6 +386,7 @@ describe('HomeScreen – stat modal actions', () => {
     render(<HomeScreen {...makeProps({ profile, onUpdateProductStatus })} />);
     await user.click(screen.getByText('нелюбими'));
     await user.click(screen.getByRole('button', { name: 'Премахни нелюбима гъби' }));
+    await user.click(screen.getByRole('button', { name: 'Потвърди' }));
     expect(onUpdateProductStatus).not.toHaveBeenCalled();
   });
 
@@ -389,6 +397,71 @@ describe('HomeScreen – stat modal actions', () => {
     await user.click(screen.getByText('безопасни рецепти'));
     await user.click(screen.getByText('Към рецепти →'));
     expect(setTab).toHaveBeenCalledWith('recipes');
+  });
+});
+
+describe('HomeScreen – delete confirmation modals', () => {
+  it('clicking fridge delete shows the confirmation dialog', async () => {
+    const user = userEvent.setup();
+    const fridge = [makeFridgeItem({ id: 'f1', name: 'Домат' })];
+    render(<HomeScreen {...makeProps({ fridge })} />);
+    await user.click(screen.getByText('в хладилника'));
+    await user.click(screen.getByRole('button', { name: 'Премахни Домат' }));
+    expect(screen.getByText('Потвърди изтриване')).toBeInTheDocument();
+    expect(screen.getByText(/Изтрий "Домат"/)).toBeInTheDocument();
+  });
+
+  it('cancelling fridge delete confirmation does not call onDeleteFridgeItem', async () => {
+    const user = userEvent.setup();
+    const onDeleteFridgeItem = vi.fn();
+    const fridge = [makeFridgeItem({ id: 'f1', name: 'Домат' })];
+    render(<HomeScreen {...makeProps({ fridge, onDeleteFridgeItem })} />);
+    await user.click(screen.getByText('в хладилника'));
+    await user.click(screen.getByRole('button', { name: 'Премахни Домат' }));
+    await user.click(screen.getByRole('button', { name: 'Отказ' }));
+    expect(onDeleteFridgeItem).not.toHaveBeenCalled();
+  });
+
+  it('clicking allergy remove shows the confirmation dialog', async () => {
+    const user = userEvent.setup();
+    const profile: Profile = { ...baseProfile, allergies: ['орехи'] };
+    render(<HomeScreen {...makeProps({ profile })} />);
+    await user.click(screen.getByText('алергии'));
+    await user.click(screen.getByRole('button', { name: 'Премахни алергия орехи' }));
+    expect(screen.getByText('Потвърди изтриване')).toBeInTheDocument();
+    expect(screen.getByText(/Изтрий "орехи"/)).toBeInTheDocument();
+  });
+
+  it('cancelling allergy delete confirmation does not call onRemoveAllergy', async () => {
+    const user = userEvent.setup();
+    const onRemoveAllergy = vi.fn();
+    const profile: Profile = { ...baseProfile, allergies: ['орехи'] };
+    render(<HomeScreen {...makeProps({ profile, onRemoveAllergy })} />);
+    await user.click(screen.getByText('алергии'));
+    await user.click(screen.getByRole('button', { name: 'Премахни алергия орехи' }));
+    await user.click(screen.getByRole('button', { name: 'Отказ' }));
+    expect(onRemoveAllergy).not.toHaveBeenCalled();
+  });
+
+  it('clicking dislike remove shows the confirmation dialog', async () => {
+    const user = userEvent.setup();
+    const profile: Profile = { ...baseProfile, dislikes: ['гъби'] };
+    render(<HomeScreen {...makeProps({ profile })} />);
+    await user.click(screen.getByText('нелюбими'));
+    await user.click(screen.getByRole('button', { name: 'Премахни нелюбима гъби' }));
+    expect(screen.getByText('Потвърди изтриване')).toBeInTheDocument();
+    expect(screen.getByText(/Изтрий "гъби"/)).toBeInTheDocument();
+  });
+
+  it('cancelling dislike delete confirmation does not call onRemoveDislike', async () => {
+    const user = userEvent.setup();
+    const onRemoveDislike = vi.fn();
+    const profile: Profile = { ...baseProfile, dislikes: ['гъби'] };
+    render(<HomeScreen {...makeProps({ profile, onRemoveDislike })} />);
+    await user.click(screen.getByText('нелюбими'));
+    await user.click(screen.getByRole('button', { name: 'Премахни нелюбима гъби' }));
+    await user.click(screen.getByRole('button', { name: 'Отказ' }));
+    expect(onRemoveDislike).not.toHaveBeenCalled();
   });
 });
 
