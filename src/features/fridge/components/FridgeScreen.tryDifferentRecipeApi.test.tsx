@@ -299,6 +299,26 @@ describe('FridgeScreen – Try different for Recipe API', () => {
     expect(screen.getByText(/Няма съвпадения/i)).toBeInTheDocument();
   });
 
+  it('passes local DB IDs as excludeIds when both initial and Try different use matchFromFridge', async () => {
+    const user = userEvent.setup();
+    const localId1 = 'local-uuid-1';
+
+    // TheMealDB always empty → both initial search and Try different fall back to matchFromFridge
+    (matchFromFridge as ReturnType<typeof vi.fn>)
+      .mockResolvedValueOnce([makeApiRecipe({ id: localId1, name: 'Рецепта А' })])
+      .mockResolvedValueOnce([makeApiRecipe({ id: 'local-uuid-2', name: 'Рецепта Б' })]);
+
+    render(<FridgeScreen {...makeProps()} />);
+    await clickWhatCanICook(user);
+
+    await waitFor(() => expect(screen.getByText('Рецепта А')).toBeInTheDocument());
+    await clickTryDifferent(user);
+    await waitFor(() => expect(screen.getByText('Рецепта Б')).toBeInTheDocument());
+
+    const secondMatchCallExcludeIds = (matchFromFridge as ReturnType<typeof vi.fn>).mock.calls[1][2] as string[];
+    expect(secondMatchCallExcludeIds).toContain(localId1);
+  });
+
   it('shows English button text when lang is "en"', async () => {
     const user = userEvent.setup();
     (searchByFridge as ReturnType<typeof vi.fn>).mockResolvedValue([
