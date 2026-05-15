@@ -1,4 +1,6 @@
+import { useState } from 'react';
 import { Badge } from './Badge';
+import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 import { recipeRisk } from '../utils/recipeUtils';
 import type { Recipe, Language } from '../types';
 
@@ -35,6 +37,7 @@ export const RecipeDetailView = ({
 }: RecipeDetailViewProps) => {
   const L = lang === 'en';
   const risk = recipeRisk(recipe, allergies, dislikes);
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const name = L && recipe.nameEn ? recipe.nameEn : recipe.name;
 
   return (
@@ -134,11 +137,21 @@ export const RecipeDetailView = ({
             </button>
           )}
           {onDelete && (
-            <button className="btn btn-danger btn-sm" onClick={onDelete}>
+            <button className="btn btn-danger btn-sm" onClick={() => setConfirmDeleteOpen(true)}>
               {L ? 'Delete' : 'Изтрий'}
             </button>
           )}
         </div>
+      )}
+
+      {onDelete && (
+        <ConfirmDeleteModal
+          open={confirmDeleteOpen}
+          itemName={L && recipe.nameEn ? recipe.nameEn : recipe.name}
+          lang={lang}
+          onConfirm={() => { setConfirmDeleteOpen(false); onDelete(); }}
+          onCancel={() => setConfirmDeleteOpen(false)}
+        />
       )}
     </div>
   );

@@ -47,12 +47,13 @@ describe('RecipesScreen – delete button on recipe card', () => {
     expect(screen.getByRole('button', { name: /Delete/i })).toBeInTheDocument();
   });
 
-  it('calls removeRecipe with the recipe id when Delete is clicked', async () => {
+  it('calls removeRecipe with the recipe id when Delete is clicked and confirmed', async () => {
     const user = userEvent.setup();
     const recipe = makeRecipe({ id: 'recipe-abc' });
     render(<RecipesScreen {...makeProps({ recipes: [recipe], removeRecipe })} />);
 
     await user.click(screen.getByRole('button', { name: /Delete/i }));
+    await user.click(screen.getByRole('button', { name: /Confirm/i }));
 
     expect(removeRecipe).toHaveBeenCalledWith('recipe-abc');
   });
@@ -93,6 +94,7 @@ describe('RecipesScreen – delete button on recipe card', () => {
 
     const deleteButtons = screen.getAllByRole('button', { name: /Delete/i });
     await user.click(deleteButtons[0]);
+    await user.click(screen.getByRole('button', { name: /Confirm/i }));
 
     expect(removeRecipe).toHaveBeenCalledTimes(1);
     expect(removeRecipe).toHaveBeenCalledWith('r1');

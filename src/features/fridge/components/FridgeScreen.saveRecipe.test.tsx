@@ -201,7 +201,7 @@ describe('FridgeScreen – save Gemini recipe', () => {
     expect(screen.queryByRole('button', { name: /Save recipe/i })).not.toBeInTheDocument();
   });
 
-  it('calls unsaveRecipe with geminiId when Remove is clicked', async () => {
+  it('calls unsaveRecipe with geminiId when Remove is clicked and confirmed', async () => {
     const recipe = makeAiRecipe();
     mockUseSaveGeminiRecipe.mockReturnValue({
       ...defaultHookState(),
@@ -213,6 +213,7 @@ describe('FridgeScreen – save Gemini recipe', () => {
 
     await enableGeminiAndSearch(user);
     await user.click(screen.getByRole('button', { name: /Remove/i }));
+    await user.click(screen.getByRole('button', { name: /Confirm/i }));
 
     expect(mockUnsaveRecipe).toHaveBeenCalledWith(recipe.id);
   });
@@ -385,7 +386,7 @@ describe('FridgeScreen – duplicate recipe prevention', () => {
     expect(screen.queryByRole('button', { name: /Save recipe/i })).not.toBeInTheDocument();
   });
 
-  it('calls removeRecipe (not unsaveRecipe) with the existing recipe id on Remove click', async () => {
+  it('calls removeRecipe (not unsaveRecipe) with the existing recipe id on Remove click and confirm', async () => {
     const user = userEvent.setup();
     const existingId = 'existing-uuid-abc';
     const recipe = makeAiRecipe({ name: 'Scrambled Eggs' });
@@ -395,6 +396,7 @@ describe('FridgeScreen – duplicate recipe prevention', () => {
 
     await enableGeminiAndSearch(user);
     await user.click(screen.getByRole('button', { name: /Remove/i }));
+    await user.click(screen.getByRole('button', { name: /Confirm/i }));
 
     expect(removeRecipe).toHaveBeenCalledWith(existingId);
     expect(mockUnsaveRecipe).not.toHaveBeenCalled();
@@ -425,6 +427,7 @@ describe('FridgeScreen – duplicate recipe prevention', () => {
     const user = userEvent.setup();
     await enableGeminiAndSearch(user);
     await user.click(screen.getByRole('button', { name: /Remove/i }));
+    await user.click(screen.getByRole('button', { name: /Confirm/i }));
 
     expect(mockUnsaveRecipe).toHaveBeenCalledWith(recipe.id);
     expect(removeRecipe).not.toHaveBeenCalled();

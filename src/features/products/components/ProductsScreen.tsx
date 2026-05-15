@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Modal } from '../../../shared/components/Modal';
 import { Badge } from '../../../shared/components/Badge';
+import { ConfirmDeleteModal } from '../../../shared/components/ConfirmDeleteModal';
 import { EmptyState } from '../../../shared/components/EmptyState';
 import { CATEGORIES } from '../../../shared/constants/categories';
 import { filterProducts } from '../utils/productFilters';
@@ -28,8 +29,10 @@ export function ProductsScreen({ products, setProducts, addProduct, lang }: Prod
   const [addOpen, setAddOpen] = useState(false);
   const [newP, setNewP] = useState({ name: '', emoji: '📦', category: 'other' as Product['category'], status: 'liked' as ProductStatus });
   const [editP, setEditP] = useState<Product | null>(null);
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
 
   const filtered = filterProducts(products, search, catFilter, lang);
+  const pendingDeleteProduct = pendingDeleteId ? (products.find((p) => p.id === pendingDeleteId) ?? null) : null;
 
   const toggleStatus = (id: string, newStatus: ProductStatus) => {
     setProducts(products.map((p) => (p.id === id ? { ...p, status: newStatus } : p)));
@@ -85,7 +88,7 @@ export function ProductsScreen({ products, setProducts, addProduct, lang }: Prod
             <span className="product-name">{L && p.nameEn ? p.nameEn : p.name}</span>
             <div className="product-row-actions">
               <button className="btn btn-ghost btn-sm" onClick={() => setEditP(p)} title={L ? 'Edit' : 'Редактирай'}>✏</button>
-              <button className="btn btn-ghost btn-sm" onClick={() => deleteProduct(p.id)} title={L ? 'Delete' : 'Изтрий'} style={{ color: 'var(--danger)' }}>✕</button>
+              <button className="btn btn-ghost btn-sm" onClick={() => setPendingDeleteId(p.id)} title={L ? 'Delete' : 'Изтрий'} style={{ color: 'var(--danger)' }}>✕</button>
             </div>
             <div className="product-row-tags">
               <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
@@ -151,6 +154,14 @@ export function ProductsScreen({ products, setProducts, addProduct, lang }: Prod
           </>
         )}
       </Modal>
+
+      <ConfirmDeleteModal
+        open={pendingDeleteId !== null}
+        itemName={pendingDeleteProduct ? (L && pendingDeleteProduct.nameEn ? pendingDeleteProduct.nameEn : pendingDeleteProduct.name) : ''}
+        lang={lang}
+        onConfirm={() => { if (pendingDeleteId) deleteProduct(pendingDeleteId); setPendingDeleteId(null); }}
+        onCancel={() => setPendingDeleteId(null)}
+      />
 
       <Modal open={addOpen} onClose={handleAddClose} title={L ? 'Add Product' : 'Добави продукт'}>
         <div style={{ display: 'flex', gap: 10, marginBottom: 12 }}>

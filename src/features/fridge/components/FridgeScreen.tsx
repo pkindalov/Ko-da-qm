@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Modal } from '../../../shared/components/Modal';
 import { Badge } from '../../../shared/components/Badge';
+import { ConfirmDeleteModal } from '../../../shared/components/ConfirmDeleteModal';
 import { EmptyState } from '../../../shared/components/EmptyState';
 import { matchFromFridge, type MatchedRecipe } from '../utils/matchFromFridge';
 import { searchByFridge, toEnglish } from '../utils/searchTheMealDB';
@@ -40,6 +41,9 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, addRecip
   const [suggestionSource, setSuggestionSource] = useState<'gemini' | 'api' | null>(null);
   const [loadingMoreSuggestions, setLoadingMoreSuggestions] = useState(false);
   const { savedIdMap, savingId, saveError, saveRecipe, unsaveRecipe, clearSaveError } = useSaveGeminiRecipe(profile.name, addRecipe, removeRecipe);
+
+  const [pendingRemoveItemId, setPendingRemoveItemId] = useState<string | null>(null);
+  const [pendingRemoveSuggestionId, setPendingRemoveSuggestionId] = useState<string | null>(null);
 
   const removeItem = (id: string) => removeFridgeItem(id);
 
@@ -221,7 +225,7 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, addRecip
             <div key={item.id} className="fridge-item">
               <span className="fridge-emoji">{item.emoji}</span>
               <span className="fridge-name">{item.name}</span>
-              <button className="btn btn-danger btn-sm" onClick={() => removeItem(item.id)}>✕</button>
+              <button className="btn btn-danger btn-sm" onClick={() => setPendingRemoveItemId(item.id)}>✕</button>
             </div>
           ))}
         </div>
@@ -370,13 +374,7 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, addRecip
                     {(savedIdMap.has(r.id) || savedRecipeByName.has(r.name)) ? (
                       <button
                         className="btn btn-danger btn-sm"
-                        onClick={() => {
-                          if (savedIdMap.has(r.id)) {
-                            unsaveRecipe(r.id);
-                          } else {
-                            removeRecipe(savedRecipeByName.get(r.name)!);
-                          }
-                        }}
+                        onClick={() => setPendingRemoveSuggestionId(r.id)}
                       >
                         🗑 {L ? 'Remove' : 'Премахни'}
                       </button>
@@ -425,6 +423,35 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, addRecip
           </div>
         </div>
       )}
+
+      <ConfirmDeleteModal
+        open={pendingRemoveItemId !== null}
+        itemName={fridge.find((f) => f.id === pendingRemoveItemId)?.name ?? ''}
+        lang={lang}
+        onConfirm={() => { if (pendingRemoveItemId) removeItem(pendingRemoveItemId); setPendingRemoveItemId(null); }}
+        onCancel={() => setPendingRemoveItemId(null)}
+      />
+
+      <ConfirmDeleteModal
+        open={pendingRemoveSuggestionId !== null}
+        itemName={suggestions?.find((r) => r.id === pendingRemoveSuggestionId)?.name ?? ''}
+        lang={lang}
+        onConfirm={() => {
+          if (pendingRemoveSuggestionId) {
+            if (savedIdMap.has(pendingRemoveSuggestionId)) {
+              unsaveRecipe(pendingRemoveSuggestionId);
+            } else {
+              const name = suggestions?.find((r) => r.id === pendingRemoveSuggestionId)?.name;
+              if (name) {
+                const realId = savedRecipeByName.get(name);
+                if (realId) removeRecipe(realId);
+              }
+            }
+          }
+          setPendingRemoveSuggestionId(null);
+        }}
+        onCancel={() => setPendingRemoveSuggestionId(null)}
+      />
 
       <Modal
         open={pendingSaveRecipe !== null}

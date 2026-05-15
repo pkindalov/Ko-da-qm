@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Modal } from '../../../shared/components/Modal';
 import { Badge } from '../../../shared/components/Badge';
+import { ConfirmDeleteModal } from '../../../shared/components/ConfirmDeleteModal';
 import { EmptyState } from '../../../shared/components/EmptyState';
 import { RecipeDetailView } from '../../../shared/components/RecipeDetailView';
 import { searchDatabase } from '../../fridge/utils/matchFromFridge';
@@ -37,6 +38,7 @@ const PAGE_SIZE = 5;
 export function RecipesScreen({ recipes, addRecipe, removeRecipe, updateRecipe, favoriteRecipes, favoriteIds, onToggleFavorite, products, profile, lang, userEmail }: RecipesScreenProps) {
   const L = lang === 'en';
   const [detail, setDetail] = useState<string | null>(null);
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
   const [addOpen, setAddOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [dbOpen, setDbOpen] = useState(false);
@@ -139,6 +141,7 @@ export function RecipesScreen({ recipes, addRecipe, removeRecipe, updateRecipe, 
   };
 
   const detailRecipe = detail ? recipes.find((x) => x.id === detail) : null;
+  const pendingDeleteRecipe = pendingDeleteId ? (recipes.find((x) => x.id === pendingDeleteId) ?? null) : null;
 
   const hasNoSearchResults = !dbLoading && dbSearch.length > 0 && dbResults.length === 0 && myRecipeResults.length === 0;
 
@@ -254,7 +257,7 @@ export function RecipesScreen({ recipes, addRecipe, removeRecipe, updateRecipe, 
                     <button
                       className="btn btn-danger btn-sm"
                       style={{ marginTop: 8, width: '100%' }}
-                      onClick={(e) => { e.stopPropagation(); removeRecipe(r.id); }}
+                      onClick={(e) => { e.stopPropagation(); setPendingDeleteId(r.id); }}
                     >
                       🗑 {L ? 'Delete' : 'Изтрий'}
                     </button>
@@ -265,6 +268,14 @@ export function RecipesScreen({ recipes, addRecipe, removeRecipe, updateRecipe, 
           )}
         </div>
       )}
+
+      <ConfirmDeleteModal
+        open={pendingDeleteId !== null}
+        itemName={pendingDeleteRecipe ? (L && pendingDeleteRecipe.nameEn ? pendingDeleteRecipe.nameEn : pendingDeleteRecipe.name) : ''}
+        lang={lang}
+        onConfirm={() => { if (pendingDeleteId) removeRecipe(pendingDeleteId); setPendingDeleteId(null); }}
+        onCancel={() => setPendingDeleteId(null)}
+      />
 
       <Modal open={addOpen} onClose={closeModal} title={editingId ? (L ? 'Edit Recipe' : 'Редактирай рецепта') : (L ? 'New Recipe' : 'Нова рецепта')}>
         <div style={{ display: 'flex', gap: 10, marginBottom: 12 }}>
