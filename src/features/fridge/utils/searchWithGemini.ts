@@ -46,9 +46,10 @@ export const searchWithGemini = async (
   fridgeItems: FridgeItem[],
   blocked: string[],
   lang: Language,
+  excludeNames: string[] = [],
 ): Promise<MatchedRecipe[]> => {
   const { data, error } = await supabase.functions.invoke('gemini-recipes', {
-    body: { fridgeItems, blocked, lang },
+    body: { fridgeItems, blocked, lang, excludeNames },
   });
 
   if (error || !Array.isArray(data)) return [];

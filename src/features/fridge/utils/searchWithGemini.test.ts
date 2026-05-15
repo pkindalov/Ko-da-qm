@@ -83,12 +83,21 @@ describe('searchWithGemini', () => {
     expect(result[0].tags).toEqual([]);
   });
 
-  it('passes fridgeItems, blocked, and lang to the edge function', async () => {
+  it('passes fridgeItems, blocked, lang, and excludeNames to the edge function', async () => {
     mockInvoke.mockResolvedValue({ data: [], error: null });
     const fridge = [makeFridgeItem('eggs')];
     await searchWithGemini(fridge, ['nuts'], 'bg');
     expect(mockInvoke).toHaveBeenCalledWith('gemini-recipes', {
-      body: { fridgeItems: fridge, blocked: ['nuts'], lang: 'bg' },
+      body: { fridgeItems: fridge, blocked: ['nuts'], lang: 'bg', excludeNames: [] },
+    });
+  });
+
+  it('passes provided excludeNames to the edge function', async () => {
+    mockInvoke.mockResolvedValue({ data: [], error: null });
+    const fridge = [makeFridgeItem('eggs')];
+    await searchWithGemini(fridge, [], 'en', ['Recipe A', 'Recipe B']);
+    expect(mockInvoke).toHaveBeenCalledWith('gemini-recipes', {
+      body: { fridgeItems: fridge, blocked: [], lang: 'en', excludeNames: ['Recipe A', 'Recipe B'] },
     });
   });
 

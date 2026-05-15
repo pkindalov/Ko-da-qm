@@ -35,6 +35,8 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, addRecip
   const [fridgeExpanded, setFridgeExpanded] = useState(true);
   const [matchingExpanded, setMatchingExpanded] = useState(false);
   const [pendingSaveRecipe, setPendingSaveRecipe] = useState<MatchedRecipe | null>(null);
+  const [seenGeminiNames, setSeenGeminiNames] = useState<string[]>([]);
+  const [loadingMoreSuggestions, setLoadingMoreSuggestions] = useState(false);
   const { savedIdMap, savingId, saveError, saveRecipe, unsaveRecipe, clearSaveError } = useSaveGeminiRecipe(profile.name, addRecipe, removeRecipe);
 
   const removeItem = (id: string) => removeFridgeItem(id);
@@ -108,9 +110,12 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, addRecip
   const handleWhatCanICook = async () => {
     setLoadingSuggestions(true);
     setSuggestions(null);
+    setSeenGeminiNames([]);
     try {
       if (geminiMode) {
-        setSuggestions(filterSafe(await searchWithGemini(safeFridge, blocked, lang)));
+        const results = filterSafe(await searchWithGemini(safeFridge, blocked, lang));
+        setSuggestions(results);
+        setSeenGeminiNames(results.map((r) => r.name));
       } else {
         const online = filterSafe(await searchByFridge(safeFridge, blocked));
         if (online.length > 0) {
@@ -121,6 +126,18 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, addRecip
       }
     } finally {
       setLoadingSuggestions(false);
+    }
+  };
+
+  const handleTryDifferentSuggestions = async () => {
+    setLoadingMoreSuggestions(true);
+    try {
+      const results = filterSafe(await searchWithGemini(safeFridge, blocked, lang, seenGeminiNames));
+      const newResults = results.filter((r) => !seenGeminiNames.includes(r.name));
+      setSuggestions(newResults);
+      setSeenGeminiNames((prev) => [...prev, ...newResults.map((r) => r.name)]);
+    } finally {
+      setLoadingMoreSuggestions(false);
     }
   };
 
@@ -353,9 +370,22 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, addRecip
               ))}
             </div>
           )}
-          <button className="btn btn-ghost btn-sm" style={{ marginTop: 8 }} onClick={() => setSuggestions(null)}>
-            {L ? 'Clear' : 'Изчисти'}
-          </button>
+          <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>
+            {geminiMode && suggestions.length > 0 && (
+              <button
+                className="btn btn-ghost btn-sm"
+                onClick={handleTryDifferentSuggestions}
+                disabled={loadingMoreSuggestions || loadingSuggestions}
+              >
+                {loadingMoreSuggestions
+                  ? (<><span className="spinner" />{L ? 'Searching...' : 'Търси...'}</>)
+                  : `🔄 ${L ? 'Try different' : 'Опитай различни'}`}
+              </button>
+            )}
+            <button className="btn btn-ghost btn-sm" onClick={() => setSuggestions(null)}>
+              {L ? 'Clear' : 'Изчисти'}
+            </button>
+          </div>
         </div>
       )}
 
