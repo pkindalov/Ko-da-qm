@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { toast } from 'sonner';
 import { ProfileScreen } from './ProfileScreen';
 import type { Profile, Product } from '../../../shared/types';
 
@@ -221,5 +222,68 @@ describe('ProfileScreen allergies and dislikes from products', () => {
     const summary = screen.getByText(/summary/i).closest('.card');
     expect(summary).toHaveTextContent('1'); // 1 allergy
     expect(summary).toHaveTextContent('1'); // 1 dislike
+  });
+});
+
+describe('ProfileScreen saveName', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(toast.success).mockClear();
+  });
+
+  it('calls setProfile and shows toast when name changes', async () => {
+    const setProfile = vi.fn();
+    render(
+      <ProfileScreen
+        profile={baseProfile}
+        setProfile={setProfile}
+        products={[]}
+        lang="en"
+      />
+    );
+
+    const input = screen.getByPlaceholderText(/your name/i);
+    await userEvent.clear(input);
+    await userEvent.type(input, 'New Name');
+    await userEvent.click(screen.getByRole('button', { name: /save/i }));
+
+    expect(setProfile).toHaveBeenCalledWith(expect.objectContaining({ name: 'New Name' }));
+    expect(toast.success).toHaveBeenCalledWith('Name saved');
+  });
+
+  it('does not call setProfile or show toast when name is unchanged', async () => {
+    const setProfile = vi.fn();
+    render(
+      <ProfileScreen
+        profile={baseProfile}
+        setProfile={setProfile}
+        products={[]}
+        lang="en"
+      />
+    );
+
+    await userEvent.click(screen.getByRole('button', { name: /save/i }));
+
+    expect(setProfile).not.toHaveBeenCalled();
+    expect(toast.success).not.toHaveBeenCalled();
+  });
+
+  it('does not fire on blur when name is unchanged', async () => {
+    const setProfile = vi.fn();
+    render(
+      <ProfileScreen
+        profile={baseProfile}
+        setProfile={setProfile}
+        products={[]}
+        lang="en"
+      />
+    );
+
+    const input = screen.getByPlaceholderText(/your name/i);
+    await userEvent.click(input);
+    await userEvent.tab(); // triggers onBlur
+
+    expect(setProfile).not.toHaveBeenCalled();
+    expect(toast.success).not.toHaveBeenCalled();
   });
 });

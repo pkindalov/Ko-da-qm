@@ -38,7 +38,11 @@ export const useFavorites = (lang: Language = 'bg') => {
 
     setFavoriteIds(prev => prev.includes(recipe.id) ? prev : [...prev, recipe.id]);
     setFavoriteRecipes(prev => prev.some(r => r.id === recipe.id) ? prev : [recipe, ...prev]);
-    await supabase.from('favorites').insert({ user_id: user.id, recipe_id: recipe.id });
+    const { error } = await supabase.from('favorites').insert({ user_id: user.id, recipe_id: recipe.id });
+    if (error) {
+      toast.error(lang === 'en' ? 'Failed to add to favorites' : 'Грешка при добавяне в любими');
+      return;
+    }
     toast.success(lang === 'en' ? 'Added to favorites' : 'Добавено в любими');
   };
 
@@ -48,7 +52,11 @@ export const useFavorites = (lang: Language = 'bg') => {
 
     setFavoriteIds(prev => prev.filter(id => id !== recipeId));
     setFavoriteRecipes(prev => prev.filter(r => r.id !== recipeId));
-    await supabase.from('favorites').delete().eq('recipe_id', recipeId);
+    const { error } = await supabase.from('favorites').delete().eq('recipe_id', recipeId).eq('user_id', user.id);
+    if (error) {
+      toast.error(lang === 'en' ? 'Failed to remove from favorites' : 'Грешка при премахване от любими');
+      return;
+    }
     toast.success(lang === 'en' ? 'Removed from favorites' : 'Премахнато от любими');
   };
 

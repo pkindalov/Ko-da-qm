@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
+import { toast } from 'sonner';
 import { useFavorites } from './useFavorites';
 import type { Recipe } from '../../../shared/types';
 
@@ -137,7 +138,7 @@ describe('useFavorites', () => {
   it('removeFavorite — optimistically removes from state and calls delete', async () => {
     mockGetUser.mockResolvedValue({ data: { user: { id: 'user-1' } } });
     mockSelect.mockResolvedValue({ data: [makeDbRow()], error: null });
-    mockEq.mockResolvedValue({ error: null });
+    mockEq.mockReturnValueOnce({ eq: mockEq }).mockResolvedValueOnce({ error: null });
 
     const { result } = renderHook(() => useFavorites());
     await act(async () => {});
@@ -150,6 +151,7 @@ describe('useFavorites', () => {
     expect(result.current.favoriteRecipes).toHaveLength(0);
     expect(mockDelete).toHaveBeenCalled();
     expect(mockEq).toHaveBeenCalledWith('recipe_id', 'r1');
+    expect(mockEq).toHaveBeenCalledWith('user_id', 'user-1');
   });
 
   it('toggleFavorite adds when not yet favorited', async () => {
@@ -168,7 +170,7 @@ describe('useFavorites', () => {
   it('toggleFavorite removes when already favorited', async () => {
     mockGetUser.mockResolvedValue({ data: { user: { id: 'user-1' } } });
     mockSelect.mockResolvedValue({ data: [makeDbRow()], error: null });
-    mockEq.mockResolvedValue({ error: null });
+    mockEq.mockReturnValueOnce({ eq: mockEq }).mockResolvedValueOnce({ error: null });
 
     const { result } = renderHook(() => useFavorites());
     await act(async () => {});
@@ -253,5 +255,67 @@ describe('useFavorites', () => {
 
     expect(result.current.favoriteIds).toEqual(['r1']);
     expect(result.current.favoriteRecipes).toHaveLength(1);
+  });
+
+  it('addFavorite shows success toast when insert succeeds', async () => {
+    mockGetUser.mockResolvedValue({ data: { user: { id: 'user-1' } } });
+    mockSelect.mockResolvedValue({ data: [], error: null });
+    mockInsert.mockResolvedValue({ error: null });
+    vi.mocked(toast.success).mockClear();
+
+    const { result } = renderHook(() => useFavorites('en'));
+    await act(async () => {});
+
+    await act(async () => { result.current.toggleFavorite(makeRecipe()); });
+
+    expect(toast.success).toHaveBeenCalledWith('Added to favorites');
+    expect(toast.error).not.toHaveBeenCalled();
+  });
+
+  it('addFavorite shows error toast and does not show success toast when insert fails', async () => {
+    mockGetUser.mockResolvedValue({ data: { user: { id: 'user-1' } } });
+    mockSelect.mockResolvedValue({ data: [], error: null });
+    mockInsert.mockResolvedValue({ error: { message: 'DB insert error' } });
+    vi.mocked(toast.success).mockClear();
+    vi.mocked(toast.error).mockClear();
+
+    const { result } = renderHook(() => useFavorites('en'));
+    await act(async () => {});
+
+    await act(async () => { result.current.toggleFavorite(makeRecipe()); });
+
+    expect(toast.error).toHaveBeenCalledWith('Failed to add to favorites');
+    expect(toast.success).not.toHaveBeenCalled();
+  });
+
+  it('removeFavorite shows success toast when delete succeeds', async () => {
+    mockGetUser.mockResolvedValue({ data: { user: { id: 'user-1' } } });
+    mockSelect.mockResolvedValue({ data: [makeDbRow()], error: null });
+    mockEq.mockReturnValueOnce({ eq: mockEq }).mockResolvedValueOnce({ error: null });
+    vi.mocked(toast.success).mockClear();
+
+    const { result } = renderHook(() => useFavorites('en'));
+    await act(async () => {});
+
+    await act(async () => { result.current.toggleFavorite(makeRecipe()); });
+
+    expect(toast.success).toHaveBeenCalledWith('Removed from favorites');
+    expect(toast.error).not.toHaveBeenCalled();
+  });
+
+  it('removeFavorite shows error toast and does not show success toast when delete fails', async () => {
+    mockGetUser.mockResolvedValue({ data: { user: { id: 'user-1' } } });
+    mockSelect.mockResolvedValue({ data: [makeDbRow()], error: null });
+    mockEq.mockReturnValueOnce({ eq: mockEq }).mockResolvedValueOnce({ error: { message: 'DB delete error' } });
+    vi.mocked(toast.success).mockClear();
+    vi.mocked(toast.error).mockClear();
+
+    const { result } = renderHook(() => useFavorites('en'));
+    await act(async () => {});
+
+    await act(async () => { result.current.toggleFavorite(makeRecipe()); });
+
+    expect(toast.error).toHaveBeenCalledWith('Failed to remove from favorites');
+    expect(toast.success).not.toHaveBeenCalled();
   });
 });

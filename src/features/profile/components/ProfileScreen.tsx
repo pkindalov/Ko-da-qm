@@ -27,6 +27,7 @@ export function ProfileScreen({ profile, setProfile, products, lang, onLogout, o
   const [name, setName] = useState(profile.name);
 
   const saveName = () => {
+    if (name.trim() === profile.name) return;
     setProfile({ ...profile, name: name.trim() });
     toast.success(L ? 'Name saved' : 'Името е запазено');
   };
