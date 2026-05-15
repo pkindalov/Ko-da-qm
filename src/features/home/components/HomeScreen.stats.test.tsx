@@ -668,6 +668,57 @@ describe('HomeScreen – allergies modal add/edit', () => {
   });
 });
 
+describe('HomeScreen – safe recipe click to detail', () => {
+  it('clicking a safe recipe closes the safe recipes modal', async () => {
+    const user = userEvent.setup();
+    const recipes = [makeRecipe({ id: 'r1', name: 'Пиле с ориз' })];
+    render(<HomeScreen {...makeProps({ recipes })} />);
+    await user.click(screen.getByText('безопасни рецепти'));
+    await user.click(screen.getByRole('button', { name: 'Пиле с ориз' }));
+    expect(screen.queryByText('Безопасни рецепти (1)')).not.toBeInTheDocument();
+  });
+
+  it('clicking a safe recipe opens the recipe detail view with the recipe name', async () => {
+    const user = userEvent.setup();
+    const recipes = [makeRecipe({ id: 'r1', name: 'Пиле с ориз' })];
+    render(<HomeScreen {...makeProps({ recipes })} />);
+    await user.click(screen.getByText('безопасни рецепти'));
+    await user.click(screen.getByRole('button', { name: 'Пиле с ориз' }));
+    expect(screen.getAllByText('Пиле с ориз').length).toBeGreaterThan(0);
+  });
+
+  it('uses English name in detail when lang is en and nameEn is set', async () => {
+    const user = userEvent.setup();
+    const recipes = [makeRecipe({ id: 'r1', name: 'Пиле с ориз', nameEn: 'Chicken with rice' })];
+    render(<HomeScreen {...makeProps({ recipes, lang: 'en' })} />);
+    await user.click(screen.getByText('safe recipes'));
+    await user.click(screen.getByRole('button', { name: 'Chicken with rice' }));
+    expect(screen.getAllByText('Chicken with rice').length).toBeGreaterThan(0);
+  });
+
+  it('closing the detail modal removes the close button from the DOM', async () => {
+    const user = userEvent.setup();
+    const recipes = [makeRecipe({ id: 'r1', name: 'Пиле с ориз' })];
+    render(<HomeScreen {...makeProps({ recipes })} />);
+    await user.click(screen.getByText('безопасни рецепти'));
+    await user.click(screen.getByRole('button', { name: 'Пиле с ориз' }));
+    await user.click(screen.getByRole('button', { name: '✕' }));
+    expect(screen.queryByRole('button', { name: '✕' })).not.toBeInTheDocument();
+  });
+
+  it('each safe recipe in the list is a clickable button', async () => {
+    const user = userEvent.setup();
+    const recipes = [
+      makeRecipe({ id: 'r1', name: 'Рецепта едно' }),
+      makeRecipe({ id: 'r2', name: 'Рецепта две' }),
+    ];
+    render(<HomeScreen {...makeProps({ recipes })} />);
+    await user.click(screen.getByText('безопасни рецепти'));
+    expect(screen.getByRole('button', { name: 'Рецепта едно' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Рецепта две' })).toBeInTheDocument();
+  });
+});
+
 describe('HomeScreen – dislikes modal add/edit', () => {
   it('dislikes modal shows add button', async () => {
     const user = userEvent.setup();

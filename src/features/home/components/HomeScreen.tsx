@@ -39,6 +39,7 @@ const COMMUNITY_PAGE_SIZE = 4;
 export function HomeScreen({ profile, recipes, fridge, publicRecipes, favoriteIds, onToggleFavorite, products, setTab, lang, onDeleteFridgeItem, onAddFridgeItem, onEditFridgeItem, onRemoveAllergy, onAddAllergy, onEditAllergy, onRemoveDislike, onAddDislike, onEditDislike, onUpdateProductStatus, communityFavoriteCounts = {}, onNavigateToUser }: HomeScreenProps) {
   const isEnglish = lang === 'en';
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
+  const [selectedSafeRecipe, setSelectedSafeRecipe] = useState<Recipe | null>(null);
   const [communityPage, setCommunityPage] = useState(1);
   const [openStatModal, setOpenStatModal] = useState<'safeRecipes' | 'fridge' | 'allergies' | 'dislikes' | null>(null);
   const [allergiesExpanded, setAllergiesExpanded] = useState(false);
@@ -355,13 +356,22 @@ export function HomeScreen({ profile, recipes, fridge, publicRecipes, favoriteId
           </p>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 320, overflowY: 'auto' }}>
-            {safeRecipes.map(r => (
-              <div key={r.id} style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 14 }}>
-                <span style={{ fontSize: 20 }}>{r.emoji}</span>
-                <span style={{ fontWeight: 600, flex: 1 }}>{isEnglish && r.nameEn ? r.nameEn : r.name}</span>
-                <span style={{ color: 'var(--text2)', whiteSpace: 'nowrap' }}>⏱ {r.time} {isEnglish ? 'min' : 'мин'}</span>
-              </div>
-            ))}
+            {safeRecipes.map(r => {
+              const recipeName = isEnglish && r.nameEn ? r.nameEn : r.name;
+              return (
+                <button
+                  key={r.id}
+                  type="button"
+                  style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 14, background: 'none', border: 'none', cursor: 'pointer', padding: '4px 0', width: '100%', textAlign: 'left', color: 'inherit' }}
+                  onClick={() => { setOpenStatModal(null); setSelectedSafeRecipe(r); }}
+                  aria-label={recipeName}
+                >
+                  <span style={{ fontSize: 20 }}>{r.emoji}</span>
+                  <span style={{ fontWeight: 600, flex: 1 }}>{recipeName}</span>
+                  <span style={{ color: 'var(--text2)', whiteSpace: 'nowrap' }}>⏱ {r.time} {isEnglish ? 'min' : 'мин'}</span>
+                </button>
+              );
+            })}
           </div>
         )}
         <div style={{ marginTop: 16 }}>
@@ -662,6 +672,24 @@ export function HomeScreen({ profile, recipes, fridge, publicRecipes, favoriteId
             {isEnglish ? 'Go to Products →' : 'Към продукти →'}
           </button>
         </div>
+      </Modal>
+
+      <Modal
+        open={selectedSafeRecipe !== null}
+        onClose={() => setSelectedSafeRecipe(null)}
+        contentClassName="modal-recipe"
+      >
+        {selectedSafeRecipe && (
+          <RecipeDetailView
+            recipe={selectedSafeRecipe}
+            allergies={allergies}
+            dislikes={dislikes}
+            lang={lang}
+            isOwner={false}
+            showBackButton={false}
+            onBack={() => setSelectedSafeRecipe(null)}
+          />
+        )}
       </Modal>
 
       <Modal
