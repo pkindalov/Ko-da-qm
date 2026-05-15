@@ -29,6 +29,7 @@ vi.mock('../../../lib/supabase', () => ({
 
 const makeDbRow = (overrides = {}) => ({
   id: 'r1',
+  user_id: 'user-2',
   name: 'Pancakes',
   name_en: 'Pancakes',
   emoji: '🥞',
@@ -81,6 +82,7 @@ describe('usePublicRecipes', () => {
       name: 'Pancakes',
       nameEn: 'Pancakes',
       emoji: '🥞',
+      imageUrl: undefined,
       ingredients: ['flour', 'egg'],
       steps: ['mix', 'fry'],
       time: 15,
@@ -88,6 +90,7 @@ describe('usePublicRecipes', () => {
       requiredIngredients: ['flour'],
       isAI: false,
       isPublic: true,
+      authorId: 'user-2',
       authorName: 'Alice',
       authorEmail: 'alice@example.com',
     });

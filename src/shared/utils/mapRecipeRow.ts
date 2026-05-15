@@ -13,6 +13,7 @@ export const mapRecipeRow = (r: Record<string, unknown>): Recipe => ({
   requiredIngredients: (r.required_ingredients as string[]) ?? [],
   isAI: r.is_ai as boolean,
   isPublic: (r.is_public as boolean) ?? false,
+  authorId: (r.user_id as string | null) ?? undefined,
   authorName: (r.author_name as string | null) ?? undefined,
   authorEmail: (r.author_email as string | null) ?? undefined,
 });

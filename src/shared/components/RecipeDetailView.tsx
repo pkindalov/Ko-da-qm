@@ -9,9 +9,11 @@ interface RecipeDetailViewProps {
   lang: Language;
   isOwner: boolean;
   isFavorite?: boolean;
+  favoriteCount?: number;
   showBackButton?: boolean;
   onBack: () => void;
   onToggleFavorite?: () => void;
+  onAuthorClick?: () => void;
   onEdit?: () => void;
   onDelete?: () => void;
 }
@@ -23,9 +25,11 @@ export const RecipeDetailView = ({
   lang,
   isOwner,
   isFavorite = false,
+  favoriteCount,
   showBackButton = true,
   onBack,
   onToggleFavorite,
+  onAuthorClick,
   onEdit,
   onDelete,
 }: RecipeDetailViewProps) => {
@@ -61,7 +65,11 @@ export const RecipeDetailView = ({
         </div>
         {recipe.authorName && !isOwner && (
           <div className="recipe-detail-author">
-            👤 {L ? 'by' : 'от'} <strong>{recipe.authorName}</strong>
+            👤 {L ? 'by' : 'от'}{' '}
+            {onAuthorClick
+              ? <button onClick={onAuthorClick} style={{ background: 'none', border: 'none', cursor: 'pointer', fontWeight: 700, color: 'var(--primary)', padding: 0 }}>{recipe.authorName}</button>
+              : <strong>{recipe.authorName}</strong>
+            }
           </div>
         )}
         {!isOwner && onToggleFavorite && (
@@ -69,6 +77,9 @@ export const RecipeDetailView = ({
             {isFavorite
               ? (L ? '♥ Saved' : '♥ Запазена')
               : (L ? '♡ Save to favorites' : '♡ Запази в любими')}
+            {favoriteCount != null && favoriteCount > 0 && (
+              <span style={{ marginLeft: 6, color: 'var(--text2)', fontWeight: 600 }}>({favoriteCount})</span>
+            )}
           </button>
         )}
       </div>

@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Sidebar } from './layout/Sidebar';
 import { BottomNav } from './layout/BottomNav';
 import { TweaksPanel } from './layout/TweaksPanel';
@@ -11,6 +12,7 @@ import { useLocalStorage } from '../shared/hooks/useLocalStorage';
 import { useAppData } from '../shared/hooks/useAppData';
 import { usePublicRecipes } from '../features/home/hooks/usePublicRecipes';
 import { useFavorites } from '../features/recipes/hooks/useFavorites';
+import { useRecipeFavoriteCounts } from '../features/userProfile/hooks/useRecipeFavoriteCounts';
 import { DEFAULT_TWEAKS } from '../shared/constants/defaults';
 import { supabase } from '../lib/supabase';
 import type { Tab } from '../shared/types';
@@ -21,6 +23,9 @@ export function AppShell() {
   const { loading, userEmail, profile, setProfile, fridge, addFridgeItem, removeFridgeItem, updateFridgeItem, recipes, addRecipe, removeRecipe, updateRecipe, products, setProducts, addProduct } = useAppData();
   const { publicRecipes } = usePublicRecipes();
   const { favoriteIds, favoriteRecipes, toggleFavorite } = useFavorites();
+  const navigate = useNavigate();
+  const publicRecipeIds = useMemo(() => publicRecipes.map((r) => r.id), [publicRecipes]);
+  const communityFavoriteCounts = useRecipeFavoriteCounts(publicRecipeIds);
   const [tweaksOpen, setTweaksOpen] = useState(false);
 
   useEffect(() => {
@@ -65,6 +70,8 @@ export function AppShell() {
       onAddDislike={(name) => setProfile({ ...profile, dislikes: [...profile.dislikes, name] })}
       onEditDislike={(oldName, newName) => setProfile({ ...profile, dislikes: profile.dislikes.map(d => d === oldName ? newName : d) })}
       onUpdateProductStatus={(productId, status) => setProducts(products.map(p => p.id === productId ? { ...p, status } : p))}
+      communityFavoriteCounts={communityFavoriteCounts}
+      onNavigateToUser={(userId) => navigate(`/user/${userId}`)}
     />,
     fridge: <FridgeScreen fridge={fridge} addFridgeItem={addFridgeItem} removeFridgeItem={removeFridgeItem} addRecipe={addRecipe} removeRecipe={removeRecipe} profile={profile} recipes={recipes} products={products} lang={tweaks.lang} />,
     recipes: <RecipesScreen recipes={recipes} addRecipe={addRecipe} removeRecipe={removeRecipe} updateRecipe={updateRecipe} favoriteRecipes={favoriteRecipes} favoriteIds={favoriteIds} onToggleFavorite={toggleFavorite} products={products} profile={profile} lang={tweaks.lang} userEmail={userEmail} />,

@@ -59,6 +59,7 @@ export interface Recipe {
   requiredIngredients: string[];
   isAI: boolean;
   isPublic: boolean;
+  authorId?: string;
   authorName?: string;
   authorEmail?: string;
 }

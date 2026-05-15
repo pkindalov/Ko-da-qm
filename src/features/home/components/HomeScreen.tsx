@@ -29,12 +29,14 @@ interface HomeScreenProps {
   onAddDislike: (name: string) => void;
   onEditDislike: (oldName: string, newName: string) => void;
   onUpdateProductStatus: (productId: string, status: ProductStatus) => void;
+  communityFavoriteCounts?: Record<string, number>;
+  onNavigateToUser?: (userId: string) => void;
 }
 
 const RECIPES_PREVIEW_SIZE = 4;
 const COMMUNITY_PAGE_SIZE = 4;
 
-export function HomeScreen({ profile, recipes, fridge, publicRecipes, favoriteIds, onToggleFavorite, products, setTab, lang, onDeleteFridgeItem, onAddFridgeItem, onEditFridgeItem, onRemoveAllergy, onAddAllergy, onEditAllergy, onRemoveDislike, onAddDislike, onEditDislike, onUpdateProductStatus }: HomeScreenProps) {
+export function HomeScreen({ profile, recipes, fridge, publicRecipes, favoriteIds, onToggleFavorite, products, setTab, lang, onDeleteFridgeItem, onAddFridgeItem, onEditFridgeItem, onRemoveAllergy, onAddAllergy, onEditAllergy, onRemoveDislike, onAddDislike, onEditDislike, onUpdateProductStatus, communityFavoriteCounts = {}, onNavigateToUser }: HomeScreenProps) {
   const isEnglish = lang === 'en';
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
   const [communityPage, setCommunityPage] = useState(1);
@@ -299,7 +301,19 @@ export function HomeScreen({ profile, recipes, fridge, publicRecipes, favoriteId
                   }
                   <div className="recipe-name">{isEnglish && r.nameEn ? r.nameEn : r.name}</div>
                   <div className="recipe-meta">⏱ {r.time} {isEnglish ? 'min' : 'мин'}</div>
-                  {r.authorName && (
+                  {communityFavoriteCounts[r.id] > 0 && (
+                    <div className="recipe-meta">♥ {communityFavoriteCounts[r.id]}</div>
+                  )}
+                  {r.authorName && r.authorId && onNavigateToUser && (
+                    <button
+                      className="recipe-meta"
+                      onClick={(e) => { e.stopPropagation(); onNavigateToUser(r.authorId!); }}
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: 'var(--primary)', fontWeight: 700, textAlign: 'left' }}
+                    >
+                      👤 {r.authorName}
+                    </button>
+                  )}
+                  {r.authorName && (!r.authorId || !onNavigateToUser) && (
                     <div className="recipe-meta">👤 {r.authorName}</div>
                   )}
                   <div style={{ marginTop: 6 }}>
@@ -666,6 +680,8 @@ export function HomeScreen({ profile, recipes, fridge, publicRecipes, favoriteId
             showBackButton={false}
             onBack={() => setSelectedRecipe(null)}
             onToggleFavorite={() => onToggleFavorite(selectedRecipe)}
+            favoriteCount={communityFavoriteCounts[selectedRecipe.id]}
+            onAuthorClick={selectedRecipe.authorId && onNavigateToUser ? () => { setSelectedRecipe(null); onNavigateToUser(selectedRecipe.authorId!); } : undefined}
           />
         )}
       </Modal>
