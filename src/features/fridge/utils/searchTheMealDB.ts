@@ -136,7 +136,7 @@ function mealToMatchedRecipe(meal: DetailMeal, matchedCount: number, totalFridge
   };
 }
 
-export async function searchByFridge(fridgeItems: FridgeItem[], blocked: string[]): Promise<MatchedRecipe[]> {
+export async function searchByFridge(fridgeItems: FridgeItem[], blocked: string[], excludeIds: string[] = []): Promise<MatchedRecipe[]> {
   if (fridgeItems.length === 0) return [];
 
   const englishNames = fridgeItems.map((f) => toEnglish(f.name));
@@ -152,9 +152,10 @@ export async function searchByFridge(fridgeItems: FridgeItem[], blocked: string[
     }
   }
 
-  // Take top 8 by match count
+  // Take top 8 by match count, skipping already-seen IDs
   const topIds = Object.entries(idCount)
     .sort((a, b) => b[1] - a[1])
+    .filter(([id]) => !excludeIds.includes(id))
     .slice(0, 8)
     .map(([id]) => id);
 

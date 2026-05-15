@@ -36,6 +36,8 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, addRecip
   const [matchingExpanded, setMatchingExpanded] = useState(false);
   const [pendingSaveRecipe, setPendingSaveRecipe] = useState<MatchedRecipe | null>(null);
   const [seenGeminiNames, setSeenGeminiNames] = useState<string[]>([]);
+  const [seenApiIds, setSeenApiIds] = useState<string[]>([]);
+  const [suggestionSource, setSuggestionSource] = useState<'gemini' | 'api' | null>(null);
   const [loadingMoreSuggestions, setLoadingMoreSuggestions] = useState(false);
   const { savedIdMap, savingId, saveError, saveRecipe, unsaveRecipe, clearSaveError } = useSaveGeminiRecipe(profile.name, addRecipe, removeRecipe);
 
@@ -111,21 +113,45 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, addRecip
     setLoadingSuggestions(true);
     setSuggestions(null);
     setSeenGeminiNames([]);
+    setSeenApiIds([]);
+    setSuggestionSource(null);
     try {
       if (geminiMode) {
         const results = filterSafe(await searchWithGemini(safeFridge, blocked, lang));
         setSuggestions(results);
         setSeenGeminiNames(results.map((r) => r.name));
+        setSuggestionSource('gemini');
       } else {
         const online = filterSafe(await searchByFridge(safeFridge, blocked));
         if (online.length > 0) {
           setSuggestions(online);
+          setSeenApiIds(online.map((r) => r.id));
         } else {
-          setSuggestions(filterSafe(await matchFromFridge(safeFridge, blocked)));
+          const local = filterSafe(await matchFromFridge(safeFridge, blocked));
+          setSuggestions(local);
+          setSeenApiIds(local.map((r) => r.id));
         }
+        setSuggestionSource('api');
       }
     } finally {
       setLoadingSuggestions(false);
+    }
+  };
+
+  const handleTryDifferentRecipeApi = async () => {
+    setLoadingMoreSuggestions(true);
+    try {
+      const online = filterSafe(await searchByFridge(safeFridge, blocked, seenApiIds));
+      if (online.length > 0) {
+        setSuggestions(online);
+        setSeenApiIds((prev) => [...prev, ...online.map((r) => r.id)]);
+      } else {
+        const local = filterSafe(await matchFromFridge(safeFridge, blocked, seenApiIds));
+        setSuggestions(local);
+        setSeenApiIds((prev) => [...prev, ...local.map((r) => r.id)]);
+      }
+    } finally {
+      setLoadingMoreSuggestions(false);
     }
   };
 
@@ -371,7 +397,7 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, addRecip
             </div>
           )}
           <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>
-            {geminiMode && suggestions.length > 0 && (
+            {suggestionSource === 'gemini' && geminiMode && suggestions.length > 0 && (
               <button
                 className="btn btn-ghost btn-sm"
                 onClick={handleTryDifferentSuggestions}
@@ -382,7 +408,18 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, addRecip
                   : `🔄 ${L ? 'Try different' : 'Опитай различни'}`}
               </button>
             )}
-            <button className="btn btn-ghost btn-sm" onClick={() => setSuggestions(null)}>
+            {suggestionSource === 'api' && !geminiMode && suggestions.length > 0 && (
+              <button
+                className="btn btn-ghost btn-sm"
+                onClick={handleTryDifferentRecipeApi}
+                disabled={loadingMoreSuggestions || loadingSuggestions}
+              >
+                {loadingMoreSuggestions
+                  ? (<><span className="spinner" />{L ? 'Searching...' : 'Търси...'}</>)
+                  : `🔄 ${L ? 'Try different' : 'Опитай различни'}`}
+              </button>
+            )}
+            <button className="btn btn-ghost btn-sm" onClick={() => { setSuggestions(null); setSuggestionSource(null); }}>
               {L ? 'Clear' : 'Изчисти'}
             </button>
           </div>

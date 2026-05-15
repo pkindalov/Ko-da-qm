@@ -60,7 +60,7 @@ function toMatched(row: DbRow, fridgeLow: string[], blocked: string[]): MatchedR
   };
 }
 
-export async function matchFromFridge(fridgeItems: FridgeItem[], blocked: string[]): Promise<MatchedRecipe[]> {
+export async function matchFromFridge(fridgeItems: FridgeItem[], blocked: string[], excludeIds: string[] = []): Promise<MatchedRecipe[]> {
   const { data, error } = await supabase.from('recipe_database').select('id, name, name_en, emoji, image_url, ingredients, steps, time, tags, required_ingredients, is_ai');
   if (error || !data) return [];
 
@@ -68,7 +68,7 @@ export async function matchFromFridge(fridgeItems: FridgeItem[], blocked: string
 
   return (data as DbRow[])
     .map((r) => toMatched(r, fridgeLow, blocked))
-    .filter((r): r is MatchedRecipe => r !== null && r.matchScore > 0)
+    .filter((r): r is MatchedRecipe => r !== null && r.matchScore > 0 && !excludeIds.includes(r.id))
     .sort((a, b) => b.matchScore - a.matchScore);
 }
 

@@ -124,6 +124,27 @@ describe('matchFromFridge', () => {
     expect(result[0].id).toBe('B');
     expect(result[1].id).toBe('A');
   });
+
+  it('excludes recipes whose ID is in excludeIds', async () => {
+    const rows = [
+      makeRow({ id: 'keep', required_ingredients: ['яйца'] }),
+      makeRow({ id: 'skip', required_ingredients: ['яйца'] }),
+    ];
+    mockDbSelect.mockResolvedValue({ data: rows, error: null });
+    const result = await matchFromFridge([makeFridgeItem('яйца')], [], ['skip']);
+    expect(result).toHaveLength(1);
+    expect(result[0].id).toBe('keep');
+  });
+
+  it('returns all matching recipes when excludeIds is empty', async () => {
+    const rows = [
+      makeRow({ id: 'A', required_ingredients: ['яйца'] }),
+      makeRow({ id: 'B', required_ingredients: ['яйца'] }),
+    ];
+    mockDbSelect.mockResolvedValue({ data: rows, error: null });
+    const result = await matchFromFridge([makeFridgeItem('яйца')], [], []);
+    expect(result).toHaveLength(2);
+  });
 });
 
 describe('searchDatabase', () => {

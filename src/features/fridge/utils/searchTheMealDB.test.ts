@@ -81,4 +81,29 @@ describe('searchByFridge – imageUrl from strMealThumb', () => {
     const results = await searchByFridge([makeFridgeItem('chicken')], []);
     expect(results).toHaveLength(0);
   });
+
+  it('does not fetch detail for meal IDs listed in excludeIds', async () => {
+    mockFetch
+      .mockResolvedValueOnce(await makeFilterResponse(['52772', '99999']))
+      .mockResolvedValueOnce(
+        Promise.resolve({ json: () => Promise.resolve({ meals: null }) }),
+      );
+
+    // '52772' is excluded → only '99999' detail is fetched (returns null → no results)
+    const results = await searchByFridge([makeFridgeItem('chicken')], [], ['52772']);
+
+    expect(results).toHaveLength(0);
+    expect(mockFetch).toHaveBeenCalledTimes(2);
+    expect(mockFetch.mock.calls[1][0] as string).toContain('99999');
+    expect(mockFetch.mock.calls[1][0] as string).not.toContain('52772');
+  });
+
+  it('returns results normally when excludeIds is empty', async () => {
+    mockFetch
+      .mockResolvedValueOnce(await makeFilterResponse(['52772']))
+      .mockResolvedValueOnce(await makeDetailResponse());
+
+    const results = await searchByFridge([makeFridgeItem('chicken')], [], []);
+    expect(results).toHaveLength(1);
+  });
 });
