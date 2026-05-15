@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { toast } from 'sonner';
 import { FridgeScreen } from './FridgeScreen';
 import type { FridgeItem, Product, Profile, Recipe } from '../../../shared/types';
 import type { MatchedRecipe } from '../utils/matchFromFridge';
@@ -279,6 +280,44 @@ describe('FridgeScreen – Try different suggestions button', () => {
     await user.click(screen.getByRole('button', { name: /Ask Gemini/i }));
 
     await waitFor(() => expect(screen.getByRole('button', { name: /Try different/i })).toBeInTheDocument());
+  });
+
+  it('shows toast when "Try different" finds new Gemini results', async () => {
+    const user = userEvent.setup();
+    (searchWithGemini as ReturnType<typeof vi.fn>)
+      .mockResolvedValueOnce([makeMatchedRecipe({ name: 'Рецепта А' })])
+      .mockResolvedValueOnce([makeMatchedRecipe({ name: 'Рецепта Б' })]);
+
+    render(<FridgeScreen {...makeProps()} />);
+    await enableGeminiMode(user);
+    await clickAskGemini(user);
+
+    await waitFor(() => expect(screen.getByText('Рецепта А')).toBeInTheDocument());
+    vi.mocked(toast.success).mockClear();
+
+    await clickTryDifferent(user);
+    await waitFor(() => expect(screen.getByText('Рецепта Б')).toBeInTheDocument());
+
+    expect(toast.success).toHaveBeenCalledWith('Намерени 1 рецепти');
+  });
+
+  it('does not show toast when "Try different" returns no new Gemini results', async () => {
+    const user = userEvent.setup();
+    (searchWithGemini as ReturnType<typeof vi.fn>)
+      .mockResolvedValueOnce([makeMatchedRecipe({ name: 'Рецепта А' })])
+      .mockResolvedValueOnce([makeMatchedRecipe({ name: 'Рецепта А' })]);
+
+    render(<FridgeScreen {...makeProps()} />);
+    await enableGeminiMode(user);
+    await clickAskGemini(user);
+
+    await waitFor(() => expect(screen.getByText('Рецепта А')).toBeInTheDocument());
+    vi.mocked(toast.success).mockClear();
+
+    await clickTryDifferent(user);
+    await waitFor(() => expect(searchWithGemini).toHaveBeenCalledTimes(2));
+
+    expect(toast.success).not.toHaveBeenCalled();
   });
 
   it('resets seen names on fresh search so excludeNames is empty', async () => {

@@ -156,10 +156,12 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, addRecip
       if (online.length > 0) {
         setSuggestions(online);
         setSeenApiIds((prev) => [...prev, ...online.map((r) => r.id)]);
+        toast.success(L ? `Found ${online.length} recipe${online.length === 1 ? '' : 's'}` : `Намерени ${online.length} рецепти`);
       } else {
         const local = filterSafe(await matchFromFridge(safeFridge, blocked, seenApiIds));
         setSuggestions(local);
         setSeenApiIds((prev) => [...prev, ...local.map((r) => r.id)]);
+        if (local.length > 0) toast.success(L ? `Found ${local.length} recipe${local.length === 1 ? '' : 's'}` : `Намерени ${local.length} рецепти`);
       }
     } finally {
       setLoadingMoreSuggestions(false);
@@ -173,6 +175,7 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, addRecip
       const newResults = results.filter((r) => !seenGeminiNames.includes(r.name));
       setSuggestions(newResults);
       setSeenGeminiNames((prev) => [...prev, ...newResults.map((r) => r.name)]);
+      if (newResults.length > 0) toast.success(L ? `Found ${newResults.length} recipe${newResults.length === 1 ? '' : 's'}` : `Намерени ${newResults.length} рецепти`);
     } finally {
       setLoadingMoreSuggestions(false);
     }

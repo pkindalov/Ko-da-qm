@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { toast } from 'sonner';
 import { FridgeScreen } from './FridgeScreen';
 import type { FridgeItem, Product, Profile, Recipe } from '../../../shared/types';
 import type { MatchedRecipe } from '../utils/matchFromFridge';
@@ -317,6 +318,64 @@ describe('FridgeScreen – Try different for Recipe API', () => {
 
     const secondMatchCallExcludeIds = (matchFromFridge as ReturnType<typeof vi.fn>).mock.calls[1][2] as string[];
     expect(secondMatchCallExcludeIds).toContain(localId1);
+  });
+
+  it('shows toast when "Try different" finds results from TheMealDB', async () => {
+    const user = userEvent.setup();
+    (searchByFridge as ReturnType<typeof vi.fn>)
+      .mockResolvedValueOnce([makeApiRecipe({ name: 'Доматена супа' })])
+      .mockResolvedValueOnce([makeApiRecipe({ name: 'Пица с домати' })]);
+
+    render(<FridgeScreen {...makeProps()} />);
+    await clickWhatCanICook(user);
+
+    await waitFor(() => expect(screen.getByText('Доматена супа')).toBeInTheDocument());
+    vi.mocked(toast.success).mockClear();
+
+    await clickTryDifferent(user);
+    await waitFor(() => expect(screen.getByText('Пица с домати')).toBeInTheDocument());
+
+    expect(toast.success).toHaveBeenCalledWith('Намерени 1 рецепти');
+  });
+
+  it('shows toast when "Try different" falls back to matchFromFridge with results', async () => {
+    const user = userEvent.setup();
+    (searchByFridge as ReturnType<typeof vi.fn>)
+      .mockResolvedValueOnce([makeApiRecipe({ name: 'Доматена супа' })])
+      .mockResolvedValueOnce([]);
+    (matchFromFridge as ReturnType<typeof vi.fn>).mockResolvedValue([
+      makeApiRecipe({ name: 'Домашна рецепта' }),
+    ]);
+
+    render(<FridgeScreen {...makeProps()} />);
+    await clickWhatCanICook(user);
+
+    await waitFor(() => expect(screen.getByText('Доматена супа')).toBeInTheDocument());
+    vi.mocked(toast.success).mockClear();
+
+    await clickTryDifferent(user);
+    await waitFor(() => expect(screen.getByText('Домашна рецепта')).toBeInTheDocument());
+
+    expect(toast.success).toHaveBeenCalledWith('Намерени 1 рецепти');
+  });
+
+  it('does not show toast when "Try different" exhausts all results', async () => {
+    const user = userEvent.setup();
+    (searchByFridge as ReturnType<typeof vi.fn>)
+      .mockResolvedValueOnce([makeApiRecipe({ name: 'Доматена супа' })])
+      .mockResolvedValueOnce([]);
+    (matchFromFridge as ReturnType<typeof vi.fn>).mockResolvedValue([]);
+
+    render(<FridgeScreen {...makeProps()} />);
+    await clickWhatCanICook(user);
+
+    await waitFor(() => expect(screen.getByText('Доматена супа')).toBeInTheDocument());
+    vi.mocked(toast.success).mockClear();
+
+    await clickTryDifferent(user);
+    await waitFor(() => expect(screen.getByText(/Няма съвпадения/i)).toBeInTheDocument());
+
+    expect(toast.success).not.toHaveBeenCalled();
   });
 
   it('shows English button text when lang is "en"', async () => {
