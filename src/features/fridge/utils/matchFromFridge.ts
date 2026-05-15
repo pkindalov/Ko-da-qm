@@ -61,7 +61,7 @@ function toMatched(row: DbRow, fridgeLow: string[], blocked: string[]): MatchedR
 }
 
 export async function matchFromFridge(fridgeItems: FridgeItem[], blocked: string[]): Promise<MatchedRecipe[]> {
-  const { data, error } = await supabase.from('recipe_database').select('*');
+  const { data, error } = await supabase.from('recipe_database').select('id, name, name_en, emoji, image_url, ingredients, steps, time, tags, required_ingredients, is_ai');
   if (error || !data) return [];
 
   const fridgeLow = fridgeItems.map((f) => f.name.toLowerCase());
@@ -77,8 +77,8 @@ export async function searchDatabase(query: string, blocked: string[]): Promise<
   if (!q) return [];
 
   const [dbResult, userResult] = await Promise.all([
-    supabase.from('recipe_database').select('*'),
-    supabase.from('recipes').select('*').eq('is_public', true),
+    supabase.from('recipe_database').select('id, name, name_en, emoji, image_url, ingredients, steps, time, tags, required_ingredients, is_ai'),
+    supabase.from('recipes').select('id, name, name_en, emoji, image_url, ingredients, steps, time, tags, required_ingredients, is_ai').eq('is_public', true),
   ]);
 
   const isBlocked = (i: string) => blocked.some((b) => i.toLowerCase().includes(b.toLowerCase()));

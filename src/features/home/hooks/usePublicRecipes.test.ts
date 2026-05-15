@@ -97,6 +97,18 @@ describe('usePublicRecipes', () => {
     expect(result.current.loading).toBe(false);
   });
 
+  it('selects only the required recipe fields – no wildcard', async () => {
+    mockGetUser.mockResolvedValue({ data: { user: { id: 'user-1' } } });
+    mockLimit.mockResolvedValue({ data: [], error: null });
+
+    renderHook(() => usePublicRecipes());
+    await act(async () => {});
+
+    expect(mockSelect).toHaveBeenCalledWith(
+      'id, name, name_en, emoji, image_url, ingredients, steps, time, tags, required_ingredients, is_ai, is_public, user_id, author_name, author_email',
+    );
+  });
+
   it('returns empty array when query returns null data', async () => {
     mockGetUser.mockResolvedValue({ data: { user: { id: 'user-1' } } });
     mockLimit.mockResolvedValue({ data: null, error: null });

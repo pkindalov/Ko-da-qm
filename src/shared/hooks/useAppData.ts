@@ -23,10 +23,10 @@ export function useAppData() {
     setUserEmail(user.email ?? '');
 
     const [profileRes, fridgeRes, recipesRes, productsRes] = await Promise.all([
-      supabase.from('users').select('*').eq('id', user.id).single(),
-      supabase.from('fridge_items').select('*').eq('user_id', user.id),
-      supabase.from('recipes').select('*').eq('user_id', user.id),
-      supabase.from('products').select('*').eq('user_id', user.id),
+      supabase.from('users').select('name, allergies, dislikes, dietary_prefs').eq('id', user.id).single(),
+      supabase.from('fridge_items').select('id, name, emoji, category').eq('user_id', user.id),
+      supabase.from('recipes').select('id, name, name_en, emoji, image_url, ingredients, steps, time, tags, required_ingredients, is_ai, is_public, author_name, author_email').eq('user_id', user.id),
+      supabase.from('products').select('id, name, name_en, category, status, emoji').eq('user_id', user.id),
     ]);
 
     if (profileRes.data) {

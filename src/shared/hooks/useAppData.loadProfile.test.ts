@@ -123,4 +123,14 @@ describe('useAppData – loadProfile', () => {
 
     expect(result.current.userId).toBe('');
   });
+
+  it('selects only the required user profile fields – no wildcard', async () => {
+    mockGetUser.mockResolvedValue({ data: { user: { id: 'user-1', user_metadata: {} } } });
+    makeFromChain({ name: 'Test', allergies: [], dislikes: [], dietary_prefs: [] });
+
+    renderHook(() => useAppData());
+    await act(async () => {});
+
+    expect(mockSelect).toHaveBeenCalledWith('name, allergies, dislikes, dietary_prefs');
+  });
 });

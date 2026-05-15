@@ -113,6 +113,18 @@ describe('useUserProfile', () => {
     expect(result.current.userName).toBe('Petya');
   });
 
+  it('selects only the required recipe fields – no wildcard', async () => {
+    mockRecipesOrder.mockResolvedValue({ data: [], error: null });
+    mockUsersSingle.mockResolvedValue({ data: { name: '' }, error: null });
+
+    renderHook(() => useUserProfile('user-42'));
+    await act(async () => {});
+
+    expect(mockRecipesSelect).toHaveBeenCalledWith(
+      'id, name, name_en, emoji, image_url, ingredients, steps, time, tags, required_ingredients, is_ai, is_public, user_id, author_name, author_email',
+    );
+  });
+
   it('returns empty recipes when query returns null', async () => {
     mockRecipesOrder.mockResolvedValue({ data: null, error: null });
     mockUsersSingle.mockResolvedValue({ data: null, error: null });

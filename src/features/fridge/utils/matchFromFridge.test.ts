@@ -35,8 +35,16 @@ const makeFridgeItem = (name: string): FridgeItem => ({
   category: 'egg',
 });
 
+const RECIPE_DB_FIELDS = 'id, name, name_en, emoji, image_url, ingredients, steps, time, tags, required_ingredients, is_ai';
+
 describe('matchFromFridge', () => {
   beforeEach(() => mockDbSelect.mockReset());
+
+  it('selects only the required recipe_database fields – no wildcard', async () => {
+    mockDbSelect.mockResolvedValue({ data: [], error: null });
+    await matchFromFridge([], []);
+    expect(mockDbSelect).toHaveBeenCalledWith(RECIPE_DB_FIELDS);
+  });
 
   it('returns empty array on supabase error', async () => {
     mockDbSelect.mockResolvedValue({ data: null, error: new Error('db error') });
@@ -123,6 +131,12 @@ describe('searchDatabase', () => {
     mockDbSelect.mockReset();
     mockUserEq.mockReset();
     mockUserEq.mockResolvedValue({ data: [], error: null });
+  });
+
+  it('selects only the required recipe_database fields – no wildcard', async () => {
+    mockDbSelect.mockResolvedValue({ data: [], error: null });
+    await searchDatabase('яйца', []);
+    expect(mockDbSelect).toHaveBeenCalledWith(RECIPE_DB_FIELDS);
   });
 
   it('returns empty for empty query', async () => {

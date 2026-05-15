@@ -17,7 +17,7 @@ export const usePublicRecipes = () => {
 
     const { data } = await supabase
       .from('recipes')
-      .select('*')
+      .select('id, name, name_en, emoji, image_url, ingredients, steps, time, tags, required_ingredients, is_ai, is_public, user_id, author_name, author_email')
       .eq('is_public', true)
       .neq('user_id', user.id)
       .order('created_at', { ascending: false })

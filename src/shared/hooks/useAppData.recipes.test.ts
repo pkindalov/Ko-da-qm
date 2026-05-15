@@ -217,6 +217,23 @@ describe('useAppData – updateRecipe', () => {
   });
 });
 
+describe('useAppData – loadAll recipe select fields', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('selects only the required recipe fields – no wildcard', async () => {
+    setupLoadAllMocks();
+
+    renderHook(() => useAppData());
+    await act(async () => {});
+
+    expect(mockSelect).toHaveBeenCalledWith(
+      'id, name, name_en, emoji, image_url, ingredients, steps, time, tags, required_ingredients, is_ai, is_public, author_name, author_email',
+    );
+  });
+});
+
 describe('useAppData – loadAll recipe imageUrl', () => {
   beforeEach(() => {
     vi.clearAllMocks();
