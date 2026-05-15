@@ -182,6 +182,105 @@ describe('FridgeScreen – Try different suggestions button', () => {
     expect(thirdCallExcludeNames).toContain('Рецепта Б');
   });
 
+  it('shows loading state and disables the button while fetching', async () => {
+    const user = userEvent.setup();
+    let resolveSecond!: (v: MatchedRecipe[]) => void;
+    const pending = new Promise<MatchedRecipe[]>((res) => { resolveSecond = res; });
+
+    (searchWithGemini as ReturnType<typeof vi.fn>)
+      .mockResolvedValueOnce([makeMatchedRecipe({ name: 'Рецепта А' })])
+      .mockReturnValueOnce(pending);
+
+    render(<FridgeScreen {...makeProps()} />);
+    await enableGeminiMode(user);
+    await clickAskGemini(user);
+
+    await waitFor(() => expect(screen.getByRole('button', { name: /Опитай различни/i })).toBeInTheDocument());
+
+    await user.click(screen.getByRole('button', { name: /Опитай различни/i }));
+
+    // During loading the button text changes — "Опитай различни" is gone
+    expect(screen.queryByRole('button', { name: /Опитай различни/i })).not.toBeInTheDocument();
+
+    resolveSecond([makeMatchedRecipe({ name: 'Рецепта Б' })]);
+    await waitFor(() => expect(screen.getByText('Рецепта Б')).toBeInTheDocument());
+
+    // After loading the button comes back (new results > 0)
+    expect(screen.getByRole('button', { name: /Опитай различни/i })).toBeInTheDocument();
+  });
+
+  it('clearing suggestions hides the "Try different" button', async () => {
+    const user = userEvent.setup();
+    (searchWithGemini as ReturnType<typeof vi.fn>).mockResolvedValue([
+      makeMatchedRecipe({ name: 'Доматена салата' }),
+    ]);
+
+    render(<FridgeScreen {...makeProps()} />);
+    await enableGeminiMode(user);
+    await clickAskGemini(user);
+
+    await waitFor(() => expect(screen.getByRole('button', { name: /Опитай различни/i })).toBeInTheDocument());
+
+    await user.click(screen.getByRole('button', { name: /Изчисти/i }));
+
+    expect(screen.queryByRole('button', { name: /Опитай различни/i })).not.toBeInTheDocument();
+  });
+
+  it('filters out recipes with blocked ingredients from "Try different" results', async () => {
+    const user = userEvent.setup();
+    (searchWithGemini as ReturnType<typeof vi.fn>)
+      .mockResolvedValueOnce([makeMatchedRecipe({ name: 'Безопасна рецепта' })])
+      .mockResolvedValueOnce([makeMatchedRecipe({
+        name: 'Рецепта с алергени',
+        requiredIngredients: ['nuts', 'flour'],
+        ingredients: ['nuts', 'flour'],
+      })]);
+
+    render(<FridgeScreen {...makeProps({
+      profile: { name: '', allergies: ['nuts'], dislikes: [], dietaryPrefs: [] },
+    })} />);
+    await enableGeminiMode(user);
+    await clickAskGemini(user);
+
+    await waitFor(() => expect(screen.getByText('Безопасна рецепта')).toBeInTheDocument());
+    await clickTryDifferent(user);
+
+    await waitFor(() => expect(searchWithGemini).toHaveBeenCalledTimes(2));
+    expect(screen.queryByText('Рецепта с алергени')).not.toBeInTheDocument();
+    expect(screen.getByText(/Няма съвпадения/i)).toBeInTheDocument();
+  });
+
+  it('disabling Gemini mode hides the "Try different" button', async () => {
+    const user = userEvent.setup();
+    (searchWithGemini as ReturnType<typeof vi.fn>).mockResolvedValue([
+      makeMatchedRecipe({ name: 'Доматена салата' }),
+    ]);
+
+    render(<FridgeScreen {...makeProps()} />);
+    await enableGeminiMode(user);
+    await clickAskGemini(user);
+
+    await waitFor(() => expect(screen.getByRole('button', { name: /Опитай различни/i })).toBeInTheDocument());
+
+    // Toggle Gemini mode off
+    await user.click(screen.getByRole('checkbox'));
+
+    expect(screen.queryByRole('button', { name: /Опитай различни/i })).not.toBeInTheDocument();
+  });
+
+  it('shows English button text when lang is "en"', async () => {
+    const user = userEvent.setup();
+    (searchWithGemini as ReturnType<typeof vi.fn>).mockResolvedValue([
+      makeMatchedRecipe({ name: 'Tomato Salad' }),
+    ]);
+
+    render(<FridgeScreen {...makeProps({ lang: 'en' })} />);
+    await user.click(screen.getByRole('checkbox')); // enable Gemini mode
+    await user.click(screen.getByRole('button', { name: /Ask Gemini/i }));
+
+    await waitFor(() => expect(screen.getByRole('button', { name: /Try different/i })).toBeInTheDocument());
+  });
+
   it('resets seen names on fresh search so excludeNames is empty', async () => {
     const user = userEvent.setup();
     (searchWithGemini as ReturnType<typeof vi.fn>)

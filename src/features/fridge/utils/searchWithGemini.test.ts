@@ -126,4 +126,43 @@ describe('searchWithGemini', () => {
     expect(result[0].matchScore).toBe(0);
     expect(result[0].matchedCount).toBe(0);
   });
+
+  it('skips null elements in the data array and processes valid recipes', async () => {
+    mockInvoke.mockResolvedValue({ data: [null, makeGeminiRecipe()], error: null });
+    const result = await searchWithGemini([makeFridgeItem('eggs')], [], 'en');
+    expect(result).toHaveLength(1);
+    expect(result[0].name).toBe('Яйца с масло');
+  });
+
+  it('handles recipe with undefined requiredIngredients without crashing', async () => {
+    mockInvoke.mockResolvedValue({
+      data: [makeGeminiRecipe({ requiredIngredients: undefined })],
+      error: null,
+    });
+    const result = await searchWithGemini([makeFridgeItem('eggs')], [], 'en');
+    expect(result).toHaveLength(1);
+    expect(result[0].requiredIngredients).toEqual([]);
+    expect(result[0].matchScore).toBe(0);
+    expect(result[0].matchedCount).toBe(0);
+  });
+
+  it('handles recipe with undefined ingredients without crashing', async () => {
+    mockInvoke.mockResolvedValue({
+      data: [makeGeminiRecipe({ ingredients: undefined })],
+      error: null,
+    });
+    const result = await searchWithGemini([makeFridgeItem('eggs')], [], 'en');
+    expect(result).toHaveLength(1);
+    expect(result[0].ingredients).toEqual([]);
+  });
+
+  it('handles recipe with undefined steps without crashing', async () => {
+    mockInvoke.mockResolvedValue({
+      data: [makeGeminiRecipe({ steps: undefined })],
+      error: null,
+    });
+    const result = await searchWithGemini([makeFridgeItem('eggs')], [], 'en');
+    expect(result).toHaveLength(1);
+    expect(result[0].steps).toEqual([]);
+  });
 });

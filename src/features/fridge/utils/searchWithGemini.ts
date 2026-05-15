@@ -15,6 +15,10 @@ interface GeminiRecipe {
 }
 
 const toMatchedRecipe = (recipe: GeminiRecipe, index: number, fridgeItems: FridgeItem[]): MatchedRecipe => {
+  const requiredIngredients = recipe.requiredIngredients ?? [];
+  const ingredients = recipe.ingredients ?? [];
+  const steps = recipe.steps ?? [];
+
   const matchFn = (i: string) => {
     const ingLow = i.toLowerCase();
     return fridgeItems.some((f) => {
@@ -23,21 +27,21 @@ const toMatchedRecipe = (recipe: GeminiRecipe, index: number, fridgeItems: Fridg
       return fLow.includes(ingLow) || ingLow.includes(fLow) || fEn.includes(ingLow) || ingLow.includes(fEn);
     });
   };
-  const matchedCount = recipe.requiredIngredients.filter(matchFn).length;
+  const matchedCount = requiredIngredients.filter(matchFn).length;
 
   return {
     id: `gemini-${Date.now()}-${index}`,
     name: recipe.name,
     nameEn: recipe.nameEn,
     emoji: recipe.emoji ?? '🍽',
-    ingredients: recipe.ingredients,
-    steps: recipe.steps,
+    ingredients,
+    steps,
     time: recipe.time ?? 30,
     tags: recipe.tags ?? [],
-    requiredIngredients: recipe.requiredIngredients,
+    requiredIngredients,
     isAI: true,
     isPublic: false,
-    matchScore: matchedCount / Math.max(recipe.requiredIngredients.length, 1),
+    matchScore: matchedCount / Math.max(requiredIngredients.length, 1),
     matchedCount,
   };
 };
@@ -54,5 +58,7 @@ export const searchWithGemini = async (
 
   if (error || !Array.isArray(data)) return [];
 
-  return (data as GeminiRecipe[]).map((r, i) => toMatchedRecipe(r, i, fridgeItems));
+  return (data as GeminiRecipe[])
+    .filter((r): r is GeminiRecipe => r != null && typeof r === 'object')
+    .map((r, i) => toMatchedRecipe(r, i, fridgeItems));
 };
