@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 import { Sidebar } from './layout/Sidebar';
 import { BottomNav } from './layout/BottomNav';
 import { TweaksPanel } from './layout/TweaksPanel';
@@ -20,9 +21,9 @@ import type { Tab } from '../shared/types';
 export function AppShell() {
   const [tab, setTab] = useLocalStorage<Tab>('kdq_tab', 'home');
   const [tweaks, setTweaks] = useLocalStorage('kdq_tweaks', DEFAULT_TWEAKS);
-  const { loading, userId, userEmail, profile, setProfile, fridge, addFridgeItem, removeFridgeItem, updateFridgeItem, recipes, addRecipe, removeRecipe, updateRecipe, products, setProducts, addProduct } = useAppData();
+  const { loading, userId, userEmail, profile, setProfile, fridge, addFridgeItem, removeFridgeItem, updateFridgeItem, recipes, addRecipe, removeRecipe, updateRecipe, products, setProducts, addProduct } = useAppData(tweaks.lang);
   const { publicRecipes } = usePublicRecipes();
-  const { favoriteIds, favoriteRecipes, toggleFavorite } = useFavorites();
+  const { favoriteIds, favoriteRecipes, toggleFavorite } = useFavorites(tweaks.lang);
   const navigate = useNavigate();
   const publicRecipeIds = useMemo(() => publicRecipes.map((r) => r.id), [publicRecipes]);
   const communityFavoriteCounts = useRecipeFavoriteCounts(publicRecipeIds);
@@ -80,7 +81,8 @@ export function AppShell() {
   };
 
   async function handleLogout() {
-    await supabase.auth.signOut();
+    const { error } = await supabase.auth.signOut();
+    if (error) toast.error(tweaks.lang === 'en' ? 'Failed to log out' : 'Грешка при излизане');
   }
 
   return (

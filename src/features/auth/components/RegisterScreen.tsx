@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import { supabase } from "../../../lib/supabase";
 
 export function RegisterScreen() {
@@ -29,6 +30,7 @@ export function RegisterScreen() {
     });
     if (error) {
       setErrorMsg(error.message);
+      toast.error(error.message);
       setLoading(false);
     }
   };

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { toast } from 'sonner';
 import { Modal } from '../../../shared/components/Modal';
 import { Badge } from '../../../shared/components/Badge';
 import { ConfirmDeleteModal } from '../../../shared/components/ConfirmDeleteModal';
@@ -40,12 +41,15 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, addRecip
   const [seenApiIds, setSeenApiIds] = useState<string[]>([]);
   const [suggestionSource, setSuggestionSource] = useState<'gemini' | 'api' | null>(null);
   const [loadingMoreSuggestions, setLoadingMoreSuggestions] = useState(false);
-  const { savedIdMap, savingId, saveError, saveRecipe, unsaveRecipe, clearSaveError } = useSaveGeminiRecipe(profile.name, addRecipe, removeRecipe);
+  const { savedIdMap, savingId, saveError, saveRecipe, unsaveRecipe, clearSaveError } = useSaveGeminiRecipe(profile.name, addRecipe, removeRecipe, lang);
 
   const [pendingRemoveItemId, setPendingRemoveItemId] = useState<string | null>(null);
   const [pendingRemoveSuggestionId, setPendingRemoveSuggestionId] = useState<string | null>(null);
 
-  const removeItem = (id: string) => removeFridgeItem(id);
+  const removeItem = (id: string) => {
+    removeFridgeItem(id);
+    toast.success(L ? 'Item removed' : 'Продуктът е премахнат');
+  };
 
   const openAddModal = () => {
     setAddMode(products.length > 0 ? 'select' : 'manual');
@@ -125,15 +129,18 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, addRecip
         setSuggestions(results);
         setSeenGeminiNames(results.map((r) => r.name));
         setSuggestionSource('gemini');
+        if (results.length > 0) toast.success(L ? `Found ${results.length} recipe${results.length === 1 ? '' : 's'}` : `Намерени ${results.length} рецепти`);
       } else {
         const online = filterSafe(await searchByFridge(safeFridge, blocked));
         if (online.length > 0) {
           setSuggestions(online);
           setSeenApiIds(online.map((r) => r.id));
+          toast.success(L ? `Found ${online.length} recipe${online.length === 1 ? '' : 's'}` : `Намерени ${online.length} рецепти`);
         } else {
           const local = filterSafe(await matchFromFridge(safeFridge, blocked));
           setSuggestions(local);
           setSeenApiIds(local.map((r) => r.id));
+          if (local.length > 0) toast.success(L ? `Found ${local.length} recipe${local.length === 1 ? '' : 's'}` : `Намерени ${local.length} рецепти`);
         }
         setSuggestionSource('api');
       }

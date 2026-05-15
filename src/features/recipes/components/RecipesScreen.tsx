@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { toast } from 'sonner';
 import { Modal } from '../../../shared/components/Modal';
 import { Badge } from '../../../shared/components/Badge';
 import { ConfirmDeleteModal } from '../../../shared/components/ConfirmDeleteModal';
@@ -133,9 +134,13 @@ export function RecipesScreen({ recipes, addRecipe, removeRecipe, updateRecipe, 
     if (!parsed) return;
     if (editingId) {
       const existing = recipes.find(r => r.id === editingId);
-      if (existing) updateRecipe({ ...parsed, id: editingId, authorName: existing.authorName, authorEmail: existing.authorEmail });
+      if (existing) {
+        updateRecipe({ ...parsed, id: editingId, authorName: existing.authorName, authorEmail: existing.authorEmail });
+        toast.success(L ? 'Recipe updated!' : 'Рецептата е обновена!');
+      }
     } else {
       addRecipe({ ...parsed, id: crypto.randomUUID(), authorName: profile.name, authorEmail: userEmail });
+      toast.success(L ? 'Recipe added!' : 'Рецептата е добавена!');
     }
     closeModal();
   };
@@ -156,7 +161,7 @@ export function RecipesScreen({ recipes, addRecipe, removeRecipe, updateRecipe, 
           isOwner={true}
           onBack={() => setDetail(null)}
           onEdit={() => openEditModal(detailRecipe)}
-          onDelete={() => { removeRecipe(detailRecipe.id); setDetail(null); }}
+          onDelete={() => { removeRecipe(detailRecipe.id); toast.success(L ? 'Recipe deleted' : 'Рецептата е изтрита'); setDetail(null); }}
         />
       ) : favoriteDetail ? (
         <RecipeDetailView
@@ -273,7 +278,7 @@ export function RecipesScreen({ recipes, addRecipe, removeRecipe, updateRecipe, 
         open={pendingDeleteId !== null}
         itemName={pendingDeleteRecipe ? (L && pendingDeleteRecipe.nameEn ? pendingDeleteRecipe.nameEn : pendingDeleteRecipe.name) : ''}
         lang={lang}
-        onConfirm={() => { if (pendingDeleteId) removeRecipe(pendingDeleteId); setPendingDeleteId(null); }}
+        onConfirm={() => { if (pendingDeleteId) { removeRecipe(pendingDeleteId); toast.success(L ? 'Recipe deleted' : 'Рецептата е изтрита'); } setPendingDeleteId(null); }}
         onCancel={() => setPendingDeleteId(null)}
       />
 

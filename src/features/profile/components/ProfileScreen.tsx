@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { toast } from 'sonner';
 import type { Profile, Product, Language } from '../../../shared/types';
 
 const DIETARY_PREFS = [
@@ -25,7 +26,10 @@ export function ProfileScreen({ profile, setProfile, products, lang, onLogout, o
   const L = lang === 'en';
   const [name, setName] = useState(profile.name);
 
-  const saveName = () => setProfile({ ...profile, name: name.trim() });
+  const saveName = () => {
+    setProfile({ ...profile, name: name.trim() });
+    toast.success(L ? 'Name saved' : 'Името е запазено');
+  };
 
   const allergicProducts = products.filter(p => p.status === 'allergic');
   const dislikedProducts = products.filter(p => p.status === 'disliked');

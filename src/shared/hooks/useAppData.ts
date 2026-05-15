@@ -1,9 +1,15 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { toast } from 'sonner';
 import { supabase } from '../../lib/supabase';
 import { DEFAULT_PROFILE, DEFAULT_FRIDGE, DEFAULT_RECIPES, DEFAULT_PRODUCTS } from '../constants/defaults';
-import type { Profile, FridgeItem, Recipe, Product } from '../types';
+import type { Profile, FridgeItem, Recipe, Product, Language } from '../types';
 
-export function useAppData() {
+export function useAppData(lang: Language = 'bg') {
+  const langRef = useRef(lang);
+  useEffect(() => { langRef.current = lang; }, [lang]);
+
+  const t = (bg: string, en: string) => langRef.current === 'en' ? en : bg;
+
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState('');
   const [userEmail, setUserEmail] = useState('');
@@ -110,7 +116,10 @@ export function useAppData() {
       dietary_prefs: next.dietaryPrefs,
       updated_at: new Date().toISOString(),
     });
-    if (error) console.error('setProfile error:', error);
+    if (error) {
+      console.error('setProfile error:', error);
+      toast.error(t('Грешка при запазване на профила', 'Failed to save profile'));
+    }
   }, []);
 
   const addFridgeItem = useCallback(async (newItem: Omit<FridgeItem, 'id'>) => {
@@ -122,8 +131,13 @@ export function useAppData() {
       emoji: newItem.emoji,
       category: newItem.category,
     }).select('id').single();
-    if (error) { console.error('addFridgeItem error:', error); return; }
+    if (error) {
+      console.error('addFridgeItem error:', error);
+      toast.error(t('Грешка при добавяне в хладилника', 'Failed to add item'));
+      return;
+    }
     setFridgeState(prev => [...prev, { ...newItem, id: data.id }]);
+    toast.success(t('Добавен в хладилника', 'Added to fridge'));
   }, []);
 
   const removeFridgeItem = useCallback(async (id: string) => {
@@ -141,7 +155,10 @@ export function useAppData() {
       .update({ name: item.name, emoji: item.emoji, category: item.category })
       .eq('id', item.id)
       .eq('user_id', user.id);
-    if (error) console.error('updateFridgeItem error:', error);
+    if (error) {
+      console.error('updateFridgeItem error:', error);
+      toast.error(t('Грешка при обновяване', 'Failed to update item'));
+    }
   }, []);
 
   const addRecipe = useCallback(async (recipe: Recipe) => {
@@ -165,7 +182,10 @@ export function useAppData() {
       author_name: recipe.authorName ?? null,
       author_email: recipe.authorEmail ?? null,
     });
-    if (error) console.error('addRecipe error:', error);
+    if (error) {
+      console.error('addRecipe error:', error);
+      toast.error(t('Грешка при запазване на рецептата', 'Failed to save recipe'));
+    }
   }, []);
 
   const removeRecipe = useCallback(async (id: string) => {
@@ -197,7 +217,10 @@ export function useAppData() {
       })
       .eq('id', recipe.id)
       .eq('user_id', user.id);
-    if (error) console.error('updateRecipe error:', error);
+    if (error) {
+      console.error('updateRecipe error:', error);
+      toast.error(t('Грешка при обновяване на рецептата', 'Failed to update recipe'));
+    }
   }, []);
 
   const setProducts = useCallback((next: Product[]) => {
@@ -246,8 +269,13 @@ export function useAppData() {
       status: newProduct.status,
       emoji: newProduct.emoji,
     }).select('id').single();
-    if (error) { console.error('addProduct error:', error); return; }
+    if (error) {
+      console.error('addProduct error:', error);
+      toast.error(t('Грешка при добавяне на продукт', 'Failed to add product'));
+      return;
+    }
     setProductsState(prev => [...prev, { ...newProduct, id: data.id }]);
+    toast.success(t('Продуктът е добавен', 'Product added'));
   }, []);
 
   return { loading, userId, userEmail, profile, setProfile, fridge, addFridgeItem, removeFridgeItem, updateFridgeItem, recipes, addRecipe, removeRecipe, updateRecipe, products, setProducts, addProduct };

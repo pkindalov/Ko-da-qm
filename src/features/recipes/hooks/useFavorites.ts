@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import { supabase } from '../../../lib/supabase';
 import { mapRecipeRow } from '../../../shared/utils/mapRecipeRow';
-import type { Recipe } from '../../../shared/types';
+import type { Recipe, Language } from '../../../shared/types';
 
-export const useFavorites = () => {
+export const useFavorites = (lang: Language = 'bg') => {
   const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
   const [favoriteRecipes, setFavoriteRecipes] = useState<Recipe[]>([]);
 
@@ -38,6 +39,7 @@ export const useFavorites = () => {
     setFavoriteIds(prev => prev.includes(recipe.id) ? prev : [...prev, recipe.id]);
     setFavoriteRecipes(prev => prev.some(r => r.id === recipe.id) ? prev : [recipe, ...prev]);
     await supabase.from('favorites').insert({ user_id: user.id, recipe_id: recipe.id });
+    toast.success(lang === 'en' ? 'Added to favorites' : 'Добавено в любими');
   };
 
   const removeFavorite = async (recipeId: string) => {
@@ -47,6 +49,7 @@ export const useFavorites = () => {
     setFavoriteIds(prev => prev.filter(id => id !== recipeId));
     setFavoriteRecipes(prev => prev.filter(r => r.id !== recipeId));
     await supabase.from('favorites').delete().eq('recipe_id', recipeId);
+    toast.success(lang === 'en' ? 'Removed from favorites' : 'Премахнато от любими');
   };
 
   const toggleFavorite = (recipe: Recipe) => {

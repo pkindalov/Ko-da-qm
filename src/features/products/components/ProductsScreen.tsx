@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { toast } from 'sonner';
 import { Modal } from '../../../shared/components/Modal';
 import { Badge } from '../../../shared/components/Badge';
 import { ConfirmDeleteModal } from '../../../shared/components/ConfirmDeleteModal';
@@ -40,12 +41,14 @@ export function ProductsScreen({ products, setProducts, addProduct, lang }: Prod
 
   const deleteProduct = (id: string) => {
     setProducts(products.filter((p) => p.id !== id));
+    toast.success(L ? 'Product deleted' : 'Продуктът е изтрит');
   };
 
   const saveEdit = () => {
     if (!editP || !editP.name.trim()) return;
     setProducts(products.map((p) => (p.id === editP.id ? editP : p)));
     setEditP(null);
+    toast.success(L ? 'Changes saved' : 'Промените са запазени');
   };
 
   const handleAddClose = () => {
