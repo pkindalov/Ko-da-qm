@@ -2,14 +2,15 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useNotifications } from './useNotifications';
 
-const { mockGetUser, mockFrom, mockRemoveChannel, mockChannel, mockLimit, mockOrder, mockSelect, mockEq, mockIn, mockUpdate } = vi.hoisted(() => {
+const { mockGetUser, mockFrom, mockRemoveChannel, mockChannel, mockLimit, mockOrder, mockSelect, mockEq, mockIn, mockUpdate, mockDelete } = vi.hoisted(() => {
   const mockLimit = vi.fn();
   const mockOrder = vi.fn().mockReturnValue({ limit: mockLimit });
   const mockSelect = vi.fn().mockReturnValue({ order: mockOrder });
   const mockIn = vi.fn();
   const mockEq = vi.fn();
   const mockUpdate = vi.fn().mockReturnValue({ eq: mockEq, in: mockIn });
-  const mockFrom = vi.fn().mockReturnValue({ select: mockSelect, update: mockUpdate });
+  const mockDelete = vi.fn().mockReturnValue({ eq: mockEq, in: mockIn });
+  const mockFrom = vi.fn().mockReturnValue({ select: mockSelect, update: mockUpdate, delete: mockDelete });
   const mockGetUser = vi.fn();
   const mockRemoveChannel = vi.fn();
   const mockChannel = vi.fn().mockReturnValue({
@@ -17,7 +18,7 @@ const { mockGetUser, mockFrom, mockRemoveChannel, mockChannel, mockLimit, mockOr
     subscribe: vi.fn().mockReturnThis(),
   });
 
-  return { mockGetUser, mockFrom, mockRemoveChannel, mockChannel, mockLimit, mockOrder, mockSelect, mockEq, mockIn, mockUpdate };
+  return { mockGetUser, mockFrom, mockRemoveChannel, mockChannel, mockLimit, mockOrder, mockSelect, mockEq, mockIn, mockUpdate, mockDelete };
 });
 
 vi.mock('../../../lib/supabase', () => ({
@@ -49,7 +50,8 @@ describe('useNotifications', () => {
     mockUpdate.mockReturnValue({ eq: mockEq, in: mockIn });
     mockOrder.mockReturnValue({ limit: mockLimit });
     mockSelect.mockReturnValue({ order: mockOrder });
-    mockFrom.mockReturnValue({ select: mockSelect, update: mockUpdate });
+    mockDelete.mockReturnValue({ eq: mockEq, in: mockIn });
+    mockFrom.mockReturnValue({ select: mockSelect, update: mockUpdate, delete: mockDelete });
     mockChannel.mockReturnValue({
       on: vi.fn().mockReturnThis(),
       subscribe: vi.fn().mockReturnThis(),
@@ -315,5 +317,81 @@ describe('useNotifications', () => {
     expect(result.current.notifications[0].isRead).toBe(true);
     expect(result.current.notifications[1].isRead).toBe(true);
     expect(result.current.unreadCount).toBe(0);
+  });
+
+  it('deleteNotification optimistically removes the item then calls DB', async () => {
+    mockGetUser.mockResolvedValue({ data: { user: { id: 'u1' } } });
+    mockLimit.mockResolvedValue({ data: [makeRow({ id: 'n1' })], error: null });
+    mockEq.mockResolvedValue({ error: null });
+
+    const { result } = renderHook(() => useNotifications('en'));
+    await act(async () => {});
+
+    expect(result.current.notifications).toHaveLength(1);
+
+    await act(async () => { result.current.deleteNotification('n1'); });
+
+    expect(result.current.notifications).toHaveLength(0);
+    expect(mockDelete).toHaveBeenCalled();
+    expect(mockEq).toHaveBeenCalledWith('id', 'n1');
+  });
+
+  it('deleteNotification rolls back on DB error', async () => {
+    mockGetUser.mockResolvedValue({ data: { user: { id: 'u1' } } });
+    mockLimit.mockResolvedValue({ data: [makeRow({ id: 'n1' })], error: null });
+    mockEq.mockResolvedValue({ error: { message: 'DB error' } });
+
+    const { result } = renderHook(() => useNotifications('en'));
+    await act(async () => {});
+
+    await act(async () => { result.current.deleteNotification('n1'); });
+
+    expect(result.current.notifications).toHaveLength(1);
+  });
+
+  it('deleteAllNotifications optimistically clears all items then calls DB', async () => {
+    mockGetUser.mockResolvedValue({ data: { user: { id: 'u1' } } });
+    mockLimit.mockResolvedValue({
+      data: [makeRow({ id: 'n1' }), makeRow({ id: 'n2' })],
+      error: null,
+    });
+    mockIn.mockResolvedValue({ error: null });
+
+    const { result } = renderHook(() => useNotifications('en'));
+    await act(async () => {});
+
+    await act(async () => { result.current.deleteAllNotifications(); });
+
+    expect(result.current.notifications).toHaveLength(0);
+    expect(mockDelete).toHaveBeenCalled();
+    expect(mockIn).toHaveBeenCalledWith('id', ['n1', 'n2']);
+  });
+
+  it('deleteAllNotifications is a no-op when there are no notifications', async () => {
+    mockGetUser.mockResolvedValue({ data: { user: { id: 'u1' } } });
+    mockLimit.mockResolvedValue({ data: [], error: null });
+
+    const { result } = renderHook(() => useNotifications('en'));
+    await act(async () => {});
+
+    await act(async () => { result.current.deleteAllNotifications(); });
+
+    expect(mockDelete).not.toHaveBeenCalled();
+  });
+
+  it('deleteAllNotifications rolls back on DB error', async () => {
+    mockGetUser.mockResolvedValue({ data: { user: { id: 'u1' } } });
+    mockLimit.mockResolvedValue({
+      data: [makeRow({ id: 'n1' }), makeRow({ id: 'n2' })],
+      error: null,
+    });
+    mockIn.mockResolvedValue({ error: { message: 'DB error' } });
+
+    const { result } = renderHook(() => useNotifications('en'));
+    await act(async () => {});
+
+    await act(async () => { result.current.deleteAllNotifications(); });
+
+    expect(result.current.notifications).toHaveLength(2);
   });
 });

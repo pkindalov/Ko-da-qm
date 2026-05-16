@@ -28,9 +28,11 @@ interface SidebarProps {
   onMarkAllAsRead: () => void;
   onMarkAsUnread: (id: string) => void;
   onMarkAllAsUnread: () => void;
+  onDeleteNotification: (id: string) => void;
+  onDeleteAll: () => void;
 }
 
-export function Sidebar({ tab, setTab, lang, onTweaksToggle, onLogout, notifications, unreadCount, onMarkAsRead, onMarkAllAsRead, onMarkAsUnread, onMarkAllAsUnread }: SidebarProps) {
+export function Sidebar({ tab, setTab, lang, onTweaksToggle, onLogout, notifications, unreadCount, onMarkAsRead, onMarkAllAsRead, onMarkAsUnread, onMarkAllAsUnread, onDeleteNotification, onDeleteAll }: SidebarProps) {
   const L = lang === 'en';
 
   return (
@@ -58,6 +60,8 @@ export function Sidebar({ tab, setTab, lang, onTweaksToggle, onLogout, notificat
         onMarkAllAsRead={onMarkAllAsRead}
         onMarkAsUnread={onMarkAsUnread}
         onMarkAllAsUnread={onMarkAllAsUnread}
+        onDeleteNotification={onDeleteNotification}
+        onDeleteAll={onDeleteAll}
         lang={lang}
       />
 

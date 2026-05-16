@@ -11,6 +11,8 @@ interface NotificationBellProps {
   onMarkAllAsRead: () => void;
   onMarkAsUnread: (id: string) => void;
   onMarkAllAsUnread: () => void;
+  onDeleteNotification: (id: string) => void;
+  onDeleteAll: () => void;
   lang: Language;
 }
 
@@ -21,6 +23,8 @@ export const NotificationBell = ({
   onMarkAllAsRead,
   onMarkAsUnread,
   onMarkAllAsUnread,
+  onDeleteNotification,
+  onDeleteAll,
   lang,
 }: NotificationBellProps) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -70,6 +74,11 @@ export const NotificationBell = ({
                   {lang === 'en' ? 'Mark all unread' : 'Маркирай всички'}
                 </button>
               )}
+              {notifications.length > 0 && (
+                <button className="notif-delete-all-btn" onClick={onDeleteAll}>
+                  {lang === 'en' ? 'Delete all' : 'Изтрий всички'}
+                </button>
+              )}
             </div>
           </div>
 
@@ -92,19 +101,28 @@ export const NotificationBell = ({
                       {formatTimeAgo(notification.createdAt, lang)}
                     </div>
                   </div>
-                  <button
-                    className="notif-item-toggle"
-                    onClick={() => notification.isRead ? onMarkAsUnread(notification.id) : onMarkAsRead(notification.id)}
-                    aria-label={notification.isRead
-                      ? (lang === 'en' ? 'Mark as unread' : 'Маркирай като непрочетено')
-                      : (lang === 'en' ? 'Mark as read' : 'Маркирай като прочетено')
-                    }
-                  >
-                    {notification.isRead
-                      ? (lang === 'en' ? 'Mark unread' : 'Непрочетено')
-                      : (lang === 'en' ? 'Mark read' : 'Прочетено')
-                    }
-                  </button>
+                  <div className="notif-item-actions">
+                    <button
+                      className="notif-item-toggle"
+                      onClick={() => notification.isRead ? onMarkAsUnread(notification.id) : onMarkAsRead(notification.id)}
+                      aria-label={notification.isRead
+                        ? (lang === 'en' ? 'Mark as unread' : 'Маркирай като непрочетено')
+                        : (lang === 'en' ? 'Mark as read' : 'Маркирай като прочетено')
+                      }
+                    >
+                      {notification.isRead
+                        ? (lang === 'en' ? 'Mark unread' : 'Непрочетено')
+                        : (lang === 'en' ? 'Mark read' : 'Прочетено')
+                      }
+                    </button>
+                    <button
+                      className="notif-item-delete"
+                      onClick={() => onDeleteNotification(notification.id)}
+                      aria-label={lang === 'en' ? 'Delete notification' : 'Изтрий известие'}
+                    >
+                      ✕
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>

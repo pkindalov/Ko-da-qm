@@ -25,6 +25,10 @@ CREATE POLICY "notifications: update own"
   ON notifications FOR UPDATE
   USING (auth.uid() = recipient_id);
 
+CREATE POLICY "notifications: delete own"
+  ON notifications FOR DELETE
+  USING (auth.uid() = recipient_id);
+
 -- ============================================================
 -- 2. DB TRIGGER — insert notification when a recipe is favorited
 -- ============================================================

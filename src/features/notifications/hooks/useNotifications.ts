@@ -116,7 +116,36 @@ export const useNotifications = (lang: Language) => {
     }
   }, [notifications]);
 
+  const deleteNotification = useCallback(async (id: string) => {
+    const snapshot = notifications;
+    setNotifications(prev => prev.filter(n => n.id !== id));
+    const { error } = await supabase
+      .from('notifications')
+      .delete()
+      .eq('id', id);
+    if (error) {
+      console.error('deleteNotification error:', error);
+      setNotifications(snapshot);
+    }
+  }, [notifications]);
+
+  const deleteAllNotifications = useCallback(async () => {
+    const allIds = notifications.map(n => n.id);
+    if (allIds.length === 0) return;
+
+    const snapshot = notifications;
+    setNotifications([]);
+    const { error } = await supabase
+      .from('notifications')
+      .delete()
+      .in('id', allIds);
+    if (error) {
+      console.error('deleteAllNotifications error:', error);
+      setNotifications(snapshot);
+    }
+  }, [notifications]);
+
   const unreadCount = notifications.filter(n => !n.isRead).length;
 
-  return { notifications, unreadCount, markAsRead, markAllAsRead, markAsUnread, markAllAsUnread };
+  return { notifications, unreadCount, markAsRead, markAllAsRead, markAsUnread, markAllAsUnread, deleteNotification, deleteAllNotifications };
 };

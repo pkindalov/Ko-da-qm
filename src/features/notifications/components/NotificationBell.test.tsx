@@ -24,6 +24,8 @@ const defaultProps = {
   onMarkAllAsRead: vi.fn(),
   onMarkAsUnread: vi.fn(),
   onMarkAllAsUnread: vi.fn(),
+  onDeleteNotification: vi.fn(),
+  onDeleteAll: vi.fn(),
   lang: 'en' as const,
 };
 
@@ -179,6 +181,37 @@ describe('NotificationBell', () => {
     fireEvent.click(screen.getByRole('button', { name: /notifications/i }));
     expect(screen.getByRole('button', { name: /mark as read/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /mark as unread/i })).toBeInTheDocument();
+  });
+
+  it('shows Delete all button when there are notifications', () => {
+    const notifications = [makeNotification()];
+    render(<NotificationBell {...defaultProps} notifications={notifications} unreadCount={1} />);
+    fireEvent.click(screen.getByRole('button', { name: /notifications/i }));
+    expect(screen.getByText('Delete all')).toBeInTheDocument();
+  });
+
+  it('does not show Delete all button when there are no notifications', () => {
+    render(<NotificationBell {...defaultProps} notifications={[]} />);
+    fireEvent.click(screen.getByRole('button', { name: /notifications/i }));
+    expect(screen.queryByText('Delete all')).not.toBeInTheDocument();
+  });
+
+  it('calls onDeleteAll when Delete all is clicked', () => {
+    const onDeleteAll = vi.fn();
+    const notifications = [makeNotification()];
+    render(<NotificationBell {...defaultProps} notifications={notifications} unreadCount={1} onDeleteAll={onDeleteAll} />);
+    fireEvent.click(screen.getByRole('button', { name: /notifications/i }));
+    fireEvent.click(screen.getByText('Delete all'));
+    expect(onDeleteAll).toHaveBeenCalled();
+  });
+
+  it('calls onDeleteNotification with the id when the delete button on an item is clicked', () => {
+    const onDeleteNotification = vi.fn();
+    const notifications = [makeNotification({ id: 'n99' })];
+    render(<NotificationBell {...defaultProps} notifications={notifications} unreadCount={1} onDeleteNotification={onDeleteNotification} />);
+    fireEvent.click(screen.getByRole('button', { name: /notifications/i }));
+    fireEvent.click(screen.getByRole('button', { name: /delete notification/i }));
+    expect(onDeleteNotification).toHaveBeenCalledWith('n99');
   });
 
   it('renders labels in bulgarian when lang is bg', () => {
