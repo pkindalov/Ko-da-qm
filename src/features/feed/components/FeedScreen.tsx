@@ -12,9 +12,11 @@ import type { Language, Recipe } from '../../../shared/types';
 
 interface FeedScreenProps {
   lang: Language;
+  allergies: string[];
+  dislikes: string[];
 }
 
-export const FeedScreen = ({ lang }: FeedScreenProps) => {
+export const FeedScreen = ({ lang, allergies, dislikes }: FeedScreenProps) => {
   const navigate = useNavigate();
   const isEnglish = lang === 'en';
 
@@ -84,7 +86,7 @@ export const FeedScreen = ({ lang }: FeedScreenProps) => {
 
       <div className="grid-2">
         {recipes.map((recipe) => {
-          const risk = recipeRisk(recipe, [], []);
+          const risk = recipeRisk(recipe, allergies, dislikes);
           const isFavorited = favoriteIds.includes(recipe.id);
 
           return (

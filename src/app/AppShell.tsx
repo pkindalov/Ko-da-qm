@@ -70,7 +70,7 @@ export function AppShell() {
   };
 
   const screens: Record<Tab, React.ReactNode> = {
-    feed: <FeedScreen lang={tweaks.lang} />,
+    feed: <FeedScreen lang={tweaks.lang} allergies={profile.allergies} dislikes={profile.dislikes} />,
     home: <HomeScreen
       profile={profile}
       recipes={recipes}

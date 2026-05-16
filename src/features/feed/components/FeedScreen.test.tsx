@@ -8,12 +8,13 @@ import type { Recipe } from '../../../shared/types';
 const mockFollowingIds: string[] = [];
 const mockRecipes: Recipe[] = [];
 const mockFavoriteIds: string[] = [];
+let mockFollowsLoading = false;
 
 vi.mock('../hooks/useFollows', () => ({
   useFollows: () => ({
     followingIds: mockFollowingIds,
     currentUserId: 'u1',
-    loading: false,
+    loading: mockFollowsLoading,
     toggleFollow: vi.fn(),
   }),
 }));
@@ -52,7 +53,7 @@ const makeRecipe = (overrides: Partial<Recipe> = {}): Recipe => ({
 const renderFeed = (lang: 'bg' | 'en' = 'en') =>
   render(
     <MemoryRouter>
-      <FeedScreen lang={lang} />
+      <FeedScreen lang={lang} allergies={[]} dislikes={[]} />
     </MemoryRouter>,
   );
 
@@ -184,13 +185,16 @@ describe('FeedScreen – recipe display', () => {
 });
 
 describe('FeedScreen – loading state', () => {
-  it('shows loading text while hooks are loading', () => {
-    vi.doMock('../hooks/useFollows', () => ({
-      useFollows: () => ({ followingIds: [], currentUserId: '', loading: true, toggleFollow: vi.fn() }),
-    }));
-    // The loading text is shown — this path is covered by the mock returning loading:false
-    // by default; explicit loading test would require module re-mocking which is not
-    // straightforward with the current mock setup. The loading state is implemented
-    // correctly in the component (returns early with loading text).
+  beforeEach(() => { mockFollowsLoading = true; });
+  afterEach(() => { mockFollowsLoading = false; });
+
+  it('shows english loading text while hooks are loading', () => {
+    renderFeed('en');
+    expect(screen.getByText('Loading…')).toBeInTheDocument();
+  });
+
+  it('shows bulgarian loading text while hooks are loading', () => {
+    renderFeed('bg');
+    expect(screen.getByText('Зареждане…')).toBeInTheDocument();
   });
 });
