@@ -127,6 +127,15 @@ describe('NotificationBell', () => {
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
+  it('does not call onMarkAsRead when clicking an already-read notification', () => {
+    const onMarkAsRead = vi.fn();
+    const notifications = [makeNotification({ id: 'n1', isRead: true })];
+    render(<NotificationBell {...defaultProps} notifications={notifications} unreadCount={0} onMarkAsRead={onMarkAsRead} />);
+    fireEvent.click(screen.getByRole('button', { name: /notifications/i }));
+    fireEvent.click(screen.getByText('Alice added your recipe to favorites'));
+    expect(onMarkAsRead).not.toHaveBeenCalled();
+  });
+
   it('renders labels in bulgarian when lang is bg', () => {
     render(<NotificationBell {...defaultProps} lang="bg" notifications={[]} />);
     fireEvent.click(screen.getByRole('button', { name: /известия/i }));

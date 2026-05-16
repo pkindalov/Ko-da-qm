@@ -176,6 +176,49 @@ describe('useNotifications', () => {
     expect(mockIn).not.toHaveBeenCalled();
   });
 
+  it('markAllAsRead rolls back optimistic update on DB error', async () => {
+    mockGetUser.mockResolvedValue({ data: { user: { id: 'u1' } } });
+    mockLimit.mockResolvedValue({
+      data: [makeRow({ id: 'n1', is_read: false }), makeRow({ id: 'n2', is_read: false })],
+      error: null,
+    });
+    mockIn.mockResolvedValue({ error: { message: 'DB error' } });
+
+    const { result } = renderHook(() => useNotifications('en'));
+    await act(async () => {});
+
+    await act(async () => { result.current.markAllAsRead(); });
+
+    expect(result.current.notifications[0].isRead).toBe(false);
+    expect(result.current.notifications[1].isRead).toBe(false);
+    expect(result.current.unreadCount).toBe(2);
+  });
+
+  it('loadNotifications logs error and does not update state on DB error', async () => {
+    mockGetUser.mockResolvedValue({ data: { user: { id: 'u1' } } });
+    mockLimit.mockResolvedValue({ data: null, error: { message: 'DB error' } });
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    const { result } = renderHook(() => useNotifications('en'));
+    await act(async () => {});
+
+    expect(result.current.notifications).toEqual([]);
+    expect(consoleSpy).toHaveBeenCalledWith('loadNotifications error:', { message: 'DB error' });
+    consoleSpy.mockRestore();
+  });
+
+  it('does not crash when getUser rejects', async () => {
+    mockGetUser.mockRejectedValue(new Error('Network error'));
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    const { result } = renderHook(() => useNotifications('en'));
+    await act(async () => {});
+
+    expect(result.current.notifications).toEqual([]);
+    expect(consoleSpy).toHaveBeenCalledWith('getUser error:', expect.any(Error));
+    consoleSpy.mockRestore();
+  });
+
   it('subscribes to realtime channel for the authenticated user', async () => {
     mockGetUser.mockResolvedValue({ data: { user: { id: 'u1' } } });
 

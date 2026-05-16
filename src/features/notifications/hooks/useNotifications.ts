@@ -26,7 +26,7 @@ export const useNotifications = (lang: Language) => {
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (user) setUserId(user.id);
-    });
+    }).catch((err) => console.error('getUser error:', err));
   }, []);
 
   const loadNotifications = useCallback(async () => {

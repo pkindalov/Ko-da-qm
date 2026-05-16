@@ -72,7 +72,7 @@ export const NotificationBell = ({
                 <button
                   key={notification.id}
                   className={`notif-item${notification.isRead ? '' : ' unread'}`}
-                  onClick={() => onMarkAsRead(notification.id)}
+                  onClick={() => { if (!notification.isRead) onMarkAsRead(notification.id); }}
                 >
                   <div className="notif-item-msg">
                     {getNotificationMessage(notification.type, notification.actorName, lang)}
