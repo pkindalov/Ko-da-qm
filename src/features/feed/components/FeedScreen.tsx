@@ -21,7 +21,7 @@ export const FeedScreen = ({ lang, allergies, dislikes }: FeedScreenProps) => {
   const isEnglish = lang === 'en';
 
   const { followingIds, loading: followsLoading } = useFollows(lang);
-  const { recipes, loading: recipesLoading } = useFeedRecipes(followingIds);
+  const { recipes, loading: recipesLoading } = useFeedRecipes(followingIds, !followsLoading);
   const { favoriteIds, toggleFavorite } = useFavorites(lang);
 
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);

@@ -126,6 +126,15 @@ describe('useFeedRecipes', () => {
     expect(mockIn).toHaveBeenCalledWith('user_id', ['u2', 'u3', 'u4']);
   });
 
+  it('stays loading and does not query when enabled is false', async () => {
+    const { result } = renderHook(() => useFeedRecipes(['u2'], false));
+    await act(async () => {});
+
+    expect(result.current.loading).toBe(true);
+    expect(result.current.recipes).toEqual([]);
+    expect(mockFrom).not.toHaveBeenCalled();
+  });
+
   it('does not query when followingIds transitions from non-empty to empty', async () => {
     mockLimit.mockResolvedValue({ data: [makeDbRow()], error: null });
 

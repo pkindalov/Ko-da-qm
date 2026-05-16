@@ -5,11 +5,13 @@ import type { Recipe } from '../../../shared/types';
 
 const FEED_RECIPE_LIMIT = 30;
 
-export const useFeedRecipes = (followingIds: string[]) => {
+export const useFeedRecipes = (followingIds: string[], enabled = true) => {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!enabled) return;
+
     if (followingIds.length === 0) {
       setRecipes([]);
       setLoading(false);
@@ -37,7 +39,7 @@ export const useFeedRecipes = (followingIds: string[]) => {
     };
 
     loadFeedRecipes();
-  }, [followingIds.join(',')]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [followingIds.join(','), enabled]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return { recipes, loading };
 };
