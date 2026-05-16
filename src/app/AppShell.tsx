@@ -63,6 +63,11 @@ export function AppShell() {
     );
   }
 
+  const handleLogout = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) toast.error(tweaks.lang === 'en' ? 'Failed to log out' : 'Грешка при излизане');
+  };
+
   const screens: Record<Tab, React.ReactNode> = {
     home: <HomeScreen
       profile={profile}
@@ -92,11 +97,6 @@ export function AppShell() {
     products: <ProductsScreen products={products} setProducts={setProducts} addProduct={addProduct} lang={tweaks.lang} />,
     profile: <ProfileScreen profile={profile} setProfile={setProfile} products={products} lang={tweaks.lang} onLogout={handleLogout} onTweaksToggle={() => setTweaksOpen((o) => !o)} onNavigateToProducts={() => setTab('products')} onViewPublicProfile={userId ? () => navigate(`/user/${userId}`) : undefined} />,
   };
-
-  async function handleLogout() {
-    const { error } = await supabase.auth.signOut();
-    if (error) toast.error(tweaks.lang === 'en' ? 'Failed to log out' : 'Грешка при излизане');
-  }
 
   return (
     <div className={`app-shell ${themeClass}`}>

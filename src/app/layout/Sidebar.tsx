@@ -34,13 +34,11 @@ interface SidebarProps {
 }
 
 export function Sidebar({ tab, setTab, lang, onTweaksToggle, onLogout, notifications, unreadCount, onMarkAsRead, onMarkAllAsRead, onMarkAsUnread, onMarkAllAsUnread, onDeleteNotification, onDeleteAll, onEntityClick }: SidebarProps) {
-  const L = lang === 'en';
-
   return (
     <nav className="sidebar">
       <div className="sidebar-logo">
         Ко-да-ям
-        <span>{L ? 'for picky eaters' : 'за капризни хора'}</span>
+        <span>{lang === 'en' ? 'for picky eaters' : 'за капризни хора'}</span>
       </div>
 
       {NAV.map((n) => (
@@ -50,7 +48,7 @@ export function Sidebar({ tab, setTab, lang, onTweaksToggle, onLogout, notificat
           onClick={() => setTab(n.id)}
         >
           <span className="nav-icon">{n.icon}</span>
-          {L ? n.labelEn : n.label}
+          {lang === 'en' ? n.labelEn : n.label}
         </button>
       ))}
 
@@ -81,7 +79,7 @@ export function Sidebar({ tab, setTab, lang, onTweaksToggle, onLogout, notificat
         onClick={onLogout}
         style={{ color: 'var(--danger)' }}
       >
-        <span className="nav-icon">🚪</span> {L ? 'Log out' : 'Изход'}
+        <span className="nav-icon">🚪</span> {lang === 'en' ? 'Log out' : 'Изход'}
       </button>
     </nav>
   );
