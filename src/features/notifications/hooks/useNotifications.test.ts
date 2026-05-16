@@ -237,4 +237,83 @@ describe('useNotifications', () => {
 
     expect(mockRemoveChannel).toHaveBeenCalled();
   });
+
+  it('markAsUnread optimistically updates isRead then calls DB', async () => {
+    mockGetUser.mockResolvedValue({ data: { user: { id: 'u1' } } });
+    mockLimit.mockResolvedValue({ data: [makeRow({ id: 'n1', is_read: true })], error: null });
+    mockEq.mockResolvedValue({ error: null });
+
+    const { result } = renderHook(() => useNotifications('en'));
+    await act(async () => {});
+
+    expect(result.current.notifications[0].isRead).toBe(true);
+
+    await act(async () => { result.current.markAsUnread('n1'); });
+
+    expect(result.current.notifications[0].isRead).toBe(false);
+    expect(result.current.unreadCount).toBe(1);
+    expect(mockUpdate).toHaveBeenCalledWith({ is_read: false });
+    expect(mockEq).toHaveBeenCalledWith('id', 'n1');
+  });
+
+  it('markAsUnread rolls back optimistic update on DB error', async () => {
+    mockGetUser.mockResolvedValue({ data: { user: { id: 'u1' } } });
+    mockLimit.mockResolvedValue({ data: [makeRow({ id: 'n1', is_read: true })], error: null });
+    mockEq.mockResolvedValue({ error: { message: 'DB error' } });
+
+    const { result } = renderHook(() => useNotifications('en'));
+    await act(async () => {});
+
+    await act(async () => { result.current.markAsUnread('n1'); });
+
+    expect(result.current.notifications[0].isRead).toBe(true);
+    expect(result.current.unreadCount).toBe(0);
+  });
+
+  it('markAllAsUnread marks all read and calls DB with their IDs', async () => {
+    mockGetUser.mockResolvedValue({ data: { user: { id: 'u1' } } });
+    mockLimit.mockResolvedValue({
+      data: [makeRow({ id: 'n1', is_read: true }), makeRow({ id: 'n2', is_read: true })],
+      error: null,
+    });
+    mockIn.mockResolvedValue({ error: null });
+
+    const { result } = renderHook(() => useNotifications('en'));
+    await act(async () => {});
+
+    await act(async () => { result.current.markAllAsUnread(); });
+
+    expect(result.current.unreadCount).toBe(2);
+    expect(mockIn).toHaveBeenCalledWith('id', ['n1', 'n2']);
+  });
+
+  it('markAllAsUnread is a no-op when there are no read notifications', async () => {
+    mockGetUser.mockResolvedValue({ data: { user: { id: 'u1' } } });
+    mockLimit.mockResolvedValue({ data: [makeRow({ id: 'n1', is_read: false })], error: null });
+
+    const { result } = renderHook(() => useNotifications('en'));
+    await act(async () => {});
+
+    await act(async () => { result.current.markAllAsUnread(); });
+
+    expect(mockIn).not.toHaveBeenCalled();
+  });
+
+  it('markAllAsUnread rolls back optimistic update on DB error', async () => {
+    mockGetUser.mockResolvedValue({ data: { user: { id: 'u1' } } });
+    mockLimit.mockResolvedValue({
+      data: [makeRow({ id: 'n1', is_read: true }), makeRow({ id: 'n2', is_read: true })],
+      error: null,
+    });
+    mockIn.mockResolvedValue({ error: { message: 'DB error' } });
+
+    const { result } = renderHook(() => useNotifications('en'));
+    await act(async () => {});
+
+    await act(async () => { result.current.markAllAsUnread(); });
+
+    expect(result.current.notifications[0].isRead).toBe(true);
+    expect(result.current.notifications[1].isRead).toBe(true);
+    expect(result.current.unreadCount).toBe(0);
+  });
 });

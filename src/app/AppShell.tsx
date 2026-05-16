@@ -29,7 +29,7 @@ export function AppShell() {
   const navigate = useNavigate();
   const publicRecipeIds = useMemo(() => publicRecipes.map((r) => r.id), [publicRecipes]);
   const communityFavoriteCounts = useRecipeFavoriteCounts(publicRecipeIds);
-  const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications(tweaks.lang);
+  const { notifications, unreadCount, markAsRead, markAllAsRead, markAsUnread, markAllAsUnread } = useNotifications(tweaks.lang);
   const [tweaksOpen, setTweaksOpen] = useState(false);
 
   useEffect(() => {
@@ -90,10 +90,10 @@ export function AppShell() {
 
   return (
     <div className={`app-shell ${themeClass}`}>
-      <Sidebar tab={tab} setTab={setTab} lang={tweaks.lang} onTweaksToggle={() => setTweaksOpen((o) => !o)} onLogout={handleLogout} notifications={notifications} unreadCount={unreadCount} onMarkAsRead={markAsRead} onMarkAllAsRead={markAllAsRead} />
+      <Sidebar tab={tab} setTab={setTab} lang={tweaks.lang} onTweaksToggle={() => setTweaksOpen((o) => !o)} onLogout={handleLogout} notifications={notifications} unreadCount={unreadCount} onMarkAsRead={markAsRead} onMarkAllAsRead={markAllAsRead} onMarkAsUnread={markAsUnread} onMarkAllAsUnread={markAllAsUnread} />
       <main className="main-content">
         <div className="mobile-notif-bar">
-          <NotificationBell notifications={notifications} unreadCount={unreadCount} onMarkAsRead={markAsRead} onMarkAllAsRead={markAllAsRead} lang={tweaks.lang} />
+          <NotificationBell notifications={notifications} unreadCount={unreadCount} onMarkAsRead={markAsRead} onMarkAllAsRead={markAllAsRead} onMarkAsUnread={markAsUnread} onMarkAllAsUnread={markAllAsUnread} lang={tweaks.lang} />
         </div>
         {screens[tab]}
       </main>

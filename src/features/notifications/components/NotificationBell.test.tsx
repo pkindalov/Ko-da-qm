@@ -22,6 +22,8 @@ const defaultProps = {
   unreadCount: 0,
   onMarkAsRead: vi.fn(),
   onMarkAllAsRead: vi.fn(),
+  onMarkAsUnread: vi.fn(),
+  onMarkAllAsUnread: vi.fn(),
   lang: 'en' as const,
 };
 
@@ -81,12 +83,12 @@ describe('NotificationBell', () => {
     expect(screen.getByText('Someone added your recipe to favorites')).toBeInTheDocument();
   });
 
-  it('calls onMarkAsRead with the notification id when clicking a notification', () => {
+  it('calls onMarkAsRead with the notification id when clicking the toggle on an unread notification', () => {
     const onMarkAsRead = vi.fn();
     const notifications = [makeNotification({ id: 'n42' })];
     render(<NotificationBell {...defaultProps} notifications={notifications} unreadCount={1} onMarkAsRead={onMarkAsRead} />);
     fireEvent.click(screen.getByRole('button', { name: /notifications/i }));
-    fireEvent.click(screen.getByText('Alice added your recipe to favorites'));
+    fireEvent.click(screen.getByRole('button', { name: /mark as read/i }));
     expect(onMarkAsRead).toHaveBeenCalledWith('n42');
   });
 
@@ -127,13 +129,56 @@ describe('NotificationBell', () => {
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
-  it('does not call onMarkAsRead when clicking an already-read notification', () => {
+  it('calls onMarkAsUnread when clicking the toggle on a read notification', () => {
+    const onMarkAsUnread = vi.fn();
+    const notifications = [makeNotification({ id: 'n1', isRead: true })];
+    render(<NotificationBell {...defaultProps} notifications={notifications} unreadCount={0} onMarkAsUnread={onMarkAsUnread} />);
+    fireEvent.click(screen.getByRole('button', { name: /notifications/i }));
+    fireEvent.click(screen.getByRole('button', { name: /mark as unread/i }));
+    expect(onMarkAsUnread).toHaveBeenCalledWith('n1');
+  });
+
+  it('does not call onMarkAsRead when clicking the toggle on an already-read notification', () => {
     const onMarkAsRead = vi.fn();
     const notifications = [makeNotification({ id: 'n1', isRead: true })];
     render(<NotificationBell {...defaultProps} notifications={notifications} unreadCount={0} onMarkAsRead={onMarkAsRead} />);
     fireEvent.click(screen.getByRole('button', { name: /notifications/i }));
-    fireEvent.click(screen.getByText('Alice added your recipe to favorites'));
+    fireEvent.click(screen.getByRole('button', { name: /mark as unread/i }));
     expect(onMarkAsRead).not.toHaveBeenCalled();
+  });
+
+  it('shows Mark all unread button when there are read notifications', () => {
+    const notifications = [makeNotification({ isRead: true })];
+    render(<NotificationBell {...defaultProps} notifications={notifications} unreadCount={0} />);
+    fireEvent.click(screen.getByRole('button', { name: /notifications/i }));
+    expect(screen.getByText('Mark all unread')).toBeInTheDocument();
+  });
+
+  it('does not show Mark all unread button when all are unread', () => {
+    const notifications = [makeNotification({ isRead: false })];
+    render(<NotificationBell {...defaultProps} notifications={notifications} unreadCount={1} />);
+    fireEvent.click(screen.getByRole('button', { name: /notifications/i }));
+    expect(screen.queryByText('Mark all unread')).not.toBeInTheDocument();
+  });
+
+  it('calls onMarkAllAsUnread when Mark all unread is clicked', () => {
+    const onMarkAllAsUnread = vi.fn();
+    const notifications = [makeNotification({ isRead: true })];
+    render(<NotificationBell {...defaultProps} notifications={notifications} unreadCount={0} onMarkAllAsUnread={onMarkAllAsUnread} />);
+    fireEvent.click(screen.getByRole('button', { name: /notifications/i }));
+    fireEvent.click(screen.getByText('Mark all unread'));
+    expect(onMarkAllAsUnread).toHaveBeenCalled();
+  });
+
+  it('shows Mark read toggle label on unread items and Mark unread on read items', () => {
+    const notifications = [
+      makeNotification({ id: 'n1', isRead: false }),
+      makeNotification({ id: 'n2', isRead: true, actorName: 'Bob' }),
+    ];
+    render(<NotificationBell {...defaultProps} notifications={notifications} unreadCount={1} />);
+    fireEvent.click(screen.getByRole('button', { name: /notifications/i }));
+    expect(screen.getByRole('button', { name: /mark as read/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /mark as unread/i })).toBeInTheDocument();
   });
 
   it('renders labels in bulgarian when lang is bg', () => {

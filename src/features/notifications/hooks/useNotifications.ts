@@ -89,7 +89,34 @@ export const useNotifications = (lang: Language) => {
     }
   }, [notifications]);
 
+  const markAsUnread = useCallback(async (id: string) => {
+    setNotifications(prev => prev.map(n => n.id === id ? { ...n, isRead: false } : n));
+    const { error } = await supabase
+      .from('notifications')
+      .update({ is_read: false })
+      .eq('id', id);
+    if (error) {
+      console.error('markAsUnread error:', error);
+      setNotifications(prev => prev.map(n => n.id === id ? { ...n, isRead: true } : n));
+    }
+  }, []);
+
+  const markAllAsUnread = useCallback(async () => {
+    const readIds = notifications.filter(n => n.isRead).map(n => n.id);
+    if (readIds.length === 0) return;
+
+    setNotifications(prev => prev.map(n => ({ ...n, isRead: false })));
+    const { error } = await supabase
+      .from('notifications')
+      .update({ is_read: false })
+      .in('id', readIds);
+    if (error) {
+      console.error('markAllAsUnread error:', error);
+      setNotifications(prev => prev.map(n => readIds.includes(n.id) ? { ...n, isRead: true } : n));
+    }
+  }, [notifications]);
+
   const unreadCount = notifications.filter(n => !n.isRead).length;
 
-  return { notifications, unreadCount, markAsRead, markAllAsRead };
+  return { notifications, unreadCount, markAsRead, markAllAsRead, markAsUnread, markAllAsUnread };
 };

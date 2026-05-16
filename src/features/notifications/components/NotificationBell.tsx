@@ -9,6 +9,8 @@ interface NotificationBellProps {
   unreadCount: number;
   onMarkAsRead: (id: string) => void;
   onMarkAllAsRead: () => void;
+  onMarkAsUnread: (id: string) => void;
+  onMarkAllAsUnread: () => void;
   lang: Language;
 }
 
@@ -17,6 +19,8 @@ export const NotificationBell = ({
   unreadCount,
   onMarkAsRead,
   onMarkAllAsRead,
+  onMarkAsUnread,
+  onMarkAllAsUnread,
   lang,
 }: NotificationBellProps) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -55,11 +59,18 @@ export const NotificationBell = ({
             <span className="notif-dropdown-title">
               {lang === 'en' ? 'Notifications' : 'Известия'}
             </span>
-            {unreadCount > 0 && (
-              <button className="notif-mark-all-btn" onClick={onMarkAllAsRead}>
-                {lang === 'en' ? 'Mark all read' : 'Прочети всички'}
-              </button>
-            )}
+            <div className="notif-header-actions">
+              {unreadCount > 0 && (
+                <button className="notif-mark-all-btn" onClick={onMarkAllAsRead}>
+                  {lang === 'en' ? 'Mark all read' : 'Прочети всички'}
+                </button>
+              )}
+              {notifications.length > unreadCount && (
+                <button className="notif-mark-all-btn" onClick={onMarkAllAsUnread}>
+                  {lang === 'en' ? 'Mark all unread' : 'Маркирай всички'}
+                </button>
+              )}
+            </div>
           </div>
 
           {notifications.length === 0 ? (
@@ -69,18 +80,32 @@ export const NotificationBell = ({
           ) : (
             <div className="notif-list">
               {notifications.map(notification => (
-                <button
+                <div
                   key={notification.id}
                   className={`notif-item${notification.isRead ? '' : ' unread'}`}
-                  onClick={() => { if (!notification.isRead) onMarkAsRead(notification.id); }}
                 >
-                  <div className="notif-item-msg">
-                    {getNotificationMessage(notification.type, notification.actorName, lang)}
+                  <div className="notif-item-body">
+                    <div className="notif-item-msg">
+                      {getNotificationMessage(notification.type, notification.actorName, lang)}
+                    </div>
+                    <div className="notif-item-time">
+                      {formatTimeAgo(notification.createdAt, lang)}
+                    </div>
                   </div>
-                  <div className="notif-item-time">
-                    {formatTimeAgo(notification.createdAt, lang)}
-                  </div>
-                </button>
+                  <button
+                    className="notif-item-toggle"
+                    onClick={() => notification.isRead ? onMarkAsUnread(notification.id) : onMarkAsRead(notification.id)}
+                    aria-label={notification.isRead
+                      ? (lang === 'en' ? 'Mark as unread' : 'Маркирай като непрочетено')
+                      : (lang === 'en' ? 'Mark as read' : 'Маркирай като прочетено')
+                    }
+                  >
+                    {notification.isRead
+                      ? (lang === 'en' ? 'Mark unread' : 'Непрочетено')
+                      : (lang === 'en' ? 'Mark read' : 'Прочетено')
+                    }
+                  </button>
+                </div>
               ))}
             </div>
           )}
