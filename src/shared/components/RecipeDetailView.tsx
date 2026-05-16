@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { Badge } from './Badge';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 import { recipeRisk } from '../utils/recipeUtils';
+import { translateRecipe, type TranslatedRecipe } from '../utils/translateRecipe';
+import { isLimitReached } from '../utils/translateUsage';
 import type { Recipe, Language } from '../types';
 
 interface RecipeDetailViewProps {
@@ -38,7 +40,34 @@ export const RecipeDetailView = ({
   const L = lang === 'en';
   const risk = recipeRisk(recipe, allergies, dislikes);
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
-  const name = L && recipe.nameEn ? recipe.nameEn : recipe.name;
+  const [translatedContent, setTranslatedContent] = useState<TranslatedRecipe | null>(null);
+  const [isTranslating, setIsTranslating] = useState(false);
+  const [translateError, setTranslateError] = useState<string | null>(null);
+  const [limitReached, setLimitReached] = useState(() => isLimitReached());
+
+  const showTranslateButton = lang === 'bg' && !recipe.isAI;
+
+  const handleTranslate = async () => {
+    setIsTranslating(true);
+    setTranslateError(null);
+    try {
+      const result = await translateRecipe({
+        name: recipe.name,
+        ingredients: recipe.ingredients,
+        steps: recipe.steps,
+      });
+      setTranslatedContent(result);
+    } catch {
+      setTranslateError('Преводът не успя. Опитайте отново.');
+    } finally {
+      setIsTranslating(false);
+      setLimitReached(isLimitReached());
+    }
+  };
+
+  const displayName = translatedContent?.name ?? (L && recipe.nameEn ? recipe.nameEn : recipe.name);
+  const displayIngredients = translatedContent?.ingredients ?? recipe.ingredients;
+  const displaySteps = translatedContent?.steps ?? recipe.steps;
 
   return (
     <div className="fade-in">
@@ -50,10 +79,10 @@ export const RecipeDetailView = ({
 
       <div className="recipe-detail-hero">
         {recipe.imageUrl
-          ? <img src={recipe.imageUrl} alt={name} className="recipe-detail-hero-img" />
+          ? <img src={recipe.imageUrl} alt={displayName} className="recipe-detail-hero-img" />
           : <span className="recipe-detail-emoji">{recipe.emoji}</span>
         }
-        <div className="recipe-detail-name">{name}</div>
+        <div className="recipe-detail-name">{displayName}</div>
         <div className="recipe-detail-badges">
           <Badge type={risk === 'safe' ? 'safe' : risk === 'allergy' ? 'allergy' : 'dislike'}>
             {risk === 'safe'    && (L ? '✓ Safe for you'          : '✓ Безопасно')}
@@ -87,17 +116,40 @@ export const RecipeDetailView = ({
         )}
       </div>
 
+      {showTranslateButton && (
+        <div className="translate-section">
+          {limitReached ? (
+            <span className="translate-limit-msg">
+              🌐 Преводът е недостъпен днес. Опитайте утре.
+            </span>
+          ) : translatedContent ? (
+            <button className="btn btn-ghost btn-sm" onClick={() => setTranslatedContent(null)}>
+              ↩ Оригинал
+            </button>
+          ) : (
+            <button
+              className="btn btn-ghost btn-sm"
+              onClick={handleTranslate}
+              disabled={isTranslating}
+            >
+              {isTranslating ? 'Превежда...' : '🌐 Преведи на български'}
+            </button>
+          )}
+          {translateError && <span className="translate-error">{translateError}</span>}
+        </div>
+      )}
+
       <div className="card recipe-detail-card">
         <div className="recipe-detail-ingredients-row">
           {recipe.imageUrl && (
-            <img src={recipe.imageUrl} alt={name} className="recipe-detail-photo" />
+            <img src={recipe.imageUrl} alt={displayName} className="recipe-detail-photo" />
           )}
           <div className="recipe-detail-ingredients-col">
             <div className="recipe-detail-section-label">
-              {L ? 'INGREDIENTS' : 'СЪСТАВКИ'} · {recipe.ingredients.length}
+              {L ? 'INGREDIENTS' : 'СЪСТАВКИ'} · {displayIngredients.length}
             </div>
             <div className="recipe-detail-ingredients">
-              {recipe.ingredients.map((ing, i) => {
+              {displayIngredients.map((ing, i) => {
                 const isAllergyIng = allergies.some((b) => ing.toLowerCase().includes(b.toLowerCase()));
                 const isBlockedIng = isAllergyIng || dislikes.some((b) => ing.toLowerCase().includes(b.toLowerCase()));
                 return (
@@ -121,7 +173,7 @@ export const RecipeDetailView = ({
 
       <div className="card recipe-detail-card">
         <div className="recipe-detail-section-label">{L ? 'STEPS' : 'СТЪПКИ'}</div>
-        {recipe.steps.map((step, i) => (
+        {displaySteps.map((step, i) => (
           <div key={i} className="step-item">
             <div className="step-num">{i + 1}</div>
             <div className="step-text">{step}</div>

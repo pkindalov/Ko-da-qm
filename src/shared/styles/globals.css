@@ -268,6 +268,9 @@ a{color:inherit;text-decoration:none}
 .ingredient-bullet-blocked{background:var(--danger)}
 .ingredient-text-blocked{text-decoration:line-through;color:var(--danger)}
 .recipe-detail-actions{display:flex;gap:10px;margin-top:4px}
+.translate-section{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+.translate-limit-msg{font-size:13px;font-weight:600;color:var(--text2)}
+.translate-error{font-size:13px;font-weight:600;color:var(--danger)}
 .recipe-detail-ingredients-row{display:flex;gap:1rem;align-items:flex-start}
 .recipe-detail-ingredients-col{flex:1;min-width:0}
 .recipe-detail-photo{width:18rem;height:18rem;object-fit:cover;border-radius:var(--r);flex-shrink:0}

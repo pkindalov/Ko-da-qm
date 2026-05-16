@@ -8,6 +8,8 @@ import { matchFromFridge, type MatchedRecipe } from '../utils/matchFromFridge';
 import { searchByFridge, toEnglish } from '../utils/searchTheMealDB';
 import { searchWithGemini } from '../utils/searchWithGemini';
 import { useSaveGeminiRecipe } from '../hooks/useSaveGeminiRecipe';
+import { translateRecipe, type TranslatedRecipe } from '../../../shared/utils/translateRecipe';
+import { isLimitReached } from '../../../shared/utils/translateUsage';
 import type { FridgeItem, Profile, Recipe, Language, Product } from '../../../shared/types';
 
 const FRIDGE_EMOJIS = ['🥚', '🧀', '🍞', '🧈', '🥛', '🍚', '🍗', '🥔', '🍎', '🍅', '🥕', '🥦', '🧅', '🫙', '📦'];
@@ -45,6 +47,24 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, addRecip
 
   const [pendingRemoveItemId, setPendingRemoveItemId] = useState<string | null>(null);
   const [pendingRemoveSuggestionId, setPendingRemoveSuggestionId] = useState<string | null>(null);
+  const [translatedCards, setTranslatedCards] = useState<Record<string, TranslatedRecipe>>({});
+  const [translatingId, setTranslatingId] = useState<string | null>(null);
+  const [translateErrors, setTranslateErrors] = useState<Record<string, string>>({});
+  const [translateLimitReached, setTranslateLimitReached] = useState(() => isLimitReached());
+
+  const handleTranslateCard = async (r: MatchedRecipe) => {
+    setTranslatingId(r.id);
+    setTranslateErrors((prev) => { const next = { ...prev }; delete next[r.id]; return next; });
+    try {
+      const result = await translateRecipe({ name: r.name, ingredients: r.ingredients, steps: r.steps });
+      setTranslatedCards((prev) => ({ ...prev, [r.id]: result }));
+    } catch {
+      setTranslateErrors((prev) => ({ ...prev, [r.id]: 'Преводът не успя. Опитайте отново.' }));
+    } finally {
+      setTranslatingId(null);
+      setTranslateLimitReached(isLimitReached());
+    }
+  };
 
   const removeItem = (id: string) => {
     removeFridgeItem(id);
@@ -123,6 +143,8 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, addRecip
     setSeenGeminiNames([]);
     setSeenApiIds([]);
     setSuggestionSource(null);
+    setTranslatedCards({});
+    setTranslateErrors({});
     try {
       if (geminiMode) {
         const results = filterSafe(await searchWithGemini(safeFridge, blocked, lang));
@@ -328,15 +350,20 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, addRecip
             />
           ) : (
             <div className="stack">
-              {suggestions.map((r) => (
+              {suggestions.map((r) => {
+                const translated = translatedCards[r.id];
+                const displayName = translated?.name ?? r.name;
+                const displayIngredients = translated?.ingredients ?? r.ingredients;
+                const displaySteps = translated?.steps ?? r.steps;
+                return (
                 <div key={r.id} className="card-sm" style={{ borderLeft: `3px solid ${r.isAI ? 'var(--secondary)' : 'var(--primary)'}` }}>
                   <div className="row-between" style={{ marginBottom: 6 }}>
                     <div className="row" style={{ gap: 8 }}>
                       {r.imageUrl
-                        ? <img src={r.imageUrl} alt={r.name} className="recipe-suggestion-img" />
+                        ? <img src={r.imageUrl} alt={displayName} className="recipe-suggestion-img" />
                         : <span style={{ fontSize: 22 }}>{r.emoji}</span>
                       }
-                      <span style={{ fontWeight: 800, fontSize: 15 }}>{r.name}</span>
+                      <span style={{ fontWeight: 800, fontSize: 15 }}>{displayName}</span>
                       {r.isAI && <span className="badge badge-neutral" style={{ fontSize: 11 }}>✨ AI</span>}
                     </div>
                     <span className="badge badge-safe">
@@ -344,7 +371,7 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, addRecip
                     </span>
                   </div>
                   <div style={{ fontSize: 13, color: 'var(--text2)', fontWeight: 600 }}>
-                    ⏱ {r.time} {L ? 'min' : 'мин'} · {r.ingredients.slice(0, 3).join(', ')}{r.ingredients.length > 3 ? '...' : ''}
+                    ⏱ {r.time} {L ? 'min' : 'мин'} · {displayIngredients.slice(0, 3).join(', ')}{displayIngredients.length > 3 ? '...' : ''}
                   </div>
                   <div style={{ marginTop: 8, display: 'flex', flexWrap: 'wrap', gap: 4 }}>
                     {r.requiredIngredients.map((ing) => {
@@ -374,12 +401,35 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, addRecip
                     <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text2)', marginBottom: 4 }}>
                       {L ? 'Steps:' : 'Стъпки:'}
                     </div>
-                    {r.steps.map((s, i) => (
+                    {displaySteps.map((s, i) => (
                       <div key={i} style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', paddingLeft: 4, marginBottom: 2 }}>
                         {i + 1}. {s}
                       </div>
                     ))}
                   </div>
+                  {lang === 'bg' && !r.isAI && (
+                    <div className="translate-section">
+                      {translateLimitReached ? (
+                        <span className="translate-limit-msg">🌐 Преводът е недостъпен днес. Опитайте утре.</span>
+                      ) : translated ? (
+                        <button
+                          className="btn btn-ghost btn-sm"
+                          onClick={() => setTranslatedCards((prev) => { const next = { ...prev }; delete next[r.id]; return next; })}
+                        >
+                          ↩ Оригинал
+                        </button>
+                      ) : (
+                        <button
+                          className="btn btn-ghost btn-sm"
+                          onClick={() => handleTranslateCard(r)}
+                          disabled={translatingId === r.id}
+                        >
+                          {translatingId === r.id ? 'Превежда...' : '🌐 Преведи на български'}
+                        </button>
+                      )}
+                      {translateErrors[r.id] && <span className="translate-error">{translateErrors[r.id]}</span>}
+                    </div>
+                  )}
                   <div style={{ marginTop: 10 }}>
                     {(savedIdMap.has(r.id) || savedRecipeByName.has(r.name)) ? (
                       <button
@@ -401,7 +451,8 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, addRecip
                     )}
                   </div>
                 </div>
-              ))}
+              );
+              })}
             </div>
           )}
           <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>
@@ -427,7 +478,7 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, addRecip
                   : `🔄 ${L ? 'Try different' : 'Опитай различни'}`}
               </button>
             )}
-            <button className="btn btn-ghost btn-sm" onClick={() => { setSuggestions(null); setSuggestionSource(null); }}>
+            <button className="btn btn-ghost btn-sm" onClick={() => { setSuggestions(null); setSuggestionSource(null); setTranslatedCards({}); setTranslateErrors({}); }}>
               {L ? 'Clear' : 'Изчисти'}
             </button>
           </div>
