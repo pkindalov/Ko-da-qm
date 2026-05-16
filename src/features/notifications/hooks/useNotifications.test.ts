@@ -1,0 +1,197 @@
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { renderHook, act } from '@testing-library/react';
+import { useNotifications } from './useNotifications';
+
+const { mockGetUser, mockFrom, mockRemoveChannel, mockChannel, mockLimit, mockOrder, mockSelect, mockEq, mockIn, mockUpdate } = vi.hoisted(() => {
+  const mockLimit = vi.fn();
+  const mockOrder = vi.fn().mockReturnValue({ limit: mockLimit });
+  const mockSelect = vi.fn().mockReturnValue({ order: mockOrder });
+  const mockIn = vi.fn();
+  const mockEq = vi.fn();
+  const mockUpdate = vi.fn().mockReturnValue({ eq: mockEq, in: mockIn });
+  const mockFrom = vi.fn().mockReturnValue({ select: mockSelect, update: mockUpdate });
+  const mockGetUser = vi.fn();
+  const mockRemoveChannel = vi.fn();
+  const mockChannel = vi.fn().mockReturnValue({
+    on: vi.fn().mockReturnThis(),
+    subscribe: vi.fn().mockReturnThis(),
+  });
+
+  return { mockGetUser, mockFrom, mockRemoveChannel, mockChannel, mockLimit, mockOrder, mockSelect, mockEq, mockIn, mockUpdate };
+});
+
+vi.mock('../../../lib/supabase', () => ({
+  supabase: {
+    auth: { getUser: mockGetUser },
+    from: mockFrom,
+    channel: mockChannel,
+    removeChannel: mockRemoveChannel,
+  },
+}));
+
+vi.mock('sonner', () => ({ toast: vi.fn() }));
+
+const makeRow = (overrides = {}) => ({
+  id: 'n1',
+  actor_id: 'u2',
+  type: 'recipe_favorited',
+  entity_id: 'r1',
+  entity_type: 'recipe',
+  is_read: false,
+  created_at: '2024-01-01T10:00:00Z',
+  actor: { name: 'Alice' },
+  ...overrides,
+});
+
+describe('useNotifications', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockUpdate.mockReturnValue({ eq: mockEq, in: mockIn });
+    mockOrder.mockReturnValue({ limit: mockLimit });
+    mockSelect.mockReturnValue({ order: mockOrder });
+    mockFrom.mockReturnValue({ select: mockSelect, update: mockUpdate });
+    mockChannel.mockReturnValue({
+      on: vi.fn().mockReturnThis(),
+      subscribe: vi.fn().mockReturnThis(),
+    });
+    mockLimit.mockResolvedValue({ data: [], error: null });
+    mockEq.mockResolvedValue({ error: null });
+    mockIn.mockResolvedValue({ error: null });
+  });
+
+  it('stays empty and does not query when user is not authenticated', async () => {
+    mockGetUser.mockResolvedValue({ data: { user: null } });
+
+    const { result } = renderHook(() => useNotifications('en'));
+    await act(async () => {});
+
+    expect(result.current.notifications).toEqual([]);
+    expect(result.current.unreadCount).toBe(0);
+    expect(mockFrom).not.toHaveBeenCalled();
+  });
+
+  it('loads and maps notification rows on mount', async () => {
+    mockGetUser.mockResolvedValue({ data: { user: { id: 'u1' } } });
+    mockLimit.mockResolvedValue({ data: [makeRow()], error: null });
+
+    const { result } = renderHook(() => useNotifications('en'));
+    await act(async () => {});
+
+    expect(result.current.notifications).toHaveLength(1);
+    expect(result.current.notifications[0]).toMatchObject({
+      id: 'n1',
+      actorId: 'u2',
+      type: 'recipe_favorited',
+      entityId: 'r1',
+      entityType: 'recipe',
+      isRead: false,
+      actorName: 'Alice',
+    });
+    expect(result.current.unreadCount).toBe(1);
+  });
+
+  it('maps null actor to null actorName', async () => {
+    mockGetUser.mockResolvedValue({ data: { user: { id: 'u1' } } });
+    mockLimit.mockResolvedValue({ data: [makeRow({ actor: null, actor_id: null })], error: null });
+
+    const { result } = renderHook(() => useNotifications('en'));
+    await act(async () => {});
+
+    expect(result.current.notifications[0].actorName).toBeNull();
+    expect(result.current.notifications[0].actorId).toBeNull();
+  });
+
+  it('counts only unread notifications', async () => {
+    mockGetUser.mockResolvedValue({ data: { user: { id: 'u1' } } });
+    mockLimit.mockResolvedValue({
+      data: [makeRow({ id: 'n1', is_read: false }), makeRow({ id: 'n2', is_read: true })],
+      error: null,
+    });
+
+    const { result } = renderHook(() => useNotifications('en'));
+    await act(async () => {});
+
+    expect(result.current.notifications).toHaveLength(2);
+    expect(result.current.unreadCount).toBe(1);
+  });
+
+  it('markAsRead optimistically updates isRead then calls DB', async () => {
+    mockGetUser.mockResolvedValue({ data: { user: { id: 'u1' } } });
+    mockLimit.mockResolvedValue({ data: [makeRow({ id: 'n1', is_read: false })], error: null });
+    mockEq.mockResolvedValue({ error: null });
+
+    const { result } = renderHook(() => useNotifications('en'));
+    await act(async () => {});
+
+    expect(result.current.notifications[0].isRead).toBe(false);
+
+    await act(async () => { result.current.markAsRead('n1'); });
+
+    expect(result.current.notifications[0].isRead).toBe(true);
+    expect(result.current.unreadCount).toBe(0);
+    expect(mockUpdate).toHaveBeenCalledWith({ is_read: true });
+    expect(mockEq).toHaveBeenCalledWith('id', 'n1');
+  });
+
+  it('markAsRead rolls back optimistic update on DB error', async () => {
+    mockGetUser.mockResolvedValue({ data: { user: { id: 'u1' } } });
+    mockLimit.mockResolvedValue({ data: [makeRow({ id: 'n1', is_read: false })], error: null });
+    mockEq.mockResolvedValue({ error: { message: 'DB error' } });
+
+    const { result } = renderHook(() => useNotifications('en'));
+    await act(async () => {});
+
+    await act(async () => { result.current.markAsRead('n1'); });
+
+    expect(result.current.notifications[0].isRead).toBe(false);
+    expect(result.current.unreadCount).toBe(1);
+  });
+
+  it('markAllAsRead marks all unread and calls DB with their IDs', async () => {
+    mockGetUser.mockResolvedValue({ data: { user: { id: 'u1' } } });
+    mockLimit.mockResolvedValue({
+      data: [makeRow({ id: 'n1', is_read: false }), makeRow({ id: 'n2', is_read: false })],
+      error: null,
+    });
+    mockIn.mockResolvedValue({ error: null });
+
+    const { result } = renderHook(() => useNotifications('en'));
+    await act(async () => {});
+
+    await act(async () => { result.current.markAllAsRead(); });
+
+    expect(result.current.unreadCount).toBe(0);
+    expect(mockIn).toHaveBeenCalledWith('id', ['n1', 'n2']);
+  });
+
+  it('markAllAsRead is a no-op when there are no unread notifications', async () => {
+    mockGetUser.mockResolvedValue({ data: { user: { id: 'u1' } } });
+    mockLimit.mockResolvedValue({ data: [makeRow({ id: 'n1', is_read: true })], error: null });
+
+    const { result } = renderHook(() => useNotifications('en'));
+    await act(async () => {});
+
+    await act(async () => { result.current.markAllAsRead(); });
+
+    expect(mockIn).not.toHaveBeenCalled();
+  });
+
+  it('subscribes to realtime channel for the authenticated user', async () => {
+    mockGetUser.mockResolvedValue({ data: { user: { id: 'u1' } } });
+
+    renderHook(() => useNotifications('en'));
+    await act(async () => {});
+
+    expect(mockChannel).toHaveBeenCalledWith('notifications:u1');
+  });
+
+  it('removes the realtime channel on unmount', async () => {
+    mockGetUser.mockResolvedValue({ data: { user: { id: 'u1' } } });
+
+    const { unmount } = renderHook(() => useNotifications('en'));
+    await act(async () => {});
+    unmount();
+
+    expect(mockRemoveChannel).toHaveBeenCalled();
+  });
+});

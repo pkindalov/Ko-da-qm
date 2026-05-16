@@ -1,4 +1,5 @@
-import type { Tab, Language } from '../../shared/types';
+import type { Tab, Language, Notification } from '../../shared/types';
+import { NotificationBell } from '../../features/notifications/components/NotificationBell';
 
 interface NavItem {
   id: Tab;
@@ -21,9 +22,13 @@ interface SidebarProps {
   lang: Language;
   onTweaksToggle: () => void;
   onLogout: () => void;
+  notifications: Notification[];
+  unreadCount: number;
+  onMarkAsRead: (id: string) => void;
+  onMarkAllAsRead: () => void;
 }
 
-export function Sidebar({ tab, setTab, lang, onTweaksToggle, onLogout }: SidebarProps) {
+export function Sidebar({ tab, setTab, lang, onTweaksToggle, onLogout, notifications, unreadCount, onMarkAsRead, onMarkAllAsRead }: SidebarProps) {
   const L = lang === 'en';
 
   return (
@@ -43,6 +48,14 @@ export function Sidebar({ tab, setTab, lang, onTweaksToggle, onLogout }: Sidebar
           {L ? n.labelEn : n.label}
         </button>
       ))}
+
+      <NotificationBell
+        notifications={notifications}
+        unreadCount={unreadCount}
+        onMarkAsRead={onMarkAsRead}
+        onMarkAllAsRead={onMarkAllAsRead}
+        lang={lang}
+      />
 
       <div style={{ flex: 1 }} />
 

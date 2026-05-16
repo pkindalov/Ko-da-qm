@@ -70,3 +70,16 @@ export interface Category {
   labelEn: string;
   emoji: string;
 }
+
+export type NotificationType = 'recipe_favorited';
+
+export interface Notification {
+  id: string;
+  actorId: string | null;
+  type: NotificationType;
+  entityId: string | null;
+  entityType: string | null;
+  isRead: boolean;
+  createdAt: string;
+  actorName: string | null;
+}

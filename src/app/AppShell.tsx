@@ -14,6 +14,8 @@ import { useAppData } from '../shared/hooks/useAppData';
 import { usePublicRecipes } from '../features/home/hooks/usePublicRecipes';
 import { useFavorites } from '../features/recipes/hooks/useFavorites';
 import { useRecipeFavoriteCounts } from '../features/userProfile/hooks/useRecipeFavoriteCounts';
+import { useNotifications } from '../features/notifications/hooks/useNotifications';
+import { NotificationBell } from '../features/notifications/components/NotificationBell';
 import { DEFAULT_TWEAKS } from '../shared/constants/defaults';
 import { supabase } from '../lib/supabase';
 import type { Tab } from '../shared/types';
@@ -27,6 +29,7 @@ export function AppShell() {
   const navigate = useNavigate();
   const publicRecipeIds = useMemo(() => publicRecipes.map((r) => r.id), [publicRecipes]);
   const communityFavoriteCounts = useRecipeFavoriteCounts(publicRecipeIds);
+  const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications(tweaks.lang);
   const [tweaksOpen, setTweaksOpen] = useState(false);
 
   useEffect(() => {
@@ -87,8 +90,13 @@ export function AppShell() {
 
   return (
     <div className={`app-shell ${themeClass}`}>
-      <Sidebar tab={tab} setTab={setTab} lang={tweaks.lang} onTweaksToggle={() => setTweaksOpen((o) => !o)} onLogout={handleLogout} />
-      <main className="main-content">{screens[tab]}</main>
+      <Sidebar tab={tab} setTab={setTab} lang={tweaks.lang} onTweaksToggle={() => setTweaksOpen((o) => !o)} onLogout={handleLogout} notifications={notifications} unreadCount={unreadCount} onMarkAsRead={markAsRead} onMarkAllAsRead={markAllAsRead} />
+      <main className="main-content">
+        <div className="mobile-notif-bar">
+          <NotificationBell notifications={notifications} unreadCount={unreadCount} onMarkAsRead={markAsRead} onMarkAllAsRead={markAllAsRead} lang={tweaks.lang} />
+        </div>
+        {screens[tab]}
+      </main>
       <BottomNav tab={tab} setTab={setTab} lang={tweaks.lang} />
       <TweaksPanel open={tweaksOpen} tweaks={tweaks} setTweaks={setTweaks} onClose={() => setTweaksOpen(false)} />
     </div>
