@@ -117,7 +117,6 @@ export const useNotifications = (lang: Language) => {
   }, [notifications]);
 
   const deleteNotification = useCallback(async (id: string) => {
-    const snapshot = notifications;
     setNotifications(prev => prev.filter(n => n.id !== id));
     const { error } = await supabase
       .from('notifications')
@@ -125,15 +124,14 @@ export const useNotifications = (lang: Language) => {
       .eq('id', id);
     if (error) {
       console.error('deleteNotification error:', error);
-      setNotifications(snapshot);
+      await loadNotifications();
     }
-  }, [notifications]);
+  }, [loadNotifications]);
 
   const deleteAllNotifications = useCallback(async () => {
     const allIds = notifications.map(n => n.id);
     if (allIds.length === 0) return;
 
-    const snapshot = notifications;
     setNotifications([]);
     const { error } = await supabase
       .from('notifications')
@@ -141,9 +139,9 @@ export const useNotifications = (lang: Language) => {
       .in('id', allIds);
     if (error) {
       console.error('deleteAllNotifications error:', error);
-      setNotifications(snapshot);
+      await loadNotifications();
     }
-  }, [notifications]);
+  }, [notifications, loadNotifications]);
 
   const unreadCount = notifications.filter(n => !n.isRead).length;
 

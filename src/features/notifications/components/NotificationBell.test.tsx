@@ -102,6 +102,14 @@ describe('NotificationBell', () => {
     expect(screen.getByText('Someone added your recipe to favorites')).toBeInTheDocument();
   });
 
+  it('renders anonymous label as a profile link when actorId is set but actorName is null', () => {
+    const notifications = [makeNotification({ actorName: null, actorId: 'u99' })];
+    render(<NotificationBell {...defaultProps} notifications={notifications} unreadCount={1} />);
+    fireEvent.click(screen.getByRole('button', { name: /notifications/i }));
+    const link = screen.getByRole('link', { name: 'Someone' });
+    expect(link).toHaveAttribute('href', '/user/u99');
+  });
+
   it('calls onEntityClick with entityType and entityId when entity keyword is clicked', () => {
     const onEntityClick = vi.fn();
     const notifications = [makeNotification({ entityType: 'recipe', entityId: 'r1' })];

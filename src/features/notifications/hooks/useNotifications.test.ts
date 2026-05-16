@@ -336,7 +336,7 @@ describe('useNotifications', () => {
     expect(mockEq).toHaveBeenCalledWith('id', 'n1');
   });
 
-  it('deleteNotification rolls back on DB error', async () => {
+  it('deleteNotification re-fetches from DB on error instead of restoring a stale snapshot', async () => {
     mockGetUser.mockResolvedValue({ data: { user: { id: 'u1' } } });
     mockLimit.mockResolvedValue({ data: [makeRow({ id: 'n1' })], error: null });
     mockEq.mockResolvedValue({ error: { message: 'DB error' } });
@@ -347,6 +347,7 @@ describe('useNotifications', () => {
     await act(async () => { result.current.deleteNotification('n1'); });
 
     expect(result.current.notifications).toHaveLength(1);
+    expect(mockLimit).toHaveBeenCalledTimes(2);
   });
 
   it('deleteAllNotifications optimistically clears all items then calls DB', async () => {
@@ -379,7 +380,7 @@ describe('useNotifications', () => {
     expect(mockDelete).not.toHaveBeenCalled();
   });
 
-  it('deleteAllNotifications rolls back on DB error', async () => {
+  it('deleteAllNotifications re-fetches from DB on error instead of restoring a stale snapshot', async () => {
     mockGetUser.mockResolvedValue({ data: { user: { id: 'u1' } } });
     mockLimit.mockResolvedValue({
       data: [makeRow({ id: 'n1' }), makeRow({ id: 'n2' })],
@@ -393,5 +394,6 @@ describe('useNotifications', () => {
     await act(async () => { result.current.deleteAllNotifications(); });
 
     expect(result.current.notifications).toHaveLength(2);
+    expect(mockLimit).toHaveBeenCalledTimes(2);
   });
 });
