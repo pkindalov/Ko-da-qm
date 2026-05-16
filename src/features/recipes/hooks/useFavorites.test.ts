@@ -286,6 +286,8 @@ describe('useFavorites', () => {
 
     expect(toast.error).toHaveBeenCalledWith('Failed to add to favorites');
     expect(toast.success).not.toHaveBeenCalled();
+    expect(result.current.favoriteIds).toEqual([]);
+    expect(result.current.favoriteRecipes).toHaveLength(0);
   });
 
   it('removeFavorite shows success toast when delete succeeds', async () => {
@@ -317,5 +319,7 @@ describe('useFavorites', () => {
 
     expect(toast.error).toHaveBeenCalledWith('Failed to remove from favorites');
     expect(toast.success).not.toHaveBeenCalled();
+    expect(result.current.favoriteIds).toContain('r1');
+    expect(result.current.favoriteRecipes).toHaveLength(1);
   });
 });
