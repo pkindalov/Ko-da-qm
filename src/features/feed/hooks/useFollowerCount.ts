@@ -9,7 +9,7 @@ export const useFollowerCount = (userId: string) => {
 
     supabase
       .from('follows')
-      .select('*', { count: 'exact', head: true })
+      .select('follower_id', { count: 'exact', head: true })
       .eq('following_id', userId)
       .then(({ count, error }) => {
         if (error) {

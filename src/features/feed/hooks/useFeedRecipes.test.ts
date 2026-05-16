@@ -152,4 +152,21 @@ describe('useFeedRecipes', () => {
     expect(mockFrom).not.toHaveBeenCalled();
     expect(result.current.recipes).toEqual([]);
   });
+
+  it('clears stale recipes when a re-fetch returns null data', async () => {
+    mockLimit.mockResolvedValueOnce({ data: [makeDbRow()], error: null });
+
+    const { result, rerender } = renderHook(
+      ({ ids }: { ids: string[] }) => useFeedRecipes(ids),
+      { initialProps: { ids: ['u2'] } },
+    );
+    await act(async () => {});
+    expect(result.current.recipes).toHaveLength(1);
+
+    mockLimit.mockResolvedValueOnce({ data: null, error: null });
+    rerender({ ids: ['u2', 'u3'] });
+    await act(async () => {});
+
+    expect(result.current.recipes).toEqual([]);
+  });
 });

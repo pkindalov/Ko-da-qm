@@ -34,7 +34,7 @@ export const useFeedRecipes = (followingIds: string[], enabled = true) => {
         return;
       }
 
-      if (data) setRecipes(data.map(mapRecipeRow));
+      setRecipes(data?.map(mapRecipeRow) ?? []);
       setLoading(false);
     };
 

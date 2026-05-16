@@ -30,7 +30,7 @@ export const FeedScreen = ({ lang, allergies, dislikes }: FeedScreenProps) => {
 
   if (isLoading) {
     return (
-      <div className="fade-in" style={{ padding: 24 }}>
+      <div className="fade-in feed-loading">
         <span>{isEnglish ? 'Loading…' : 'Зареждане…'}</span>
       </div>
     );
@@ -49,7 +49,7 @@ export const FeedScreen = ({ lang, allergies, dislikes }: FeedScreenProps) => {
               : 'Посетете профил на потребител, за да го последвате и да виждате рецептите му тук'
           }
         />
-        <div style={{ textAlign: 'center', marginTop: 16 }}>
+        <div className="feed-discover-actions">
           <button className="btn btn-primary" onClick={() => navigate(-1)}>
             {isEnglish ? 'Discover users' : 'Открийте потребители'}
           </button>
@@ -78,7 +78,7 @@ export const FeedScreen = ({ lang, allergies, dislikes }: FeedScreenProps) => {
   return (
     <div className="fade-in">
       <div className="section-title">{isEnglish ? 'YOUR FEED' : 'ВАШАТА ЛЕНТА'}</div>
-      <div style={{ color: 'var(--text2)', fontSize: 13, marginBottom: 16 }}>
+      <div className="feed-recipe-count">
         {isEnglish
           ? `${recipes.length} recipe${recipes.length !== 1 ? 's' : ''} from people you follow`
           : `${recipes.length} рецепт${recipes.length === 1 ? 'а' : 'и'} от хора, които следвате`}
@@ -122,7 +122,7 @@ export const FeedScreen = ({ lang, allergies, dislikes }: FeedScreenProps) => {
                 </div>
               )}
 
-              <div style={{ marginTop: 6 }}>
+              <div className="feed-recipe-badge">
                 {recipe.isAI && <Badge type="primary">✨ AI</Badge>}
               </div>
             </div>

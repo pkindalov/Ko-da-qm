@@ -187,6 +187,15 @@ a{color:inherit;text-decoration:none}
 .spinner{width:14px;height:14px;border:2px solid rgba(255,255,255,0.4);border-top-color:#fff;border-radius:50%;animation:spin 0.6s linear infinite;flex-shrink:0}
 @keyframes spin{to{transform:rotate(360deg)}}
 
+/* Feed screen */
+.feed-loading{padding:24px}
+.feed-discover-actions{text-align:center;margin-top:16px}
+.feed-recipe-count{color:var(--text2);font-size:13px;margin-bottom:16px}
+.feed-recipe-badge{margin-top:6px}
+
+/* Profile follow button */
+.profile-follow-btn{margin-top:12px}
+
 /* Color themes */
 .theme-cool{--primary:#3A6BC4;--primary-light:#DEE6F4;--bg:#F3F6FD;--border:#DDE4EF}
 .theme-dark{--bg:#1A1410;--surface:#241C17;--border:#3A2D25;--text:#F5EDE8;--text2:#9A8070;--primary:#E07848}

@@ -70,8 +70,7 @@ export const UserProfilePage = () => {
             </div>
             {!isOwnProfile && (
               <button
-                className={`btn btn-sm ${isFollowing ? 'btn-ghost' : 'btn-primary'}`}
-                style={{ marginTop: 12 }}
+                className={`btn btn-sm ${isFollowing ? 'btn-ghost' : 'btn-primary'} profile-follow-btn`}
                 onClick={() => toggleFollow(userId)}
               >
                 {isFollowing
