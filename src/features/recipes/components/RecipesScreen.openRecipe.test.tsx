@@ -53,4 +53,11 @@ describe('RecipesScreen – openRecipeId', () => {
     render(<RecipesScreen {...makeProps({ openRecipeId: null, onRecipeOpened })} />);
     expect(onRecipeOpened).not.toHaveBeenCalled();
   });
+
+  it('still calls onRecipeOpened and shows the list when openRecipeId does not match any recipe', () => {
+    const onRecipeOpened = vi.fn();
+    render(<RecipesScreen {...makeProps({ recipes: [], openRecipeId: 'non-existent-id', onRecipeOpened })} />);
+    expect(onRecipeOpened).toHaveBeenCalledOnce();
+    expect(screen.queryByRole('button', { name: /back/i })).not.toBeInTheDocument();
+  });
 });
