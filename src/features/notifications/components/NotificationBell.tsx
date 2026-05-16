@@ -1,6 +1,34 @@
 import { useState, useRef, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import type { Notification, Language } from '../../../shared/types';
-import { getNotificationMessage, formatTimeAgo } from '../constants/notificationMessages';
+import { ANONYMOUS_ACTOR, getNotificationParts, formatTimeAgo } from '../constants/notificationMessages';
+
+const buildNotificationMsg = (
+  notification: Notification,
+  lang: Language,
+  onActorClick: () => void,
+) => {
+  const { before, after } = getNotificationParts(notification.type, lang);
+  const displayName = notification.actorName ?? ANONYMOUS_ACTOR[lang];
+
+  if (!notification.actorId) {
+    return <>{before}{displayName}{after}</>;
+  }
+
+  return (
+    <>
+      {before}
+      <Link
+        className="notif-actor-link"
+        to={`/user/${notification.actorId}`}
+        onClick={onActorClick}
+      >
+        {displayName}
+      </Link>
+      {after}
+    </>
+  );
+};
 
 const MAX_BADGE_COUNT = 99;
 
@@ -95,7 +123,7 @@ export const NotificationBell = ({
                 >
                   <div className="notif-item-body">
                     <div className="notif-item-msg">
-                      {getNotificationMessage(notification.type, notification.actorName, lang)}
+                      {buildNotificationMsg(notification, lang, () => setIsOpen(false))}
                     </div>
                     <div className="notif-item-time">
                       {formatTimeAgo(notification.createdAt, lang)}

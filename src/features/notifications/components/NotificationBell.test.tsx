@@ -1,9 +1,16 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { NotificationBell } from './NotificationBell';
 import type { Notification } from '../../../shared/types';
 
 vi.mock('sonner', () => ({ toast: vi.fn() }));
+
+vi.mock('react-router-dom', () => ({
+  Link: ({ children, to, onClick, className }: { children: React.ReactNode; to: string; onClick?: () => void; className?: string }) => (
+    <a href={to} onClick={onClick} className={className}>{children}</a>
+  ),
+}));
 
 const makeNotification = (overrides: Partial<Notification> = {}): Notification => ({
   id: 'n1',
@@ -75,11 +82,21 @@ describe('NotificationBell', () => {
     const notifications = [makeNotification({ actorName: 'Alice' })];
     render(<NotificationBell {...defaultProps} notifications={notifications} unreadCount={1} />);
     fireEvent.click(screen.getByRole('button', { name: /notifications/i }));
-    expect(screen.getByText('Alice added your recipe to favorites')).toBeInTheDocument();
+    expect(
+      screen.getByText((_, el) => el?.textContent === 'Alice added your recipe to favorites'),
+    ).toBeInTheDocument();
+  });
+
+  it('renders actor name as a link to their profile', () => {
+    const notifications = [makeNotification({ actorName: 'Alice', actorId: 'u2' })];
+    render(<NotificationBell {...defaultProps} notifications={notifications} unreadCount={1} />);
+    fireEvent.click(screen.getByRole('button', { name: /notifications/i }));
+    const link = screen.getByRole('link', { name: 'Alice' });
+    expect(link).toHaveAttribute('href', '/user/u2');
   });
 
   it('uses anonymous fallback when actorName is null', () => {
-    const notifications = [makeNotification({ actorName: null })];
+    const notifications = [makeNotification({ actorName: null, actorId: null })];
     render(<NotificationBell {...defaultProps} notifications={notifications} unreadCount={1} />);
     fireEvent.click(screen.getByRole('button', { name: /notifications/i }));
     expect(screen.getByText('Someone added your recipe to favorites')).toBeInTheDocument();
@@ -224,6 +241,8 @@ describe('NotificationBell', () => {
     const notifications = [makeNotification({ actorName: 'Иван' })];
     render(<NotificationBell {...defaultProps} lang="bg" notifications={notifications} unreadCount={1} />);
     fireEvent.click(screen.getByRole('button', { name: /известия/i }));
-    expect(screen.getByText('Иван добави рецептата ти в любими')).toBeInTheDocument();
+    expect(
+      screen.getByText((_, el) => el?.textContent === 'Иван добави рецептата ти в любими'),
+    ).toBeInTheDocument();
   });
 });

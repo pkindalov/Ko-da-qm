@@ -7,9 +7,20 @@ const NOTIFICATION_MESSAGES: Record<NotificationType, Record<Language, (actorNam
   },
 };
 
-const ANONYMOUS_ACTOR: Record<Language, string> = {
+export const ANONYMOUS_ACTOR: Record<Language, string> = {
   bg: 'Някой',
   en: 'Someone',
+};
+
+const ACTOR_SENTINEL = '\x00';
+
+export const getNotificationParts = (
+  type: NotificationType,
+  lang: Language,
+): { before: string; after: string } => {
+  const full = NOTIFICATION_MESSAGES[type][lang](ACTOR_SENTINEL);
+  const [before = '', after = ''] = full.split(ACTOR_SENTINEL);
+  return { before, after };
 };
 
 export const getNotificationMessage = (
