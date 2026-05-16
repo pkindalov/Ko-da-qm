@@ -5,6 +5,7 @@ import { Sidebar } from './layout/Sidebar';
 import { BottomNav } from './layout/BottomNav';
 import { TweaksPanel } from './layout/TweaksPanel';
 import { HomeScreen } from '../features/home/components/HomeScreen';
+import { FeedScreen } from '../features/feed/components/FeedScreen';
 import { FridgeScreen } from '../features/fridge/components/FridgeScreen';
 import { RecipesScreen } from '../features/recipes/components/RecipesScreen';
 import { ProductsScreen } from '../features/products/components/ProductsScreen';
@@ -69,6 +70,7 @@ export function AppShell() {
   };
 
   const screens: Record<Tab, React.ReactNode> = {
+    feed: <FeedScreen lang={tweaks.lang} />,
     home: <HomeScreen
       profile={profile}
       recipes={recipes}

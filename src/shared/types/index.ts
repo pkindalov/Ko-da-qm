@@ -1,4 +1,4 @@
-export type Tab = 'home' | 'fridge' | 'recipes' | 'products' | 'profile';
+export type Tab = 'home' | 'feed' | 'fridge' | 'recipes' | 'products' | 'profile';
 
 export type Language = 'bg' | 'en';
 
@@ -71,7 +71,7 @@ export interface Category {
   emoji: string;
 }
 
-export type NotificationType = 'recipe_favorited';
+export type NotificationType = 'recipe_favorited' | 'user_followed';
 
 export interface Notification {
   id: string;

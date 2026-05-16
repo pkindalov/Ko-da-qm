@@ -8,6 +8,8 @@ import { useLocalStorage } from '../../../shared/hooks/useLocalStorage';
 import { useUserProfile } from '../hooks/useUserProfile';
 import { useRecipeFavoriteCounts } from '../hooks/useRecipeFavoriteCounts';
 import { useFavorites } from '../../recipes/hooks/useFavorites';
+import { useFollows } from '../../feed/hooks/useFollows';
+import { useFollowerCount } from '../../feed/hooks/useFollowerCount';
 import { recipeRisk } from '../../../shared/utils/recipeUtils';
 import { DEFAULT_TWEAKS } from '../../../shared/constants/defaults';
 import type { Recipe } from '../../../shared/types';
@@ -22,6 +24,11 @@ export const UserProfilePage = () => {
   const { favoriteIds, toggleFavorite } = useFavorites();
   const recipeIds = useMemo(() => recipes.map((r) => r.id), [recipes]);
   const favoriteCounts = useRecipeFavoriteCounts(recipeIds);
+  const { followingIds, currentUserId, toggleFollow } = useFollows(tweaks.lang);
+  const followerCount = useFollowerCount(userId);
+
+  const isFollowing = followingIds.includes(userId);
+  const isOwnProfile = Boolean(currentUserId) && currentUserId === userId;
 
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
 
@@ -56,7 +63,22 @@ export const UserProfilePage = () => {
               {isEnglish
                 ? `${recipes.length} public recipe${recipes.length !== 1 ? 's' : ''}`
                 : `${recipes.length} публична${recipes.length !== 1 ? ' рецепти' : ' рецепта'}`}
+              {' · '}
+              {isEnglish
+                ? `${followerCount} follower${followerCount !== 1 ? 's' : ''}`
+                : `${followerCount} последовател${followerCount !== 1 ? 'и' : ''}`}
             </div>
+            {!isOwnProfile && (
+              <button
+                className={`btn btn-sm ${isFollowing ? 'btn-ghost' : 'btn-primary'}`}
+                style={{ marginTop: 12 }}
+                onClick={() => toggleFollow(userId)}
+              >
+                {isFollowing
+                  ? (isEnglish ? 'Unfollow' : 'Отписване')
+                  : (isEnglish ? 'Follow' : 'Следвай')}
+              </button>
+            )}
           </div>
 
           <div className="divider" />

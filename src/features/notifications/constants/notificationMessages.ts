@@ -13,12 +13,20 @@ const NOTIFICATION_TEMPLATES: Record<NotificationType, Record<Language, string>>
     en: `${ACTOR_SENTINEL} added ${ENTITY_SENTINEL} to favorites`,
     bg: `${ACTOR_SENTINEL} добави ${ENTITY_SENTINEL} в любими`,
   },
+  user_followed: {
+    en: `${ACTOR_SENTINEL} started following you`,
+    bg: `${ACTOR_SENTINEL} те последва`,
+  },
 };
 
 const ENTITY_KEYWORDS: Record<NotificationType, Record<Language, string>> = {
   recipe_favorited: {
     en: 'your recipe',
     bg: 'рецептата ти',
+  },
+  user_followed: {
+    en: '',
+    bg: '',
   },
 };
 

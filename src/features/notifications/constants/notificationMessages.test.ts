@@ -37,6 +37,40 @@ describe('getNotificationParts', () => {
     expect(parts.betweenActorEntity).toBe(' добави ');
     expect(parts.afterEntity).toBe(' в любими');
   });
+
+  it('returns correct parts for user_followed in english', () => {
+    const parts = getNotificationParts('user_followed', 'en');
+    expect(parts.entityKeyword).toBe('');
+    expect(parts.betweenActorEntity).toBe(' started following you');
+  });
+
+  it('returns correct parts for user_followed in bulgarian', () => {
+    const parts = getNotificationParts('user_followed', 'bg');
+    expect(parts.entityKeyword).toBe('');
+    expect(parts.betweenActorEntity).toBe(' те последва');
+  });
+});
+
+describe('getNotificationMessage – user_followed', () => {
+  it('returns english message with actor name for user_followed', () => {
+    expect(getNotificationMessage('user_followed', 'Alice', 'en'))
+      .toBe('Alice started following you');
+  });
+
+  it('returns bulgarian message with actor name for user_followed', () => {
+    expect(getNotificationMessage('user_followed', 'Иван', 'bg'))
+      .toBe('Иван те последва');
+  });
+
+  it('uses anonymous fallback in english when actorName is null', () => {
+    expect(getNotificationMessage('user_followed', null, 'en'))
+      .toBe('Someone started following you');
+  });
+
+  it('uses anonymous fallback in bulgarian when actorName is null', () => {
+    expect(getNotificationMessage('user_followed', null, 'bg'))
+      .toBe('Някой те последва');
+  });
 });
 
 describe('formatTimeAgo', () => {

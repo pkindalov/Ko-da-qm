@@ -9,6 +9,7 @@ interface NavItem {
 
 const NAV: NavItem[] = [
   { id: 'home',     icon: '🏠', label: 'Начало',    labelEn: 'Home'     },
+  { id: 'feed',     icon: '👥', label: 'Лента',     labelEn: 'Feed'     },
   { id: 'fridge',   icon: '🧊', label: 'Хладилник', labelEn: 'Fridge'   },
   { id: 'recipes',  icon: '📖', label: 'Рецепти',   labelEn: 'Recipes'  },
   { id: 'products', icon: '🥕', label: 'Продукти',  labelEn: 'Products' },
