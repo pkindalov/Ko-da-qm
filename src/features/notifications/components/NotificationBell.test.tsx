@@ -102,6 +102,39 @@ describe('NotificationBell', () => {
     expect(screen.getByText('Someone added your recipe to favorites')).toBeInTheDocument();
   });
 
+  it('calls onEntityClick with entityType and entityId when entity keyword is clicked', () => {
+    const onEntityClick = vi.fn();
+    const notifications = [makeNotification({ entityType: 'recipe', entityId: 'r1' })];
+    render(<NotificationBell {...defaultProps} notifications={notifications} unreadCount={1} onEntityClick={onEntityClick} />);
+    fireEvent.click(screen.getByRole('button', { name: /notifications/i }));
+    fireEvent.click(screen.getByRole('button', { name: /your recipe/i }));
+    expect(onEntityClick).toHaveBeenCalledWith('recipe', 'r1');
+  });
+
+  it('closes the dropdown when entity keyword is clicked', () => {
+    const onEntityClick = vi.fn();
+    const notifications = [makeNotification({ entityType: 'recipe', entityId: 'r1' })];
+    render(<NotificationBell {...defaultProps} notifications={notifications} unreadCount={1} onEntityClick={onEntityClick} />);
+    fireEvent.click(screen.getByRole('button', { name: /notifications/i }));
+    fireEvent.click(screen.getByRole('button', { name: /your recipe/i }));
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  it('renders entity keyword as plain text when entityId is null', () => {
+    const onEntityClick = vi.fn();
+    const notifications = [makeNotification({ entityId: null, entityType: null })];
+    render(<NotificationBell {...defaultProps} notifications={notifications} unreadCount={1} onEntityClick={onEntityClick} />);
+    fireEvent.click(screen.getByRole('button', { name: /notifications/i }));
+    expect(screen.queryByRole('button', { name: /your recipe/i })).not.toBeInTheDocument();
+  });
+
+  it('renders entity keyword as plain text when onEntityClick is not provided', () => {
+    const notifications = [makeNotification({ entityType: 'recipe', entityId: 'r1' })];
+    render(<NotificationBell {...defaultProps} notifications={notifications} unreadCount={1} />);
+    fireEvent.click(screen.getByRole('button', { name: /notifications/i }));
+    expect(screen.queryByRole('button', { name: /your recipe/i })).not.toBeInTheDocument();
+  });
+
   it('calls onMarkAsRead with the notification id when clicking the toggle on an unread notification', () => {
     const onMarkAsRead = vi.fn();
     const notifications = [makeNotification({ id: 'n42' })];

@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Sidebar } from './layout/Sidebar';
@@ -31,6 +31,16 @@ export function AppShell() {
   const communityFavoriteCounts = useRecipeFavoriteCounts(publicRecipeIds);
   const { notifications, unreadCount, markAsRead, markAllAsRead, markAsUnread, markAllAsUnread, deleteNotification, deleteAllNotifications } = useNotifications(tweaks.lang);
   const [tweaksOpen, setTweaksOpen] = useState(false);
+  const [pendingOpenRecipeId, setPendingOpenRecipeId] = useState<string | null>(null);
+
+  const handleEntityClick = useCallback((entityType: string, entityId: string) => {
+    if (entityType === 'recipe') {
+      setTab('recipes');
+      setPendingOpenRecipeId(entityId);
+    }
+  }, [setTab]);
+
+  const handleRecipeOpened = useCallback(() => setPendingOpenRecipeId(null), []);
 
   useEffect(() => {
     const handler = (e: MessageEvent) => {
@@ -78,7 +88,7 @@ export function AppShell() {
       onNavigateToUser={(userId) => navigate(`/user/${userId}`)}
     />,
     fridge: <FridgeScreen fridge={fridge} addFridgeItem={addFridgeItem} removeFridgeItem={removeFridgeItem} addRecipe={addRecipe} removeRecipe={removeRecipe} profile={profile} recipes={recipes} products={products} lang={tweaks.lang} />,
-    recipes: <RecipesScreen recipes={recipes} addRecipe={addRecipe} removeRecipe={removeRecipe} updateRecipe={updateRecipe} favoriteRecipes={favoriteRecipes} favoriteIds={favoriteIds} onToggleFavorite={toggleFavorite} products={products} profile={profile} lang={tweaks.lang} userEmail={userEmail} />,
+    recipes: <RecipesScreen recipes={recipes} addRecipe={addRecipe} removeRecipe={removeRecipe} updateRecipe={updateRecipe} favoriteRecipes={favoriteRecipes} favoriteIds={favoriteIds} onToggleFavorite={toggleFavorite} products={products} profile={profile} lang={tweaks.lang} userEmail={userEmail} openRecipeId={pendingOpenRecipeId} onRecipeOpened={handleRecipeOpened} />,
     products: <ProductsScreen products={products} setProducts={setProducts} addProduct={addProduct} lang={tweaks.lang} />,
     profile: <ProfileScreen profile={profile} setProfile={setProfile} products={products} lang={tweaks.lang} onLogout={handleLogout} onTweaksToggle={() => setTweaksOpen((o) => !o)} onNavigateToProducts={() => setTab('products')} onViewPublicProfile={userId ? () => navigate(`/user/${userId}`) : undefined} />,
   };
@@ -90,10 +100,10 @@ export function AppShell() {
 
   return (
     <div className={`app-shell ${themeClass}`}>
-      <Sidebar tab={tab} setTab={setTab} lang={tweaks.lang} onTweaksToggle={() => setTweaksOpen((o) => !o)} onLogout={handleLogout} notifications={notifications} unreadCount={unreadCount} onMarkAsRead={markAsRead} onMarkAllAsRead={markAllAsRead} onMarkAsUnread={markAsUnread} onMarkAllAsUnread={markAllAsUnread} onDeleteNotification={deleteNotification} onDeleteAll={deleteAllNotifications} />
+      <Sidebar tab={tab} setTab={setTab} lang={tweaks.lang} onTweaksToggle={() => setTweaksOpen((o) => !o)} onLogout={handleLogout} notifications={notifications} unreadCount={unreadCount} onMarkAsRead={markAsRead} onMarkAllAsRead={markAllAsRead} onMarkAsUnread={markAsUnread} onMarkAllAsUnread={markAllAsUnread} onDeleteNotification={deleteNotification} onDeleteAll={deleteAllNotifications} onEntityClick={handleEntityClick} />
       <main className="main-content">
         <div className="mobile-notif-bar">
-          <NotificationBell notifications={notifications} unreadCount={unreadCount} onMarkAsRead={markAsRead} onMarkAllAsRead={markAllAsRead} onMarkAsUnread={markAsUnread} onMarkAllAsUnread={markAllAsUnread} onDeleteNotification={deleteNotification} onDeleteAll={deleteAllNotifications} lang={tweaks.lang} />
+          <NotificationBell notifications={notifications} unreadCount={unreadCount} onMarkAsRead={markAsRead} onMarkAllAsRead={markAllAsRead} onMarkAsUnread={markAsUnread} onMarkAllAsUnread={markAllAsUnread} onDeleteNotification={deleteNotification} onDeleteAll={deleteAllNotifications} onEntityClick={handleEntityClick} lang={tweaks.lang} />
         </div>
         {screens[tab]}
       </main>

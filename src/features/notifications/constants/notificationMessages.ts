@@ -1,26 +1,43 @@
 import type { Language, NotificationType } from '../../../shared/types';
 
-const NOTIFICATION_MESSAGES: Record<NotificationType, Record<Language, (actorName: string) => string>> = {
-  recipe_favorited: {
-    bg: (actorName) => `${actorName} добави рецептата ти в любими`,
-    en: (actorName) => `${actorName} added your recipe to favorites`,
-  },
-};
-
 export const ANONYMOUS_ACTOR: Record<Language, string> = {
   bg: 'Някой',
   en: 'Someone',
 };
 
 const ACTOR_SENTINEL = '\x00';
+const ENTITY_SENTINEL = '\x01';
+
+const NOTIFICATION_TEMPLATES: Record<NotificationType, Record<Language, string>> = {
+  recipe_favorited: {
+    en: `${ACTOR_SENTINEL} added ${ENTITY_SENTINEL} to favorites`,
+    bg: `${ACTOR_SENTINEL} добави ${ENTITY_SENTINEL} в любими`,
+  },
+};
+
+const ENTITY_KEYWORDS: Record<NotificationType, Record<Language, string>> = {
+  recipe_favorited: {
+    en: 'your recipe',
+    bg: 'рецептата ти',
+  },
+};
+
+export interface NotificationMessageParts {
+  beforeActor: string;
+  betweenActorEntity: string;
+  entityKeyword: string;
+  afterEntity: string;
+}
 
 export const getNotificationParts = (
   type: NotificationType,
   lang: Language,
-): { before: string; after: string } => {
-  const full = NOTIFICATION_MESSAGES[type][lang](ACTOR_SENTINEL);
-  const [before = '', after = ''] = full.split(ACTOR_SENTINEL);
-  return { before, after };
+): NotificationMessageParts => {
+  const template = NOTIFICATION_TEMPLATES[type][lang];
+  const entityKeyword = ENTITY_KEYWORDS[type][lang];
+  const [beforeActor = '', entityAndAfter = ''] = template.split(ACTOR_SENTINEL);
+  const [betweenActorEntity = '', afterEntity = ''] = entityAndAfter.split(ENTITY_SENTINEL);
+  return { beforeActor, betweenActorEntity, entityKeyword, afterEntity };
 };
 
 export const getNotificationMessage = (
@@ -29,7 +46,8 @@ export const getNotificationMessage = (
   lang: Language,
 ): string => {
   const name = actorName ?? ANONYMOUS_ACTOR[lang];
-  return NOTIFICATION_MESSAGES[type][lang](name);
+  const { beforeActor, betweenActorEntity, entityKeyword, afterEntity } = getNotificationParts(type, lang);
+  return `${beforeActor}${name}${betweenActorEntity}${entityKeyword}${afterEntity}`;
 };
 
 export const formatTimeAgo = (dateStr: string, lang: Language): string => {

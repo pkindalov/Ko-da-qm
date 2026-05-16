@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { Modal } from '../../../shared/components/Modal';
 import { Badge } from '../../../shared/components/Badge';
@@ -22,6 +22,8 @@ interface RecipesScreenProps {
   profile: Profile;
   lang: Language;
   userEmail: string;
+  openRecipeId?: string | null;
+  onRecipeOpened?: () => void;
 }
 
 interface RecipeFormState {
@@ -36,9 +38,16 @@ interface RecipeFormState {
 const EMPTY_FORM: RecipeFormState = { name: '', emoji: '🍽', time: '', ingredients: '', steps: '', isPublic: false };
 const PAGE_SIZE = 5;
 
-export function RecipesScreen({ recipes, addRecipe, removeRecipe, updateRecipe, favoriteRecipes, favoriteIds, onToggleFavorite, products, profile, lang, userEmail }: RecipesScreenProps) {
+export function RecipesScreen({ recipes, addRecipe, removeRecipe, updateRecipe, favoriteRecipes, favoriteIds, onToggleFavorite, products, profile, lang, userEmail, openRecipeId, onRecipeOpened }: RecipesScreenProps) {
   const L = lang === 'en';
   const [detail, setDetail] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (openRecipeId) {
+      setDetail(openRecipeId);
+      onRecipeOpened?.();
+    }
+  }, [openRecipeId, onRecipeOpened]);
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
   const [addOpen, setAddOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);

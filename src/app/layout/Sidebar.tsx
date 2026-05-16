@@ -30,9 +30,10 @@ interface SidebarProps {
   onMarkAllAsUnread: () => void;
   onDeleteNotification: (id: string) => void;
   onDeleteAll: () => void;
+  onEntityClick?: (entityType: string, entityId: string) => void;
 }
 
-export function Sidebar({ tab, setTab, lang, onTweaksToggle, onLogout, notifications, unreadCount, onMarkAsRead, onMarkAllAsRead, onMarkAsUnread, onMarkAllAsUnread, onDeleteNotification, onDeleteAll }: SidebarProps) {
+export function Sidebar({ tab, setTab, lang, onTweaksToggle, onLogout, notifications, unreadCount, onMarkAsRead, onMarkAllAsRead, onMarkAsUnread, onMarkAllAsUnread, onDeleteNotification, onDeleteAll, onEntityClick }: SidebarProps) {
   const L = lang === 'en';
 
   return (
@@ -62,6 +63,7 @@ export function Sidebar({ tab, setTab, lang, onTweaksToggle, onLogout, notificat
         onMarkAllAsUnread={onMarkAllAsUnread}
         onDeleteNotification={onDeleteNotification}
         onDeleteAll={onDeleteAll}
+        onEntityClick={onEntityClick}
         lang={lang}
       />
 

@@ -3,34 +3,46 @@ import { Link } from 'react-router-dom';
 import type { Notification, Language } from '../../../shared/types';
 import { ANONYMOUS_ACTOR, getNotificationParts, formatTimeAgo } from '../constants/notificationMessages';
 
+const MAX_BADGE_COUNT = 99;
+
 const buildNotificationMsg = (
   notification: Notification,
   lang: Language,
-  onActorClick: () => void,
+  closeDropdown: () => void,
+  onEntityClick?: (entityType: string, entityId: string) => void,
 ) => {
-  const { before, after } = getNotificationParts(notification.type, lang);
+  const { beforeActor, betweenActorEntity, entityKeyword, afterEntity } = getNotificationParts(notification.type, lang);
   const displayName = notification.actorName ?? ANONYMOUS_ACTOR[lang];
 
-  if (!notification.actorId) {
-    return <>{before}{displayName}{after}</>;
-  }
+  const actorNode = notification.actorId ? (
+    <Link
+      className="notif-actor-link"
+      to={`/user/${notification.actorId}`}
+      onClick={closeDropdown}
+    >
+      {displayName}
+    </Link>
+  ) : displayName;
+
+  const canClickEntity = Boolean(onEntityClick && notification.entityId && notification.entityType);
+  const entityNode = canClickEntity ? (
+    <button
+      className="notif-entity-link"
+      onClick={() => {
+        onEntityClick!(notification.entityType!, notification.entityId!);
+        closeDropdown();
+      }}
+    >
+      {entityKeyword}
+    </button>
+  ) : entityKeyword;
 
   return (
     <>
-      {before}
-      <Link
-        className="notif-actor-link"
-        to={`/user/${notification.actorId}`}
-        onClick={onActorClick}
-      >
-        {displayName}
-      </Link>
-      {after}
+      {beforeActor}{actorNode}{betweenActorEntity}{entityNode}{afterEntity}
     </>
   );
 };
-
-const MAX_BADGE_COUNT = 99;
 
 interface NotificationBellProps {
   notifications: Notification[];
@@ -41,6 +53,7 @@ interface NotificationBellProps {
   onMarkAllAsUnread: () => void;
   onDeleteNotification: (id: string) => void;
   onDeleteAll: () => void;
+  onEntityClick?: (entityType: string, entityId: string) => void;
   lang: Language;
 }
 
@@ -53,6 +66,7 @@ export const NotificationBell = ({
   onMarkAllAsUnread,
   onDeleteNotification,
   onDeleteAll,
+  onEntityClick,
   lang,
 }: NotificationBellProps) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -123,7 +137,7 @@ export const NotificationBell = ({
                 >
                   <div className="notif-item-body">
                     <div className="notif-item-msg">
-                      {buildNotificationMsg(notification, lang, () => setIsOpen(false))}
+                      {buildNotificationMsg(notification, lang, () => setIsOpen(false), onEntityClick)}
                     </div>
                     <div className="notif-item-time">
                       {formatTimeAgo(notification.createdAt, lang)}

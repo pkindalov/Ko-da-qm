@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { getNotificationMessage, formatTimeAgo } from './notificationMessages';
+import { getNotificationMessage, getNotificationParts, formatTimeAgo } from './notificationMessages';
 
 describe('getNotificationMessage', () => {
   it('returns bulgarian message with actor name for recipe_favorited', () => {
@@ -20,6 +20,22 @@ describe('getNotificationMessage', () => {
   it('uses anonymous fallback in english when actorName is null', () => {
     expect(getNotificationMessage('recipe_favorited', null, 'en'))
       .toBe('Someone added your recipe to favorites');
+  });
+});
+
+describe('getNotificationParts', () => {
+  it('returns correct parts for recipe_favorited in english', () => {
+    const parts = getNotificationParts('recipe_favorited', 'en');
+    expect(parts.entityKeyword).toBe('your recipe');
+    expect(parts.betweenActorEntity).toBe(' added ');
+    expect(parts.afterEntity).toBe(' to favorites');
+  });
+
+  it('returns correct parts for recipe_favorited in bulgarian', () => {
+    const parts = getNotificationParts('recipe_favorited', 'bg');
+    expect(parts.entityKeyword).toBe('рецептата ти');
+    expect(parts.betweenActorEntity).toBe(' добави ');
+    expect(parts.afterEntity).toBe(' в любими');
   });
 });
 
