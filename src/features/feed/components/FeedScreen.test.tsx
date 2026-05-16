@@ -50,10 +50,10 @@ const makeRecipe = (overrides: Partial<Recipe> = {}): Recipe => ({
   ...overrides,
 });
 
-const renderFeed = (lang: 'bg' | 'en' = 'en') =>
+const renderFeed = (lang: 'bg' | 'en' = 'en', allergies: string[] = [], dislikes: string[] = []) =>
   render(
     <MemoryRouter>
-      <FeedScreen lang={lang} allergies={[]} dislikes={[]} />
+      <FeedScreen lang={lang} allergies={allergies} dislikes={dislikes} />
     </MemoryRouter>,
   );
 
@@ -181,6 +181,16 @@ describe('FeedScreen – recipe display', () => {
     mockRecipes.push(makeRecipe({ id: 'r2', name: 'Pizza' }));
     renderFeed('en');
     expect(screen.getByText(/2 recipes from people you follow/i)).toBeInTheDocument();
+  });
+
+  it('applies allergy class to card when recipe contains a user allergen', () => {
+    const { container } = renderFeed('en', ['pasta']);
+    expect(container.querySelector('.recipe-card.allergy')).toBeInTheDocument();
+  });
+
+  it('does not apply allergy class when user has no matching allergen', () => {
+    const { container } = renderFeed('en', ['nuts']);
+    expect(container.querySelector('.recipe-card.allergy')).not.toBeInTheDocument();
   });
 });
 

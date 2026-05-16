@@ -138,8 +138,8 @@ export const FeedScreen = ({ lang, allergies, dislikes }: FeedScreenProps) => {
         {selectedRecipe && (
           <RecipeDetailView
             recipe={selectedRecipe}
-            allergies={[]}
-            dislikes={[]}
+            allergies={allergies}
+            dislikes={dislikes}
             lang={lang}
             isOwner={false}
             isFavorite={favoriteIds.includes(selectedRecipe.id)}
