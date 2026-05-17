@@ -155,6 +155,7 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, addRecip
     setTranslatedCards({});
     setTranslateErrors({});
     setCompareCards({});
+    setTranslatingIds([]);
     try {
       if (geminiMode) {
         const results = filterSafe(await searchWithGemini(safeFridge, blocked, lang));
@@ -186,6 +187,7 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, addRecip
     setTranslatedCards({});
     setTranslateErrors({});
     setCompareCards({});
+    setTranslatingIds([]);
     try {
       const online = filterSafe(await searchByFridge(safeFridge, blocked, seenApiIds));
       if (online.length > 0) {
@@ -208,6 +210,7 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, addRecip
     setTranslatedCards({});
     setTranslateErrors({});
     setCompareCards({});
+    setTranslatingIds([]);
     try {
       const results = filterSafe(await searchWithGemini(safeFridge, blocked, lang, seenGeminiNames));
       const newResults = results.filter((r) => !seenGeminiNames.includes(r.name));
@@ -423,7 +426,7 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, addRecip
                       </div>
                     ))}
                   </div>
-                  {lang === 'bg' && !r.isAI && !!r.nameEn && (
+                  {lang === 'bg' && !r.isAI && r.nameEn != null && r.nameEn !== '' && (
                     <div className="translate-section">
                       {translateLimitReached ? (
                         <span className="translate-limit-msg">🌐 Преводът е недостъпен днес. Опитайте утре.</span>
@@ -526,7 +529,7 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, addRecip
                   : `🔄 ${L ? 'Try different' : 'Опитай различни'}`}
               </button>
             )}
-            <button className="btn btn-ghost btn-sm" onClick={() => { setSuggestions(null); setSuggestionSource(null); setTranslatedCards({}); setTranslateErrors({}); setCompareCards({}); }}>
+            <button className="btn btn-ghost btn-sm" onClick={() => { setSuggestions(null); setSuggestionSource(null); setTranslatedCards({}); setTranslateErrors({}); setCompareCards({}); setTranslatingIds([]); }}>
               {L ? 'Clear' : 'Изчисти'}
             </button>
           </div>

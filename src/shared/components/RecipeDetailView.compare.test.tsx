@@ -187,3 +187,59 @@ describe('RecipeDetailView – compare button', () => {
     expect(screen.getByText(/Преводът не успя/i)).toBeInTheDocument();
   });
 });
+
+describe('RecipeDetailView – allergen highlighting with translated ingredients', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    (isLimitReached as ReturnType<typeof vi.fn>).mockReturnValue(false);
+    (translateRecipe as ReturnType<typeof vi.fn>).mockResolvedValue({
+      name: 'Пилешка супа',
+      ingredients: ['пиле', 'сол'],
+      steps: ['Сварете водата'],
+    });
+  });
+
+  it('still marks an allergen badge after translation (checks original ingredient, not translated)', async () => {
+    const recipe = makeRecipe({
+      ingredients: ['chicken', 'salt'],
+      steps: ['Boil water'],
+    });
+    const user = userEvent.setup();
+    render(<RecipeDetailView {...defaultProps({ recipe, allergies: ['chicken'] })} />);
+
+    await user.click(screen.getByRole('button', { name: /Преведи на български/i }));
+    await waitFor(() => expect(translateRecipe).toHaveBeenCalled());
+
+    // Translated ingredient "пиле" is displayed
+    expect(screen.getByText('пиле')).toBeInTheDocument();
+    // Allergy badge must still appear because original "chicken" matches
+    expect(screen.getByText(/Алергия/i)).toBeInTheDocument();
+  });
+
+  it('still marks a dislike badge after translation (checks original ingredient, not translated)', async () => {
+    const recipe = makeRecipe({
+      ingredients: ['chicken', 'salt'],
+      steps: ['Boil water'],
+    });
+    const user = userEvent.setup();
+    render(<RecipeDetailView {...defaultProps({ recipe, dislikes: ['chicken'] })} />);
+
+    await user.click(screen.getByRole('button', { name: /Преведи на български/i }));
+    await waitFor(() => expect(translateRecipe).toHaveBeenCalled());
+
+    expect(screen.getByText('пиле')).toBeInTheDocument();
+    expect(screen.getByText(/Нелюбимо/i)).toBeInTheDocument();
+  });
+});
+
+describe('RecipeDetailView – translate button with edge-case nameEn', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    (isLimitReached as ReturnType<typeof vi.fn>).mockReturnValue(false);
+  });
+
+  it('does not show translate button when nameEn is an empty string', () => {
+    render(<RecipeDetailView {...defaultProps({ recipe: makeRecipe({ nameEn: '' }) })} />);
+    expect(screen.queryByRole('button', { name: /Преведи на български/i })).not.toBeInTheDocument();
+  });
+});

@@ -46,7 +46,7 @@ export const RecipeDetailView = ({
   const [limitReached, setLimitReached] = useState(() => isLimitReached());
   const [compareMode, setCompareMode] = useState(false);
 
-  const showTranslateButton = lang === 'bg' && !recipe.isAI && recipe.nameEn != null;
+  const showTranslateButton = lang === 'bg' && !recipe.isAI && recipe.nameEn != null && recipe.nameEn !== '';
 
   const handleTranslate = async () => {
     setIsTranslating(true);
@@ -193,8 +193,9 @@ export const RecipeDetailView = ({
                 </div>
                 <div className="recipe-detail-ingredients">
                   {displayIngredients.map((ing, i) => {
-                    const isAllergyIng = allergies.some((b) => ing.toLowerCase().includes(b.toLowerCase()));
-                    const isBlockedIng = isAllergyIng || dislikes.some((b) => ing.toLowerCase().includes(b.toLowerCase()));
+                    const originalIng = recipe.ingredients[i] ?? ing;
+                    const isAllergyIng = allergies.some((b) => originalIng.toLowerCase().includes(b.toLowerCase()));
+                    const isBlockedIng = isAllergyIng || dislikes.some((b) => originalIng.toLowerCase().includes(b.toLowerCase()));
                     return (
                       <div key={i} className="recipe-detail-ingredient">
                         <span className={`ingredient-bullet ${isBlockedIng ? 'ingredient-bullet-blocked' : 'ingredient-bullet-safe'}`} />
