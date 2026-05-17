@@ -47,7 +47,7 @@ describe('buildChunks', () => {
 describe('translateRecipe', () => {
   beforeEach(() => {
     localStorage.clear();
-    vi.spyOn(global, 'fetch');
+    vi.spyOn(globalThis, 'fetch');
   });
 
   afterEach(() => {
@@ -55,7 +55,7 @@ describe('translateRecipe', () => {
   });
 
   it('translates name, ingredients, and steps', async () => {
-    (global.fetch as ReturnType<typeof vi.fn>)
+    (globalThis.fetch as ReturnType<typeof vi.fn>)
       .mockReturnValueOnce(makeResponse(200, 'Пилешка супа'))            // name
       .mockReturnValueOnce(makeResponse(200, '1 пиле ||| сол'))          // ingredients chunk
       .mockReturnValueOnce(makeResponse(200, 'Стъпка 1 ||| Стъпка 2')); // steps chunk
@@ -72,18 +72,18 @@ describe('translateRecipe', () => {
   });
 
   it('returns empty arrays when ingredients and steps are empty', async () => {
-    (global.fetch as ReturnType<typeof vi.fn>)
+    (globalThis.fetch as ReturnType<typeof vi.fn>)
       .mockReturnValueOnce(makeResponse(200, 'Пилешка супа'));
 
     const result = await translateRecipe({ name: 'Chicken soup', ingredients: [], steps: [] });
 
     expect(result.ingredients).toEqual([]);
     expect(result.steps).toEqual([]);
-    expect(global.fetch).toHaveBeenCalledTimes(1);
+    expect(globalThis.fetch).toHaveBeenCalledTimes(1);
   });
 
   it('returns original text unchanged when name is blank', async () => {
-    (global.fetch as ReturnType<typeof vi.fn>)
+    (globalThis.fetch as ReturnType<typeof vi.fn>)
       .mockReturnValueOnce(makeResponse(200, ' ||| item'))
       .mockReturnValueOnce(makeResponse(200, 'Стъпка'));
 
@@ -91,11 +91,11 @@ describe('translateRecipe', () => {
 
     // fetch must NOT be called for the empty name
     expect(result.name).toBe('');
-    expect(global.fetch).toHaveBeenCalledTimes(2);
+    expect(globalThis.fetch).toHaveBeenCalledTimes(2);
   });
 
   it('falls back to original items when separator is not preserved in response', async () => {
-    (global.fetch as ReturnType<typeof vi.fn>)
+    (globalThis.fetch as ReturnType<typeof vi.fn>)
       .mockReturnValueOnce(makeResponse(200, 'Пиле'))                 // name
       .mockReturnValueOnce(makeResponse(200, 'no separator here'))    // ingredients — separator missing
       .mockReturnValueOnce(makeResponse(200, 'Стъпка'));              // steps
@@ -114,7 +114,7 @@ describe('translateRecipe', () => {
   it('makes multiple fetch calls when items are split into chunks', async () => {
     const longItem = 'a'.repeat(400);
 
-    (global.fetch as ReturnType<typeof vi.fn>)
+    (globalThis.fetch as ReturnType<typeof vi.fn>)
       .mockReturnValueOnce(makeResponse(200, 'Пиле'))  // name
       .mockReturnValueOnce(makeResponse(200, 'б'.repeat(400)))  // ingredients chunk 1
       .mockReturnValueOnce(makeResponse(200, 'в'.repeat(400)))  // ingredients chunk 2
@@ -127,12 +127,12 @@ describe('translateRecipe', () => {
     });
 
     // 1 name + 2 ingredient chunks + 1 step chunk = 4 calls
-    expect(global.fetch).toHaveBeenCalledTimes(4);
+    expect(globalThis.fetch).toHaveBeenCalledTimes(4);
     expect(result.ingredients).toHaveLength(2);
   });
 
   it('increments usage once per fetch call', async () => {
-    (global.fetch as ReturnType<typeof vi.fn>)
+    (globalThis.fetch as ReturnType<typeof vi.fn>)
       .mockReturnValueOnce(makeResponse(200, 'Пиле'))
       .mockReturnValueOnce(makeResponse(200, 'сол'))
       .mockReturnValueOnce(makeResponse(200, 'Стъпка'));
@@ -144,7 +144,7 @@ describe('translateRecipe', () => {
   });
 
   it('throws when the HTTP response is not ok', async () => {
-    (global.fetch as ReturnType<typeof vi.fn>)
+    (globalThis.fetch as ReturnType<typeof vi.fn>)
       .mockReturnValueOnce(makeResponse(200, '', false));
 
     await expect(
@@ -153,7 +153,7 @@ describe('translateRecipe', () => {
   });
 
   it('throws when MyMemory returns a non-200 responseStatus', async () => {
-    (global.fetch as ReturnType<typeof vi.fn>)
+    (globalThis.fetch as ReturnType<typeof vi.fn>)
       .mockReturnValueOnce(makeResponse(429, ''));
 
     await expect(
@@ -162,7 +162,7 @@ describe('translateRecipe', () => {
   });
 
   it('still increments usage when MyMemory returns non-200 responseStatus (HTTP was ok)', async () => {
-    (global.fetch as ReturnType<typeof vi.fn>)
+    (globalThis.fetch as ReturnType<typeof vi.fn>)
       .mockReturnValueOnce(makeResponse(429, ''));
 
     await expect(
