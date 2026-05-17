@@ -48,7 +48,7 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, addRecip
   const [pendingRemoveItemId, setPendingRemoveItemId] = useState<string | null>(null);
   const [pendingRemoveSuggestionId, setPendingRemoveSuggestionId] = useState<string | null>(null);
   const [translatedCards, setTranslatedCards] = useState<Record<string, TranslatedRecipe>>({});
-  const [translatingId, setTranslatingId] = useState<string | null>(null);
+  const [translatingIds, setTranslatingIds] = useState<string[]>([]);
   const [translateErrors, setTranslateErrors] = useState<Record<string, string>>({});
   const [translateLimitReached, setTranslateLimitReached] = useState(() => isLimitReached());
   const [compareCards, setCompareCards] = useState<Record<string, boolean>>({});
@@ -62,7 +62,7 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, addRecip
   };
 
   const handleTranslateCard = async (r: MatchedRecipe) => {
-    setTranslatingId(r.id);
+    setTranslatingIds((prev) => [...prev, r.id]);
     setTranslateErrors((prev) => { const next = { ...prev }; delete next[r.id]; return next; });
     try {
       const result = await translateRecipe({ name: r.name, ingredients: r.ingredients, steps: r.steps });
@@ -70,7 +70,7 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, addRecip
     } catch {
       setTranslateErrors((prev) => ({ ...prev, [r.id]: 'Преводът не успя. Опитайте отново.' }));
     } finally {
-      setTranslatingId(null);
+      setTranslatingIds((prev) => prev.filter((id) => id !== r.id));
       setTranslateLimitReached(isLimitReached());
     }
   };
@@ -183,6 +183,9 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, addRecip
 
   const handleTryDifferentRecipeApi = async () => {
     setLoadingMoreSuggestions(true);
+    setTranslatedCards({});
+    setTranslateErrors({});
+    setCompareCards({});
     try {
       const online = filterSafe(await searchByFridge(safeFridge, blocked, seenApiIds));
       if (online.length > 0) {
@@ -202,6 +205,9 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, addRecip
 
   const handleTryDifferentSuggestions = async () => {
     setLoadingMoreSuggestions(true);
+    setTranslatedCards({});
+    setTranslateErrors({});
+    setCompareCards({});
     try {
       const results = filterSafe(await searchWithGemini(safeFridge, blocked, lang, seenGeminiNames));
       const newResults = results.filter((r) => !seenGeminiNames.includes(r.name));
@@ -440,9 +446,9 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, addRecip
                         <button
                           className="btn btn-ghost btn-sm"
                           onClick={() => handleTranslateCard(r)}
-                          disabled={translatingId === r.id}
+                          disabled={translatingIds.includes(r.id)}
                         >
-                          {translatingId === r.id ? 'Превежда...' : '🌐 Преведи на български'}
+                          {translatingIds.includes(r.id) ? 'Превежда...' : '🌐 Преведи на български'}
                         </button>
                       )}
                       {translateErrors[r.id] && <span className="translate-error">{translateErrors[r.id]}</span>}
