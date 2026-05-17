@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { InteractiveFridge } from './InteractiveFridge';
 import { Modal } from '../../../shared/components/Modal';
 import { Badge } from '../../../shared/components/Badge';
 import { ConfirmDeleteModal } from '../../../shared/components/ConfirmDeleteModal';
@@ -271,15 +272,11 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, addRecip
           subtitle={L ? 'Add what you have at home' : 'Добави какво имаш у дома'}
         />
       ) : fridgeExpanded && (
-        <div className="stack" style={{ marginBottom: 20 }}>
-          {fridge.map((item) => (
-            <div key={item.id} className="fridge-item">
-              <span className="fridge-emoji">{item.emoji}</span>
-              <span className="fridge-name">{item.name}</span>
-              <button className="btn btn-danger btn-sm" onClick={() => setPendingRemoveItemId(item.id)}>✕</button>
-            </div>
-          ))}
-        </div>
+        <InteractiveFridge
+          items={fridge}
+          onRemove={(id) => setPendingRemoveItemId(id)}
+          onAddSlot={openAddModal}
+        />
       )}
 
       {matchingRecipes.length > 0 && (
