@@ -44,6 +44,7 @@ export const RecipeDetailView = ({
   const [isTranslating, setIsTranslating] = useState(false);
   const [translateError, setTranslateError] = useState<string | null>(null);
   const [limitReached, setLimitReached] = useState(() => isLimitReached());
+  const [compareMode, setCompareMode] = useState(false);
 
   const showTranslateButton = lang === 'bg' && !recipe.isAI;
 
@@ -123,9 +124,14 @@ export const RecipeDetailView = ({
               🌐 Преводът е недостъпен днес. Опитайте утре.
             </span>
           ) : translatedContent ? (
-            <button className="btn btn-ghost btn-sm" onClick={() => setTranslatedContent(null)}>
-              ↩ Оригинал
-            </button>
+            <>
+              <button className="btn btn-ghost btn-sm" onClick={() => { setTranslatedContent(null); setCompareMode(false); }}>
+                ↩ Оригинал
+              </button>
+              <button className="btn btn-ghost btn-sm" onClick={() => setCompareMode((m) => !m)}>
+                {compareMode ? '⇄ Затвори' : '⇄ Сравни'}
+              </button>
+            </>
           ) : (
             <button
               className="btn btn-ghost btn-sm"
@@ -139,47 +145,85 @@ export const RecipeDetailView = ({
         </div>
       )}
 
-      <div className="card recipe-detail-card">
-        <div className="recipe-detail-ingredients-row">
-          {recipe.imageUrl && (
-            <img src={recipe.imageUrl} alt={displayName} className="recipe-detail-photo" />
-          )}
-          <div className="recipe-detail-ingredients-col">
-            <div className="recipe-detail-section-label">
-              {L ? 'INGREDIENTS' : 'СЪСТАВКИ'} · {displayIngredients.length}
-            </div>
-            <div className="recipe-detail-ingredients">
-              {displayIngredients.map((ing, i) => {
-                const isAllergyIng = allergies.some((b) => ing.toLowerCase().includes(b.toLowerCase()));
-                const isBlockedIng = isAllergyIng || dislikes.some((b) => ing.toLowerCase().includes(b.toLowerCase()));
-                return (
-                  <div key={i} className="recipe-detail-ingredient">
-                    <span className={`ingredient-bullet ${isBlockedIng ? 'ingredient-bullet-blocked' : 'ingredient-bullet-safe'}`} />
-                    <span className={isBlockedIng ? 'ingredient-text-blocked' : ''}>
-                      {ing}
-                    </span>
-                    {isBlockedIng && (
-                      <Badge type={isAllergyIng ? 'allergy' : 'dislike'}>
-                        {isAllergyIng ? (L ? 'Allergy' : 'Алергия') : (L ? 'Dislike' : 'Нелюбимо')}
-                      </Badge>
-                    )}
-                  </div>
-                );
-              })}
+      {compareMode && translatedContent ? (
+        <>
+          <div className="card recipe-detail-card">
+            <div className="compare-grid">
+              <div className="compare-col">
+                <div className="compare-col-label">🔤 Оригинал · СЪСТАВКИ</div>
+                {recipe.ingredients.map((ing, i) => (
+                  <div key={i} className="compare-item">{ing}</div>
+                ))}
+              </div>
+              <div className="compare-col">
+                <div className="compare-col-label">🇧🇬 Превод · СЪСТАВКИ</div>
+                {translatedContent.ingredients.map((ing, i) => (
+                  <div key={i} className="compare-item">{ing}</div>
+                ))}
+              </div>
             </div>
           </div>
-        </div>
-      </div>
-
-      <div className="card recipe-detail-card">
-        <div className="recipe-detail-section-label">{L ? 'STEPS' : 'СТЪПКИ'}</div>
-        {displaySteps.map((step, i) => (
-          <div key={i} className="step-item">
-            <div className="step-num">{i + 1}</div>
-            <div className="step-text">{step}</div>
+          <div className="card recipe-detail-card">
+            <div className="compare-grid">
+              <div className="compare-col">
+                <div className="compare-col-label">🔤 Оригинал · СТЪПКИ</div>
+                {recipe.steps.map((s, i) => (
+                  <div key={i} className="compare-item">{i + 1}. {s}</div>
+                ))}
+              </div>
+              <div className="compare-col">
+                <div className="compare-col-label">🇧🇬 Превод · СТЪПКИ</div>
+                {translatedContent.steps.map((s, i) => (
+                  <div key={i} className="compare-item">{i + 1}. {s}</div>
+                ))}
+              </div>
+            </div>
           </div>
-        ))}
-      </div>
+        </>
+      ) : (
+        <>
+          <div className="card recipe-detail-card">
+            <div className="recipe-detail-ingredients-row">
+              {recipe.imageUrl && (
+                <img src={recipe.imageUrl} alt={displayName} className="recipe-detail-photo" />
+              )}
+              <div className="recipe-detail-ingredients-col">
+                <div className="recipe-detail-section-label">
+                  {L ? 'INGREDIENTS' : 'СЪСТАВКИ'} · {displayIngredients.length}
+                </div>
+                <div className="recipe-detail-ingredients">
+                  {displayIngredients.map((ing, i) => {
+                    const isAllergyIng = allergies.some((b) => ing.toLowerCase().includes(b.toLowerCase()));
+                    const isBlockedIng = isAllergyIng || dislikes.some((b) => ing.toLowerCase().includes(b.toLowerCase()));
+                    return (
+                      <div key={i} className="recipe-detail-ingredient">
+                        <span className={`ingredient-bullet ${isBlockedIng ? 'ingredient-bullet-blocked' : 'ingredient-bullet-safe'}`} />
+                        <span className={isBlockedIng ? 'ingredient-text-blocked' : ''}>
+                          {ing}
+                        </span>
+                        {isBlockedIng && (
+                          <Badge type={isAllergyIng ? 'allergy' : 'dislike'}>
+                            {isAllergyIng ? (L ? 'Allergy' : 'Алергия') : (L ? 'Dislike' : 'Нелюбимо')}
+                          </Badge>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="card recipe-detail-card">
+            <div className="recipe-detail-section-label">{L ? 'STEPS' : 'СТЪПКИ'}</div>
+            {displaySteps.map((step, i) => (
+              <div key={i} className="step-item">
+                <div className="step-num">{i + 1}</div>
+                <div className="step-text">{step}</div>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
 
       {isOwner && (onEdit || onDelete) && (
         <div className="recipe-detail-actions">

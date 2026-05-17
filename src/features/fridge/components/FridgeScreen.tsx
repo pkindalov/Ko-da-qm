@@ -51,6 +51,15 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, addRecip
   const [translatingId, setTranslatingId] = useState<string | null>(null);
   const [translateErrors, setTranslateErrors] = useState<Record<string, string>>({});
   const [translateLimitReached, setTranslateLimitReached] = useState(() => isLimitReached());
+  const [compareCards, setCompareCards] = useState<Record<string, boolean>>({});
+
+  const toggleCompareCard = (id: string) =>
+    setCompareCards((prev) => ({ ...prev, [id]: !prev[id] }));
+
+  const clearTranslationForCard = (id: string) => {
+    setTranslatedCards((prev) => { const next = { ...prev }; delete next[id]; return next; });
+    setCompareCards((prev) => { const next = { ...prev }; delete next[id]; return next; });
+  };
 
   const handleTranslateCard = async (r: MatchedRecipe) => {
     setTranslatingId(r.id);
@@ -145,6 +154,7 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, addRecip
     setSuggestionSource(null);
     setTranslatedCards({});
     setTranslateErrors({});
+    setCompareCards({});
     try {
       if (geminiMode) {
         const results = filterSafe(await searchWithGemini(safeFridge, blocked, lang));
@@ -412,12 +422,20 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, addRecip
                       {translateLimitReached ? (
                         <span className="translate-limit-msg">🌐 Преводът е недостъпен днес. Опитайте утре.</span>
                       ) : translated ? (
-                        <button
-                          className="btn btn-ghost btn-sm"
-                          onClick={() => setTranslatedCards((prev) => { const next = { ...prev }; delete next[r.id]; return next; })}
-                        >
-                          ↩ Оригинал
-                        </button>
+                        <>
+                          <button
+                            className="btn btn-ghost btn-sm"
+                            onClick={() => clearTranslationForCard(r.id)}
+                          >
+                            ↩ Оригинал
+                          </button>
+                          <button
+                            className="btn btn-ghost btn-sm"
+                            onClick={() => toggleCompareCard(r.id)}
+                          >
+                            {compareCards[r.id] ? '⇄ Затвори' : '⇄ Сравни'}
+                          </button>
+                        </>
                       ) : (
                         <button
                           className="btn btn-ghost btn-sm"
@@ -428,6 +446,30 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, addRecip
                         </button>
                       )}
                       {translateErrors[r.id] && <span className="translate-error">{translateErrors[r.id]}</span>}
+                    </div>
+                  )}
+                  {compareCards[r.id] && translated && (
+                    <div className="compare-grid" style={{ marginTop: 10 }}>
+                      <div className="compare-col">
+                        <div className="compare-col-label">🔤 Оригинал</div>
+                        {r.ingredients.map((ing, i) => (
+                          <div key={i} className="compare-item">{ing}</div>
+                        ))}
+                        <div className="compare-col-label" style={{ marginTop: 8 }}>Стъпки</div>
+                        {r.steps.map((s, i) => (
+                          <div key={i} className="compare-item">{i + 1}. {s}</div>
+                        ))}
+                      </div>
+                      <div className="compare-col">
+                        <div className="compare-col-label">🇧🇬 Превод</div>
+                        {translated.ingredients.map((ing, i) => (
+                          <div key={i} className="compare-item">{ing}</div>
+                        ))}
+                        <div className="compare-col-label" style={{ marginTop: 8 }}>Стъпки</div>
+                        {translated.steps.map((s, i) => (
+                          <div key={i} className="compare-item">{i + 1}. {s}</div>
+                        ))}
+                      </div>
                     </div>
                   )}
                   <div style={{ marginTop: 10 }}>
@@ -478,7 +520,7 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, addRecip
                   : `🔄 ${L ? 'Try different' : 'Опитай различни'}`}
               </button>
             )}
-            <button className="btn btn-ghost btn-sm" onClick={() => { setSuggestions(null); setSuggestionSource(null); setTranslatedCards({}); setTranslateErrors({}); }}>
+            <button className="btn btn-ghost btn-sm" onClick={() => { setSuggestions(null); setSuggestionSource(null); setTranslatedCards({}); setTranslateErrors({}); setCompareCards({}); }}>
               {L ? 'Clear' : 'Изчисти'}
             </button>
           </div>

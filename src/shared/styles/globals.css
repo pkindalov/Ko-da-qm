@@ -271,6 +271,11 @@ a{color:inherit;text-decoration:none}
 .translate-section{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:16px}
 .translate-limit-msg{font-size:13px;font-weight:600;color:var(--text2)}
 .translate-error{font-size:13px;font-weight:600;color:var(--danger)}
+.compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.compare-col{display:flex;flex-direction:column;gap:6px}
+.compare-col-label{font-size:11px;font-weight:800;letter-spacing:1px;color:var(--text2);text-transform:uppercase;padding-bottom:6px;border-bottom:1.5px solid var(--border)}
+.compare-item{font-size:13px;font-weight:600;color:var(--text);line-height:1.5}
+@media(max-width:600px){.compare-grid{grid-template-columns:1fr}}
 .recipe-detail-ingredients-row{display:flex;gap:1rem;align-items:flex-start}
 .recipe-detail-ingredients-col{flex:1;min-width:0}
 .recipe-detail-photo{width:18rem;height:18rem;object-fit:cover;border-radius:var(--r);flex-shrink:0}
