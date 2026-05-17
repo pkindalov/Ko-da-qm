@@ -17,6 +17,7 @@ import { isLimitReached } from '../utils/translateUsage';
 const makeRecipe = (overrides: Partial<Recipe> = {}): Recipe => ({
   id: 'r1',
   name: 'Chicken Soup',
+  nameEn: 'Chicken Soup',
   emoji: '🍲',
   ingredients: ['1 chicken', 'salt', 'water'],
   steps: ['Boil water', 'Add chicken', 'Season'],

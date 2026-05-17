@@ -46,14 +46,14 @@ export const RecipeDetailView = ({
   const [limitReached, setLimitReached] = useState(() => isLimitReached());
   const [compareMode, setCompareMode] = useState(false);
 
-  const showTranslateButton = lang === 'bg' && !recipe.isAI;
+  const showTranslateButton = lang === 'bg' && !recipe.isAI && recipe.nameEn != null;
 
   const handleTranslate = async () => {
     setIsTranslating(true);
     setTranslateError(null);
     try {
       const result = await translateRecipe({
-        name: recipe.name,
+        name: recipe.nameEn ?? recipe.name,
         ingredients: recipe.ingredients,
         steps: recipe.steps,
       });

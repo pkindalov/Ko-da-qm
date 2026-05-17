@@ -65,7 +65,7 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, addRecip
     setTranslatingIds((prev) => [...prev, r.id]);
     setTranslateErrors((prev) => { const next = { ...prev }; delete next[r.id]; return next; });
     try {
-      const result = await translateRecipe({ name: r.name, ingredients: r.ingredients, steps: r.steps });
+      const result = await translateRecipe({ name: r.nameEn ?? r.name, ingredients: r.ingredients, steps: r.steps });
       setTranslatedCards((prev) => ({ ...prev, [r.id]: result }));
     } catch {
       setTranslateErrors((prev) => ({ ...prev, [r.id]: 'Преводът не успя. Опитайте отново.' }));
@@ -423,7 +423,7 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, addRecip
                       </div>
                     ))}
                   </div>
-                  {lang === 'bg' && !r.isAI && (
+                  {lang === 'bg' && !r.isAI && !!r.nameEn && (
                     <div className="translate-section">
                       {translateLimitReached ? (
                         <span className="translate-limit-msg">🌐 Преводът е недостъпен днес. Опитайте утре.</span>

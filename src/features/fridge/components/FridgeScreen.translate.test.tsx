@@ -102,6 +102,18 @@ describe('FridgeScreen – translate button visibility', () => {
     expect(screen.queryByRole('button', { name: /Преведи на български/i })).not.toBeInTheDocument();
   });
 
+  it('does not show translate button for local database recipes without an English name', async () => {
+    // Local DB fallback recipes may already be in Bulgarian and have no nameEn
+    (searchByFridge as ReturnType<typeof vi.fn>).mockResolvedValue([
+      makeApiRecipe({ name: 'Пилешка супа', nameEn: undefined }),
+    ]);
+    const user = userEvent.setup();
+    render(<FridgeScreen {...makeProps()} />);
+    await clickSearch(user);
+    await waitFor(() => expect(screen.getByText('Пилешка супа')).toBeInTheDocument());
+    expect(screen.queryByRole('button', { name: /Преведи на български/i })).not.toBeInTheDocument();
+  });
+
   it('shows limit message and hides translate button when daily limit is reached', async () => {
     (isLimitReached as ReturnType<typeof vi.fn>).mockReturnValue(true);
     const user = userEvent.setup();
