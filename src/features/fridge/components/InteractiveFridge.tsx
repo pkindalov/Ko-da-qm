@@ -1,15 +1,7 @@
 import { useState, useMemo } from 'react';
-import type { FridgeItem, Language } from '../../../shared/types';
+import type { FridgeItem, FridgeItemCategory, Language } from '../../../shared/types';
+import { CATEGORIES } from '../../../shared/constants/categories';
 import './InteractiveFridge.css';
-
-const CATEGORY_SHELF: Record<string, number> = {
-  dairy: 1, egg: 1,
-  grain: 2, condiment: 2,
-  veg: 3, fruit: 3,
-  protein: 4, fish: 4,
-  frozen: 0,
-  other: 2,
-};
 
 const CATEGORY_TINT: Record<string, string> = {
   dairy: 'milk',
@@ -23,6 +15,11 @@ const CATEGORY_TINT: Record<string, string> = {
   frozen: 'frozen',
   other: 'jar',
 };
+
+// Top-to-bottom order of shelves inside the fridge
+const SHELF_ORDER: FridgeItemCategory[] = [
+  'dairy', 'egg', 'protein', 'fish', 'veg', 'fruit', 'grain', 'condiment', 'other',
+];
 
 interface InteractiveFridgeProps {
   items: FridgeItem[];
@@ -50,15 +47,17 @@ const FridgeProduct = ({ item, onRemove, selected, onToggleSelect }: {
   </div>
 );
 
-const FridgeShelf = ({ items, onRemove, onAddSlot, selectedIds, onToggleSelect, max = 5 }: {
+const FridgeShelf = ({ items, onRemove, onAddSlot, selectedIds, onToggleSelect, shelfLabel, max = 5 }: {
   items: FridgeItem[];
   onRemove: (id: string) => void;
   onAddSlot: () => void;
   selectedIds?: Set<string>;
   onToggleSelect?: (id: string) => void;
+  shelfLabel?: string;
   max?: number;
 }) => (
   <div className="shelf">
+    {shelfLabel && <span className="shelf-label">{shelfLabel}</span>}
     {items.map((it) => (
       <FridgeProduct
         key={it.id}
@@ -76,14 +75,19 @@ export function InteractiveFridge({ items, onRemove, onAddSlot, lang, selectedId
   const L = lang === 'en';
   const [open, setOpen] = useState(false);
 
-  const byShelf = useMemo(() => {
-    const m: Record<number, FridgeItem[]> = { 0: [], 1: [], 2: [], 3: [], 4: [] };
+  const byCategory = useMemo(() => {
+    const m: Partial<Record<FridgeItemCategory, FridgeItem[]>> = {};
     items.forEach((it) => {
-      const shelf = CATEGORY_SHELF[it.category] ?? 2;
-      m[shelf].push(it);
+      if (!m[it.category]) m[it.category] = [];
+      m[it.category]!.push(it);
     });
     return m;
   }, [items]);
+
+  const populatedCategories = useMemo(
+    () => SHELF_ORDER.filter(cat => (byCategory[cat]?.length ?? 0) > 0),
+    [byCategory]
+  );
 
   const toggleDoor = () => setOpen((v) => !v);
 
@@ -109,7 +113,7 @@ export function InteractiveFridge({ items, onRemove, onAddSlot, lang, selectedId
             <div className="interior">
               <div className="shelves">
                 <div className="freezer">
-                  {byShelf[0].map((it) => (
+                  {(byCategory.frozen ?? []).map((it) => (
                     <FridgeProduct
                       key={it.id}
                       item={it}
@@ -120,11 +124,26 @@ export function InteractiveFridge({ items, onRemove, onAddSlot, lang, selectedId
                   ))}
                   <button className="add-slot" onClick={onAddSlot}>+</button>
                   <div className="frost" />
+                  <span className="shelf-label">🧊 {L ? 'Frozen' : 'Замразено'}</span>
                 </div>
-                <FridgeShelf items={byShelf[1]} onRemove={onRemove} onAddSlot={onAddSlot} selectedIds={selectedIds} onToggleSelect={onToggleSelect} />
-                <FridgeShelf items={byShelf[2]} onRemove={onRemove} onAddSlot={onAddSlot} selectedIds={selectedIds} onToggleSelect={onToggleSelect} />
-                <FridgeShelf items={byShelf[3]} onRemove={onRemove} onAddSlot={onAddSlot} selectedIds={selectedIds} onToggleSelect={onToggleSelect} />
-                <FridgeShelf items={byShelf[4]} onRemove={onRemove} onAddSlot={onAddSlot} selectedIds={selectedIds} onToggleSelect={onToggleSelect} />
+
+                {populatedCategories.length > 0
+                  ? populatedCategories.map(cat => {
+                      const meta = CATEGORIES.find(c => c.id === cat)!;
+                      return (
+                        <FridgeShelf
+                          key={cat}
+                          items={byCategory[cat]!}
+                          onRemove={onRemove}
+                          onAddSlot={onAddSlot}
+                          selectedIds={selectedIds}
+                          onToggleSelect={onToggleSelect}
+                          shelfLabel={`${meta.emoji} ${L ? meta.labelEn : meta.label}`}
+                        />
+                      );
+                    })
+                  : <FridgeShelf items={[]} onRemove={onRemove} onAddSlot={onAddSlot} selectedIds={selectedIds} onToggleSelect={onToggleSelect} />
+                }
               </div>
             </div>
 

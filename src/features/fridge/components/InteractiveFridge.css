@@ -212,6 +212,25 @@
   border-radius: 12px;
 }
 
+/* Shelf category hint labels */
+.ifridge .shelf-label {
+  position: absolute;
+  top: 50%;
+  left: 5px;
+  transform: translateY(-50%);
+  font-size: 7px;
+  font-weight: 800;
+  color: rgba(44,24,16,.5);
+  letter-spacing: .3px;
+  text-transform: uppercase;
+  pointer-events: none;
+  white-space: nowrap;
+  background: rgba(255,255,255,.65);
+  padding: 2px 5px;
+  border-radius: 4px;
+  border: 1px solid rgba(44,24,16,.08);
+}
+
 /* Product items */
 .ifridge .product {
   position: relative;
