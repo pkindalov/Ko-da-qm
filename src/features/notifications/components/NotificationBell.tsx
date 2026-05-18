@@ -106,6 +106,7 @@ export const NotificationBell = ({
         <div className="notif-dropdown" role="dialog" aria-label={lang === 'en' ? 'Notifications' : 'Известия'}>
           <div className="notif-dropdown-header">
             <span className="notif-dropdown-title">
+              <span className={`notif-led${unreadCount > 0 ? ' active' : ''}`} aria-hidden="true" />
               {lang === 'en' ? 'Notifications' : 'Известия'}
             </span>
             <div className="notif-header-actions">

@@ -318,13 +318,16 @@
   font-size: 10px;
   font-weight: 900;
   opacity: 0;
+  pointer-events: none;
   transition: opacity .15s;
   border: 2px solid #fff;
   cursor: pointer;
   padding: 0;
   line-height: 1;
 }
-.ifridge .product:hover .p-rm { opacity: 1; }
+.ifridge .product:hover .p-rm { opacity: 1; pointer-events: auto; }
+/* On mobile the first tap selects; the ✕ becomes reachable only after selection */
+.ifridge .product.selected .p-rm { opacity: 1; pointer-events: auto; }
 
 /* Tint variants by category */
 .ifridge .tint-milk   { background: linear-gradient(180deg, #fff 0%, #eef3f7 100%); }
