@@ -15,7 +15,12 @@ export const openGoogleTranslate = async (recipe: {
     return { clipboardUsed: false };
   }
 
-  await navigator.clipboard.writeText(text);
-  window.open(GOOGLE_TRANSLATE_BASE, '_blank');
-  return { clipboardUsed: true };
+  try {
+    await navigator.clipboard.writeText(text);
+    window.open(GOOGLE_TRANSLATE_BASE, '_blank');
+    return { clipboardUsed: true };
+  } catch {
+    window.open(GOOGLE_TRANSLATE_BASE, '_blank');
+    return { clipboardUsed: false };
+  }
 };

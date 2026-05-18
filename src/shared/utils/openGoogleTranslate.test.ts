@@ -69,4 +69,20 @@ describe('openGoogleTranslate', () => {
     const [url] = (window.open as ReturnType<typeof vi.fn>).mock.calls[0] as [string];
     expect(url).not.toContain('text=');
   });
+
+  it('still opens Google Translate and returns clipboardUsed=false when clipboard write fails', async () => {
+    Object.defineProperty(navigator, 'clipboard', {
+      value: { writeText: vi.fn().mockRejectedValue(new Error('Permission denied')) },
+      configurable: true,
+    });
+
+    const longRecipe = { ...shortRecipe, steps: ['x'.repeat(8000)] };
+    const result = await openGoogleTranslate(longRecipe);
+
+    expect(result.clipboardUsed).toBe(false);
+    expect(window.open).toHaveBeenCalledWith(
+      expect.not.stringContaining('text='),
+      '_blank',
+    );
+  });
 });
