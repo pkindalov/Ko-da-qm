@@ -68,6 +68,7 @@ export function Sidebar({ tab, setTab, lang, profile, tweaksOpen, onTweaksToggle
           onDeleteAll={onDeleteAll}
           onEntityClick={onEntityClick}
           lang={lang}
+          navNum={String(NAV.length + 1).padStart(2, '0')}
         />
       </nav>
 

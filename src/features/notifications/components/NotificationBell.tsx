@@ -55,6 +55,7 @@ interface NotificationBellProps {
   onDeleteAll: () => void;
   onEntityClick?: (entityType: string, entityId: string) => void;
   lang: Language;
+  navNum?: string;
 }
 
 export const NotificationBell = ({
@@ -68,6 +69,7 @@ export const NotificationBell = ({
   onDeleteAll,
   onEntityClick,
   lang,
+  navNum,
 }: NotificationBellProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
@@ -92,7 +94,7 @@ export const NotificationBell = ({
         onClick={() => setIsOpen(open => !open)}
         aria-label={lang === 'en' ? 'Notifications' : 'Известия'}
       >
-        <span className="nav-num">07</span>
+        {navNum != null && <span className="nav-num">{navNum}</span>}
         <span className="nav-glyph">🔔</span>
         <span>{lang === 'en' ? 'Notifications' : 'Известия'}</span>
         {unreadCount > 0 && (
