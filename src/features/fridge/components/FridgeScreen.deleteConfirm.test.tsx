@@ -164,7 +164,9 @@ describe('FridgeScreen – fridge item delete confirmation', () => {
     render(<FridgeScreen {...makeProps({ fridge, removeFridgeItem })} />);
 
     const removeButtons = screen.getAllByRole('button', { name: '✕' });
-    await user.click(removeButtons[1]);
+    // InteractiveFridge shelves by SHELF_ORDER: dairy before egg,
+    // so Milk(f2/dairy) is at index 0 and Eggs(f1/egg) at index 1.
+    await user.click(removeButtons[0]);
     await user.click(screen.getByRole('button', { name: /Confirm/i }));
 
     expect(removeFridgeItem).toHaveBeenCalledWith('f2');
@@ -180,12 +182,14 @@ describe('FridgeScreen – fridge item delete confirmation', () => {
     render(<FridgeScreen {...makeProps({ fridge })} />);
 
     const removeButtons = screen.getAllByRole('button', { name: '✕' });
+    // InteractiveFridge shelves by SHELF_ORDER: dairy before egg,
+    // so Milk(f2/dairy) is at index 0 and Eggs(f1/egg) at index 1.
     await user.click(removeButtons[0]);
-    expect(screen.getByText('Delete "Eggs"?')).toBeInTheDocument();
+    expect(screen.getByText('Delete "Milk"?')).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: /Cancel/i }));
 
     await user.click(removeButtons[1]);
-    expect(screen.getByText('Delete "Milk"?')).toBeInTheDocument();
+    expect(screen.getByText('Delete "Eggs"?')).toBeInTheDocument();
   });
 });
 

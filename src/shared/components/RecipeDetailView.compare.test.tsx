@@ -4,15 +4,11 @@ import userEvent from '@testing-library/user-event';
 import { RecipeDetailView } from './RecipeDetailView';
 import type { Recipe } from '../types';
 
-vi.mock('../utils/translateRecipe', () => ({
-  translateRecipe: vi.fn(),
-}));
-vi.mock('../utils/translateUsage', () => ({
-  isLimitReached: vi.fn().mockReturnValue(false),
+vi.mock('../utils/openGoogleTranslate', () => ({
+  openGoogleTranslate: vi.fn().mockResolvedValue({ clipboardUsed: false }),
 }));
 
-import { translateRecipe } from '../utils/translateRecipe';
-import { isLimitReached } from '../utils/translateUsage';
+import { openGoogleTranslate } from '../utils/openGoogleTranslate';
 
 const makeRecipe = (overrides: Partial<Recipe> = {}): Recipe => ({
   id: 'r1',
@@ -39,18 +35,7 @@ const defaultProps = (overrides: Partial<Parameters<typeof RecipeDetailView>[0]>
   ...overrides,
 });
 
-const translatedResult = {
-  name: 'Пилешка супа',
-  ingredients: ['1 пиле', 'сол', 'вода'],
-  steps: ['Сварете водата', 'Добавете пилето', 'Подправете'],
-};
-
 describe('RecipeDetailView – translate button visibility', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    (isLimitReached as ReturnType<typeof vi.fn>).mockReturnValue(false);
-  });
-
   it('shows translate button when lang is bg and recipe is not AI', () => {
     render(<RecipeDetailView {...defaultProps()} />);
     expect(screen.getByRole('button', { name: /Преведи на български/i })).toBeInTheDocument();
@@ -66,180 +51,33 @@ describe('RecipeDetailView – translate button visibility', () => {
     expect(screen.queryByRole('button', { name: /Преведи на български/i })).not.toBeInTheDocument();
   });
 
-  it('shows limit message instead of button when daily limit is reached', () => {
-    (isLimitReached as ReturnType<typeof vi.fn>).mockReturnValue(true);
-    render(<RecipeDetailView {...defaultProps()} />);
-    expect(screen.queryByRole('button', { name: /Преведи/i })).not.toBeInTheDocument();
-    expect(screen.getByText(/Преводът е недостъпен днес/i)).toBeInTheDocument();
-  });
-});
-
-describe('RecipeDetailView – compare button', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    (isLimitReached as ReturnType<typeof vi.fn>).mockReturnValue(false);
-    (translateRecipe as ReturnType<typeof vi.fn>).mockResolvedValue(translatedResult);
-  });
-
-  it('does not show compare button before translation', () => {
-    render(<RecipeDetailView {...defaultProps()} />);
-    expect(screen.queryByRole('button', { name: /Сравни/i })).not.toBeInTheDocument();
-  });
-
-  it('shows compare button after successful translation', async () => {
-    const user = userEvent.setup();
-    render(<RecipeDetailView {...defaultProps()} />);
-
-    await user.click(screen.getByRole('button', { name: /Преведи на български/i }));
-    await waitFor(() => expect(translateRecipe).toHaveBeenCalled());
-
-    expect(screen.getByRole('button', { name: /Сравни/i })).toBeInTheDocument();
-  });
-
-  it('shows original-return button and compare button after translation', async () => {
-    const user = userEvent.setup();
-    render(<RecipeDetailView {...defaultProps()} />);
-
-    await user.click(screen.getByRole('button', { name: /Преведи на български/i }));
-    await waitFor(() => expect(translateRecipe).toHaveBeenCalled());
-
-    expect(screen.getByRole('button', { name: /Оригинал/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Сравни/i })).toBeInTheDocument();
-  });
-
-  it('entering compare mode shows original and translated content side by side', async () => {
-    const user = userEvent.setup();
-    render(<RecipeDetailView {...defaultProps()} />);
-
-    await user.click(screen.getByRole('button', { name: /Преведи на български/i }));
-    await waitFor(() => expect(translateRecipe).toHaveBeenCalled());
-    await user.click(screen.getByRole('button', { name: /Сравни/i }));
-
-    // original text visible (ingredients exact, steps use prefix "1. …")
-    expect(screen.getByText('1 chicken')).toBeInTheDocument();
-    expect(screen.getByText(/Boil water/)).toBeInTheDocument();
-    // translated text visible
-    expect(screen.getByText('1 пиле')).toBeInTheDocument();
-    expect(screen.getByText(/Сварете водата/)).toBeInTheDocument();
-  });
-
-  it('compare button label changes to "Затвори" when compare mode is active', async () => {
-    const user = userEvent.setup();
-    render(<RecipeDetailView {...defaultProps()} />);
-
-    await user.click(screen.getByRole('button', { name: /Преведи на български/i }));
-    await waitFor(() => expect(translateRecipe).toHaveBeenCalled());
-    await user.click(screen.getByRole('button', { name: /Сравни/i }));
-
-    expect(screen.getByRole('button', { name: /Затвори/i })).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /^⇄ Сравни$/i })).not.toBeInTheDocument();
-  });
-
-  it('clicking "Затвори" exits compare mode and hides compare grid', async () => {
-    const user = userEvent.setup();
-    render(<RecipeDetailView {...defaultProps()} />);
-
-    await user.click(screen.getByRole('button', { name: /Преведи на български/i }));
-    await waitFor(() => expect(translateRecipe).toHaveBeenCalled());
-    await user.click(screen.getByRole('button', { name: /Сравни/i }));
-    await user.click(screen.getByRole('button', { name: /Затвори/i }));
-
-    // original text should not be visible in compare grid (back to single view with translated)
-    expect(screen.queryByText(/Boil water/)).not.toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Сравни/i })).toBeInTheDocument();
-  });
-
-  it('clicking "Оригинал" clears translation and hides compare button', async () => {
-    const user = userEvent.setup();
-    render(<RecipeDetailView {...defaultProps()} />);
-
-    await user.click(screen.getByRole('button', { name: /Преведи на български/i }));
-    await waitFor(() => expect(translateRecipe).toHaveBeenCalled());
-    await user.click(screen.getByRole('button', { name: /Оригинал/i }));
-
-    expect(screen.queryByRole('button', { name: /Сравни/i })).not.toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Преведи на български/i })).toBeInTheDocument();
-  });
-
-  it('clicking "Оригинал" while in compare mode also exits compare mode', async () => {
-    const user = userEvent.setup();
-    render(<RecipeDetailView {...defaultProps()} />);
-
-    await user.click(screen.getByRole('button', { name: /Преведи на български/i }));
-    await waitFor(() => expect(translateRecipe).toHaveBeenCalled());
-    await user.click(screen.getByRole('button', { name: /Сравни/i }));
-    await user.click(screen.getByRole('button', { name: /Оригинал/i }));
-
-    // compare grid gone, original steps visible again
-    expect(screen.queryByText('1 пиле')).not.toBeInTheDocument();
-    expect(screen.getByText(/Boil water/)).toBeInTheDocument();
-  });
-
-  it('does not show compare button when translation fails', async () => {
-    (translateRecipe as ReturnType<typeof vi.fn>).mockRejectedValue(new Error('network error'));
-    const user = userEvent.setup();
-    render(<RecipeDetailView {...defaultProps()} />);
-
-    await user.click(screen.getByRole('button', { name: /Преведи на български/i }));
-    await waitFor(() => expect(translateRecipe).toHaveBeenCalled());
-
-    expect(screen.queryByRole('button', { name: /Сравни/i })).not.toBeInTheDocument();
-    expect(screen.getByText(/Преводът не успя/i)).toBeInTheDocument();
-  });
-});
-
-describe('RecipeDetailView – allergen highlighting with translated ingredients', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    (isLimitReached as ReturnType<typeof vi.fn>).mockReturnValue(false);
-    (translateRecipe as ReturnType<typeof vi.fn>).mockResolvedValue({
-      name: 'Пилешка супа',
-      ingredients: ['пиле', 'сол'],
-      steps: ['Сварете водата'],
-    });
-  });
-
-  it('still marks an allergen badge after translation (checks original ingredient, not translated)', async () => {
-    const recipe = makeRecipe({
-      ingredients: ['chicken', 'salt'],
-      steps: ['Boil water'],
-    });
-    const user = userEvent.setup();
-    render(<RecipeDetailView {...defaultProps({ recipe, allergies: ['chicken'] })} />);
-
-    await user.click(screen.getByRole('button', { name: /Преведи на български/i }));
-    await waitFor(() => expect(translateRecipe).toHaveBeenCalled());
-
-    // Translated ingredient "пиле" is displayed
-    expect(screen.getByText('пиле')).toBeInTheDocument();
-    // Allergy badge must still appear because original "chicken" matches
-    expect(screen.getByText(/Алергия/i)).toBeInTheDocument();
-  });
-
-  it('still marks a dislike badge after translation (checks original ingredient, not translated)', async () => {
-    const recipe = makeRecipe({
-      ingredients: ['chicken', 'salt'],
-      steps: ['Boil water'],
-    });
-    const user = userEvent.setup();
-    render(<RecipeDetailView {...defaultProps({ recipe, dislikes: ['chicken'] })} />);
-
-    await user.click(screen.getByRole('button', { name: /Преведи на български/i }));
-    await waitFor(() => expect(translateRecipe).toHaveBeenCalled());
-
-    expect(screen.getByText('пиле')).toBeInTheDocument();
-    expect(screen.getByText(/Нелюбимо/i)).toBeInTheDocument();
-  });
-});
-
-describe('RecipeDetailView – translate button with edge-case nameEn', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    (isLimitReached as ReturnType<typeof vi.fn>).mockReturnValue(false);
-  });
-
   it('does not show translate button when nameEn is an empty string', () => {
     render(<RecipeDetailView {...defaultProps({ recipe: makeRecipe({ nameEn: '' }) })} />);
     expect(screen.queryByRole('button', { name: /Преведи на български/i })).not.toBeInTheDocument();
+  });
+});
+
+describe('RecipeDetailView – translate calls openGoogleTranslate', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    (openGoogleTranslate as ReturnType<typeof vi.fn>).mockResolvedValue({ clipboardUsed: false });
+  });
+
+  it('calls openGoogleTranslate with the recipe when translate button is clicked', async () => {
+    const user = userEvent.setup();
+    render(<RecipeDetailView {...defaultProps()} />);
+
+    await user.click(screen.getByRole('button', { name: /Преведи на български/i }));
+
+    await waitFor(() =>
+      expect(openGoogleTranslate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'Chicken Soup',
+          nameEn: 'Chicken Soup',
+          ingredients: ['1 chicken', 'salt', 'water'],
+          steps: ['Boil water', 'Add chicken', 'Season'],
+        }),
+      ),
+    );
   });
 });
