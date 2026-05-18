@@ -46,6 +46,16 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, addRecip
   const [loadingMoreSuggestions, setLoadingMoreSuggestions] = useState(false);
   const { savedIdMap, savingId, saveError, saveRecipe, unsaveRecipe, clearSaveError } = useSaveGeminiRecipe(profile.name, addRecipe, removeRecipe, lang);
 
+  const [selectedItemIds, setSelectedItemIds] = useState<Set<string>>(new Set());
+
+  const toggleItemSelection = (id: string) => {
+    setSelectedItemIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
   const [pendingRemoveItemId, setPendingRemoveItemId] = useState<string | null>(null);
   const [pendingRemoveSuggestionId, setPendingRemoveSuggestionId] = useState<string | null>(null);
   const [translatedCards, setTranslatedCards] = useState<Record<string, TranslatedRecipe>>({});
@@ -134,6 +144,10 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, addRecip
 
   const safeFridge = fridge.filter((item) => !nameMatches(item.name, blocked));
 
+  const searchFridge = selectedItemIds.size > 0
+    ? safeFridge.filter((i) => selectedItemIds.has(i.id))
+    : safeFridge;
+
   const blockedFridgeItems = fridge
     .filter((item) => nameMatches(item.name, blocked))
     .map((item) => ({
@@ -159,19 +173,19 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, addRecip
     setTranslatingIds([]);
     try {
       if (geminiMode) {
-        const results = filterSafe(await searchWithGemini(safeFridge, blocked, lang));
+        const results = filterSafe(await searchWithGemini(searchFridge, blocked, lang));
         setSuggestions(results);
         setSeenGeminiNames(results.map((r) => r.name));
         setSuggestionSource('gemini');
         if (results.length > 0) toast.success(L ? `Found ${results.length} recipe${results.length === 1 ? '' : 's'}` : `Намерени ${results.length} рецепти`);
       } else {
-        const online = filterSafe(await searchByFridge(safeFridge, blocked));
+        const online = filterSafe(await searchByFridge(searchFridge, blocked));
         if (online.length > 0) {
           setSuggestions(online);
           setSeenApiIds(online.map((r) => r.id));
           toast.success(L ? `Found ${online.length} recipe${online.length === 1 ? '' : 's'}` : `Намерени ${online.length} рецепти`);
         } else {
-          const local = filterSafe(await matchFromFridge(safeFridge, blocked));
+          const local = filterSafe(await matchFromFridge(searchFridge, blocked));
           setSuggestions(local);
           setSeenApiIds(local.map((r) => r.id));
           if (local.length > 0) toast.success(L ? `Found ${local.length} recipe${local.length === 1 ? '' : 's'}` : `Намерени ${local.length} рецепти`);
@@ -190,13 +204,13 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, addRecip
     setCompareCards({});
     setTranslatingIds([]);
     try {
-      const online = filterSafe(await searchByFridge(safeFridge, blocked, seenApiIds));
+      const online = filterSafe(await searchByFridge(searchFridge, blocked, seenApiIds));
       if (online.length > 0) {
         setSuggestions(online);
         setSeenApiIds((prev) => [...prev, ...online.map((r) => r.id)]);
         toast.success(L ? `Found ${online.length} recipe${online.length === 1 ? '' : 's'}` : `Намерени ${online.length} рецепти`);
       } else {
-        const local = filterSafe(await matchFromFridge(safeFridge, blocked, seenApiIds));
+        const local = filterSafe(await matchFromFridge(searchFridge, blocked, seenApiIds));
         setSuggestions(local);
         setSeenApiIds((prev) => [...prev, ...local.map((r) => r.id)]);
         if (local.length > 0) toast.success(L ? `Found ${local.length} recipe${local.length === 1 ? '' : 's'}` : `Намерени ${local.length} рецепти`);
@@ -213,7 +227,7 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, addRecip
     setCompareCards({});
     setTranslatingIds([]);
     try {
-      const results = filterSafe(await searchWithGemini(safeFridge, blocked, lang, seenGeminiNames));
+      const results = filterSafe(await searchWithGemini(searchFridge, blocked, lang, seenGeminiNames));
       const newResults = results.filter((r) => !seenGeminiNames.includes(r.name));
       setSuggestions(newResults);
       setSeenGeminiNames((prev) => [...prev, ...newResults.map((r) => r.name)]);
@@ -276,6 +290,8 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, addRecip
           items={fridge}
           onRemove={(id) => setPendingRemoveItemId(id)}
           onAddSlot={openAddModal}
+          selectedIds={selectedItemIds}
+          onToggleSelect={toggleItemSelection}
         />
       )}
 
@@ -318,11 +334,28 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, addRecip
           </label>
         </div>
       </div>
-      <p style={{ fontSize: 14, color: 'var(--text2)', marginBottom: 14, fontWeight: 600 }}>
+      <p style={{ fontSize: 14, color: 'var(--text2)', marginBottom: selectedItemIds.size > 0 ? 6 : 14, fontWeight: 600 }}>
         {geminiMode
           ? (L ? 'Ask Gemini AI to suggest recipes from your fridge.' : 'Попитай Gemini ИИ за рецепти от хладилника.')
           : (L ? 'Find recipes that match what you have at home.' : 'Намери рецепти спрямо наличните продукти и твоите ограничения.')}
       </p>
+      {selectedItemIds.size > 0 && (
+        <p style={{ fontSize: 13, color: 'var(--text2)', marginBottom: 14, fontWeight: 600 }}>
+          {L
+            ? `Searching with ${selectedItemIds.size} selected item${selectedItemIds.size !== 1 ? 's' : ''} only.`
+            : selectedItemIds.size === 1
+              ? 'Търсене само по 1 избран продукт.'
+              : `Търсене само по ${selectedItemIds.size} избрани продукта.`
+          }
+          {' · '}
+          <button
+            style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', fontWeight: 700, padding: 0, font: 'inherit', fontSize: 13 }}
+            onClick={() => setSelectedItemIds(new Set())}
+          >
+            {L ? 'Clear selection' : 'Изчисти избора'}
+          </button>
+        </p>
+      )}
       <button
         className="btn btn-primary btn-full"
         onClick={handleWhatCanICook}
