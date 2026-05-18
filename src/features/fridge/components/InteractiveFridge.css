@@ -337,6 +337,9 @@
 }
 .ifridge .fridge.open .door { transform: rotateY(-118deg); }
 
+/* When open, let clicks reach the interior (shelves, + buttons, products) */
+.ifridge .fridge.open .door-wrap { pointer-events: none; }
+
 /* Door inside surface (shown when open) */
 .ifridge .door-inside {
   position: absolute;
