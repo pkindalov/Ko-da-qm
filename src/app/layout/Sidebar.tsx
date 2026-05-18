@@ -1,28 +1,30 @@
-import type { Tab, Language, Notification } from '../../shared/types';
+import type { Tab, Language, Notification, Profile } from '../../shared/types';
 import { NotificationBell } from '../../features/notifications/components/NotificationBell';
 
 interface NavItem {
   id: Tab;
-  icon: string;
+  glyph: string;
   label: string;
   labelEn: string;
 }
 
 const NAV: NavItem[] = [
-  { id: 'home',     icon: '🏠', label: 'Начало',    labelEn: 'Home'     },
-  { id: 'feed',     icon: '👥', label: 'Лента',     labelEn: 'Feed'     },
-  { id: 'fridge',   icon: '🧊', label: 'Хладилник', labelEn: 'Fridge'   },
-  { id: 'recipes',  icon: '📖', label: 'Рецепти',   labelEn: 'Recipes'  },
-  { id: 'products', icon: '🥕', label: 'Продукти',  labelEn: 'Products' },
-  { id: 'profile',  icon: '👤', label: 'Профил',    labelEn: 'Profile'  },
+  { id: 'home',     glyph: '🏠', label: 'Начало',    labelEn: 'Home'     },
+  { id: 'feed',     glyph: '👥', label: 'Лента',     labelEn: 'Feed'     },
+  { id: 'fridge',   glyph: '🧊', label: 'Хладилник', labelEn: 'Fridge'   },
+  { id: 'recipes',  glyph: '📖', label: 'Рецепти',   labelEn: 'Recipes'  },
+  { id: 'products', glyph: '🥕', label: 'Продукти',  labelEn: 'Products' },
+  { id: 'profile',  glyph: '👤', label: 'Профил',    labelEn: 'Profile'  },
 ];
 
 interface SidebarProps {
   tab: Tab;
   setTab: (tab: Tab) => void;
   lang: Language;
+  profile: Profile;
+  tweaksOpen: boolean;
   onTweaksToggle: () => void;
-  onLogout: () => void;
+  onLangToggle: () => void;
   notifications: Notification[];
   unreadCount: number;
   onMarkAsRead: (id: string) => void;
@@ -34,50 +36,53 @@ interface SidebarProps {
   onEntityClick?: (entityType: string, entityId: string) => void;
 }
 
-export function Sidebar({ tab, setTab, lang, onTweaksToggle, onLogout, notifications, unreadCount, onMarkAsRead, onMarkAllAsRead, onMarkAsUnread, onMarkAllAsUnread, onDeleteNotification, onDeleteAll, onEntityClick }: SidebarProps) {
+export function Sidebar({ tab, setTab, lang, profile, tweaksOpen, onTweaksToggle, onLangToggle, notifications, unreadCount, onMarkAsRead, onMarkAllAsRead, onMarkAsUnread, onMarkAllAsUnread, onDeleteNotification, onDeleteAll, onEntityClick }: SidebarProps) {
+  const userInitial = (profile.name || 'К').trim().charAt(0).toUpperCase();
+  const filterCount = profile.allergies.length + profile.dislikes.length;
+
   return (
-    <nav className="sidebar">
-      <div className="sidebar-logo">
-        <span className="sidebar-logo-mark">Ко-да-ям</span>
-        <span>{lang === 'en' ? 'for picky eaters' : 'за капризни хора'}</span>
+    <aside className="sidebar">
+      <div className="brand">
+        <span className="brand-mark">Ко-да-ям</span>
+        <span className="brand-sub">{lang === 'en' ? 'for picky eaters' : 'за капризни хора'}</span>
       </div>
 
-      {NAV.map((n) => (
-        <button
-          key={n.id}
-          className={`nav-item${tab === n.id ? ' active' : ''}`}
-          onClick={() => setTab(n.id)}
-        >
-          <span className="nav-icon">{n.icon}</span>
-          {lang === 'en' ? n.labelEn : n.label}
-        </button>
-      ))}
-
-      <NotificationBell
-        notifications={notifications}
-        unreadCount={unreadCount}
-        onMarkAsRead={onMarkAsRead}
-        onMarkAllAsRead={onMarkAllAsRead}
-        onMarkAsUnread={onMarkAsUnread}
-        onMarkAllAsUnread={onMarkAllAsUnread}
-        onDeleteNotification={onDeleteNotification}
-        onDeleteAll={onDeleteAll}
-        onEntityClick={onEntityClick}
-        lang={lang}
-      />
-
-      <div className="sidebar-spacer" />
+      <nav className="nav">
+        <div className="nav-section-label">{lang === 'en' ? 'Sections' : 'Секции'}</div>
+        {NAV.map((n, i) => (
+          <button key={n.id} className={`nav-item${tab === n.id ? ' active' : ''}`} onClick={() => setTab(n.id)}>
+            <span className="nav-num">{String(i + 1).padStart(2, '0')}</span>
+            <span className="nav-glyph">{n.glyph}</span>
+            <span>{lang === 'en' ? n.labelEn : n.label}</span>
+          </button>
+        ))}
+      </nav>
 
       <div className="sidebar-footer">
-        <button className="nav-item" onClick={onTweaksToggle}>
-          <span className="nav-icon">⚙</span>
-          {lang === 'en' ? 'Settings' : 'Настройки'}
-        </button>
-        <button className="nav-item" onClick={onLogout} style={{ color: 'var(--rust)' }}>
-          <span className="nav-icon">🚪</span>
-          {lang === 'en' ? 'Log out' : 'Изход'}
-        </button>
+        <div className="user-chip">
+          <div className="user-avatar">{userInitial}</div>
+          <div>
+            <div className="user-name">{profile.name || (lang === 'en' ? 'Guest cook' : 'Гост')}</div>
+            <div className="user-meta">{filterCount} {lang === 'en' ? 'filters' : 'филтри'}</div>
+          </div>
+        </div>
+        <div className="sidebar-utility">
+          <NotificationBell
+            notifications={notifications}
+            unreadCount={unreadCount}
+            onMarkAsRead={onMarkAsRead}
+            onMarkAllAsRead={onMarkAllAsRead}
+            onMarkAsUnread={onMarkAsUnread}
+            onMarkAllAsUnread={onMarkAllAsUnread}
+            onDeleteNotification={onDeleteNotification}
+            onDeleteAll={onDeleteAll}
+            onEntityClick={onEntityClick}
+            lang={lang}
+          />
+          <button className={tweaksOpen ? 'on' : ''} onClick={onTweaksToggle}>Tweaks</button>
+          <button onClick={onLangToggle}>{lang === 'bg' ? 'EN' : 'BG'}</button>
+        </div>
       </div>
-    </nav>
+    </aside>
   );
 }

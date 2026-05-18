@@ -65,46 +65,45 @@ a{color:inherit;text-decoration:none}
   position:sticky;top:0;align-self:start;
   height:100dvh;padding:36px 28px 24px;
   border-right:1px solid var(--line);
-  display:flex;flex-direction:column;gap:2px;
+  display:flex;flex-direction:column;gap:36px;
   background:var(--paper);
   overflow-y:auto;
 }
 
-.sidebar-logo{
-  display:flex;flex-direction:column;gap:0;line-height:1;
-  margin-bottom:32px;
-}
-.sidebar-logo-mark{
-  font-family:var(--serif);font-style:italic;font-size:30px;
-  letter-spacing:-1.5px;color:var(--ink);font-weight:400;
-}
-.sidebar-logo span{
-  font-family:var(--mono);font-size:10px;letter-spacing:0.5px;
-  color:var(--ink-3);text-transform:uppercase;margin-top:6px;
-  font-weight:400;opacity:1;display:block;
-}
+.brand{display:flex;flex-direction:column;gap:2px;line-height:1}
+.brand-mark{font-family:var(--serif);font-style:italic;font-size:34px;letter-spacing:-1.5px;color:var(--ink);font-weight:400}
+.brand-sub{font-family:var(--mono);font-size:10.5px;letter-spacing:0.5px;color:var(--ink-3);text-transform:uppercase;margin-top:4px}
+
+.nav{display:flex;flex-direction:column;gap:2px;flex:1}
+.nav-section-label{font-family:var(--mono);font-size:10px;letter-spacing:1.2px;color:var(--ink-3);text-transform:uppercase;padding:0 4px;margin-bottom:8px}
 
 .nav-item{
   display:flex;align-items:center;gap:14px;
   padding:10px 4px;
-  font-size:14.5px;font-weight:500;color:var(--ink-2);
+  font-size:15px;font-weight:500;color:var(--ink-2);
   border-radius:0;background:none;width:100%;text-align:left;
   position:relative;transition:color .15s;
   border:none;margin-bottom:0;
+  font-family:var(--sans);
 }
 .nav-item:hover{color:var(--ink)}
-.nav-icon{font-size:17px;width:22px;text-align:center;flex-shrink:0}
+.nav-item .nav-num{font-family:var(--mono);font-size:11px;color:var(--ink-3);width:18px}
+.nav-glyph{display:none}
 .nav-item.active{color:var(--ink);font-weight:600}
 .nav-item.active::before{
   content:"";position:absolute;left:-28px;top:50%;transform:translateY(-50%);
   width:4px;height:4px;border-radius:50%;background:var(--clay);
 }
 
-.sidebar-spacer{flex:1}
-.sidebar-footer{
-  display:flex;flex-direction:column;gap:2px;
-  padding-top:20px;border-top:1px solid var(--line);margin-top:12px;
-}
+.sidebar-footer{display:flex;flex-direction:column;gap:14px;padding-top:24px;border-top:1px solid var(--line)}
+.user-chip{display:flex;align-items:center;gap:10px;padding:6px 4px}
+.user-avatar{width:32px;height:32px;border-radius:50%;background:var(--clay-soft);color:var(--clay-deep);display:flex;align-items:center;justify-content:center;font-weight:600;font-size:13px;letter-spacing:-.2px}
+.user-name{font-size:13.5px;font-weight:500;color:var(--ink)}
+.user-meta{font-size:11.5px;color:var(--ink-3);font-family:var(--mono);letter-spacing:.2px}
+.sidebar-utility{display:flex;gap:6px;align-items:center;font-size:12px;color:var(--ink-3);font-family:var(--mono);letter-spacing:.3px}
+.sidebar-utility button{padding:4px 8px;border-radius:var(--r-xs);font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--ink-3);background:none;border:none;cursor:pointer}
+.sidebar-utility button:hover{color:var(--ink);background:var(--paper-2)}
+.sidebar-utility button.on{color:var(--ink);background:var(--paper-2)}
 
 .main-content{
   min-height:100dvh;
@@ -795,14 +794,13 @@ a{color:inherit;text-decoration:none}
     z-index:100;gap:4px;background:var(--surface);
     overflow-x:auto;
   }
-  .sidebar-logo,.sidebar-footer,.sidebar-spacer{display:none}
-  .nav-item{
-    flex-direction:column;gap:4px;padding:6px 10px;
-    font-size:10.5px;text-align:center;color:var(--ink-3);border-radius:var(--r-xs);
-  }
+  .brand,.sidebar-footer,.nav-section-label{display:none}
+  .nav{flex-direction:row;flex:1;gap:0;justify-content:space-around}
+  .nav-item{flex-direction:column;gap:4px;padding:6px 8px;font-size:11px;text-align:center;color:var(--ink-3)}
   .nav-item.active::before{display:none}
   .nav-item.active{color:var(--clay-deep)}
-  .nav-icon{font-size:18px;width:auto}
+  .nav-item .nav-num{display:none}
+  .nav-glyph{display:inline;font-size:18px}
   .main-content{padding:32px 24px 100px}
 }
 @media(max-width:767px){
