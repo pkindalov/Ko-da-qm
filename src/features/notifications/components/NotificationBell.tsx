@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import type { Notification, Language } from '../../../shared/types';
+import { ANONYMOUS_ACTOR, getNotificationParts, formatTimeAgo } from '../constants/notificationMessages';
 
 const BellIcon = () => (
   <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -10,7 +11,6 @@ const BellIcon = () => (
     <path d="M7.5 16a2.5 2.5 0 005 0" />
   </svg>
 );
-import { ANONYMOUS_ACTOR, getNotificationParts, formatTimeAgo } from '../constants/notificationMessages';
 
 const MAX_BADGE_COUNT = 99;
 
