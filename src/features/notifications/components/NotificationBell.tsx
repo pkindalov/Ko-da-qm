@@ -1,6 +1,15 @@
 import { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import type { Notification, Language } from '../../../shared/types';
+
+const BellIcon = () => (
+  <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M10 2.5v1" />
+    <path d="M6 14V9.5C6 7 7.8 5 10 5s4 2 4 4.5V14" />
+    <line x1="4" y1="14" x2="16" y2="14" />
+    <path d="M7.5 16a2.5 2.5 0 005 0" />
+  </svg>
+);
 import { ANONYMOUS_ACTOR, getNotificationParts, formatTimeAgo } from '../constants/notificationMessages';
 
 const MAX_BADGE_COUNT = 99;
@@ -95,7 +104,7 @@ export const NotificationBell = ({
         aria-label={lang === 'en' ? 'Notifications' : 'Известия'}
       >
         {navNum != null && <span className="nav-num">{navNum}</span>}
-        <span className="nav-glyph">🔔</span>
+        <span className="nav-glyph"><BellIcon /></span>
         <span>{lang === 'en' ? 'Notifications' : 'Известия'}</span>
         {unreadCount > 0 && (
           <span className="notif-badge" aria-label={`${unreadCount} unread`}>{badgeLabel}</span>
