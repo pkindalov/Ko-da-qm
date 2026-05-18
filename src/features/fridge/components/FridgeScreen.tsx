@@ -290,6 +290,7 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, addRecip
           items={fridge}
           onRemove={(id) => setPendingRemoveItemId(id)}
           onAddSlot={openAddModal}
+          lang={lang}
           selectedIds={selectedItemIds}
           onToggleSelect={toggleItemSelection}
         />

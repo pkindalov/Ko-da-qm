@@ -23,6 +23,7 @@ describe('InteractiveFridge – shelf placement', () => {
         ]}
         onRemove={vi.fn()}
         onAddSlot={vi.fn()}
+        lang="en"
       />,
     );
     expect(screen.getByText('Домати')).toBeInTheDocument();
@@ -36,6 +37,7 @@ describe('InteractiveFridge – shelf placement', () => {
         items={[makeItem({ id: 'frozen-1', name: 'Сладолед', emoji: '🍦', category: 'frozen' })]}
         onRemove={vi.fn()}
         onAddSlot={vi.fn()}
+        lang="en"
       />,
     );
     const freezer = container.querySelector('.shelves > .freezer') as HTMLElement;
@@ -48,6 +50,7 @@ describe('InteractiveFridge – shelf placement', () => {
         items={[makeItem({ id: 'veg-1', name: 'Домати', category: 'veg' })]}
         onRemove={vi.fn()}
         onAddSlot={vi.fn()}
+        lang="en"
       />,
     );
     const freezer = container.querySelector('.shelves > .freezer') as HTMLElement;
@@ -56,7 +59,7 @@ describe('InteractiveFridge – shelf placement', () => {
 
   it('renders with an empty item list without errors', () => {
     expect(() =>
-      render(<InteractiveFridge items={[]} onRemove={vi.fn()} onAddSlot={vi.fn()} />),
+      render(<InteractiveFridge items={[]} onRemove={vi.fn()} onAddSlot={vi.fn()} lang="en" />),
     ).not.toThrow();
   });
 
@@ -66,6 +69,7 @@ describe('InteractiveFridge – shelf placement', () => {
         items={[makeItem({ id: 'x', name: 'Нещо', category: 'other' })]}
         onRemove={vi.fn()}
         onAddSlot={vi.fn()}
+        lang="en"
       />,
     );
     const freezer = container.querySelector('.shelves > .freezer') as HTMLElement;
@@ -85,6 +89,7 @@ describe('InteractiveFridge – selection state', () => {
         ]}
         onRemove={vi.fn()}
         onAddSlot={vi.fn()}
+        lang="en"
         selectedIds={new Set(['a'])}
         onToggleSelect={vi.fn()}
       />,
@@ -99,6 +104,7 @@ describe('InteractiveFridge – selection state', () => {
         items={[makeItem({ id: 'a', name: 'Домати', category: 'veg' })]}
         onRemove={vi.fn()}
         onAddSlot={vi.fn()}
+        lang="en"
         selectedIds={new Set()}
         onToggleSelect={vi.fn()}
       />,
@@ -112,6 +118,7 @@ describe('InteractiveFridge – selection state', () => {
         items={[makeItem({ id: 'a', name: 'Домати', category: 'veg' })]}
         onRemove={vi.fn()}
         onAddSlot={vi.fn()}
+        lang="en"
         onToggleSelect={vi.fn()}
       />,
     );
@@ -124,6 +131,7 @@ describe('InteractiveFridge – selection state', () => {
         items={[makeItem({ id: 'a', name: 'Домати', category: 'veg' })]}
         onRemove={vi.fn()}
         onAddSlot={vi.fn()}
+        lang="en"
       />,
     );
     expect(container.querySelector('.product.selectable')).toBeNull();
@@ -139,6 +147,7 @@ describe('InteractiveFridge – interactions', () => {
         items={[makeItem({ id: 'item-1', name: 'Домати', category: 'veg' })]}
         onRemove={vi.fn()}
         onAddSlot={vi.fn()}
+        lang="en"
         onToggleSelect={onToggleSelect}
       />,
     );
@@ -154,6 +163,7 @@ describe('InteractiveFridge – interactions', () => {
         items={[makeItem({ id: 'item-1', name: 'Домати', category: 'veg' })]}
         onRemove={onRemove}
         onAddSlot={vi.fn()}
+        lang="en"
         onToggleSelect={vi.fn()}
       />,
     );
@@ -169,6 +179,7 @@ describe('InteractiveFridge – interactions', () => {
         items={[makeItem({ id: 'item-1', name: 'Домати', category: 'veg' })]}
         onRemove={vi.fn()}
         onAddSlot={vi.fn()}
+        lang="en"
         onToggleSelect={onToggleSelect}
       />,
     );
@@ -180,7 +191,7 @@ describe('InteractiveFridge – interactions', () => {
     const user = userEvent.setup();
     const onAddSlot = vi.fn();
     const { container } = render(
-      <InteractiveFridge items={[]} onRemove={vi.fn()} onAddSlot={onAddSlot} />,
+      <InteractiveFridge items={[]} onRemove={vi.fn()} onAddSlot={onAddSlot} lang="en" />,
     );
     await user.click(container.querySelector('.add-slot') as HTMLElement);
     expect(onAddSlot).toHaveBeenCalled();
@@ -191,7 +202,7 @@ describe('InteractiveFridge – interactions', () => {
       makeItem({ id: `v${i}`, name: `Зеленчук${i}`, category: 'veg' }),
     );
     const { container } = render(
-      <InteractiveFridge items={fullShelfItems} onRemove={vi.fn()} onAddSlot={vi.fn()} />,
+      <InteractiveFridge items={fullShelfItems} onRemove={vi.fn()} onAddSlot={vi.fn()} lang="en" />,
     );
     // Shelf 3 (veg) has 5 items — its add-slot button should be absent.
     // Other shelves still show their + buttons, so we check the veg shelf specifically.
@@ -203,24 +214,94 @@ describe('InteractiveFridge – interactions', () => {
   });
 });
 
-describe('InteractiveFridge – door toggle', () => {
+describe('InteractiveFridge – door toggle (English)', () => {
   it('shows the "Open fridge" button by default', () => {
-    render(<InteractiveFridge items={[]} onRemove={vi.fn()} onAddSlot={vi.fn()} />);
+    render(<InteractiveFridge items={[]} onRemove={vi.fn()} onAddSlot={vi.fn()} lang="en" />);
     expect(screen.getByRole('button', { name: /open fridge/i })).toBeInTheDocument();
   });
 
   it('shows "Close door" after the door is opened', async () => {
     const user = userEvent.setup();
-    render(<InteractiveFridge items={[]} onRemove={vi.fn()} onAddSlot={vi.fn()} />);
+    render(<InteractiveFridge items={[]} onRemove={vi.fn()} onAddSlot={vi.fn()} lang="en" />);
     await user.click(screen.getByRole('button', { name: /open fridge/i }));
     expect(screen.getByRole('button', { name: /close door/i })).toBeInTheDocument();
   });
 
   it('toggles back to "Open fridge" when the door is closed again', async () => {
     const user = userEvent.setup();
-    render(<InteractiveFridge items={[]} onRemove={vi.fn()} onAddSlot={vi.fn()} />);
+    render(<InteractiveFridge items={[]} onRemove={vi.fn()} onAddSlot={vi.fn()} lang="en" />);
     await user.click(screen.getByRole('button', { name: /open fridge/i }));
     await user.click(screen.getByRole('button', { name: /close door/i }));
     expect(screen.getByRole('button', { name: /open fridge/i })).toBeInTheDocument();
+  });
+
+  it('shows "Tap to open" hint when door is closed', () => {
+    render(<InteractiveFridge items={[]} onRemove={vi.fn()} onAddSlot={vi.fn()} lang="en" />);
+    expect(screen.getByText(/tap to open/i)).toBeInTheDocument();
+  });
+
+  it('hides the "Tap to open" hint when door is open', async () => {
+    const user = userEvent.setup();
+    render(<InteractiveFridge items={[]} onRemove={vi.fn()} onAddSlot={vi.fn()} lang="en" />);
+    await user.click(screen.getByRole('button', { name: /open fridge/i }));
+    expect(screen.queryByText(/tap to open/i)).not.toBeInTheDocument();
+  });
+
+  it('shows "Door closed" status by default', () => {
+    render(<InteractiveFridge items={[]} onRemove={vi.fn()} onAddSlot={vi.fn()} lang="en" />);
+    expect(screen.getByText(/door closed/i)).toBeInTheDocument();
+  });
+
+  it('shows "Door open" status when door is open', async () => {
+    const user = userEvent.setup();
+    render(<InteractiveFridge items={[]} onRemove={vi.fn()} onAddSlot={vi.fn()} lang="en" />);
+    await user.click(screen.getByRole('button', { name: /open fridge/i }));
+    expect(screen.getByText(/door open/i)).toBeInTheDocument();
+  });
+});
+
+describe('InteractiveFridge – door toggle (Bulgarian)', () => {
+  it('shows the Bulgarian "Отвори хладилника" button by default', () => {
+    render(<InteractiveFridge items={[]} onRemove={vi.fn()} onAddSlot={vi.fn()} lang="bg" />);
+    expect(screen.getByRole('button', { name: /отвори хладилника/i })).toBeInTheDocument();
+  });
+
+  it('shows Bulgarian "Затвори" after the door is opened', async () => {
+    const user = userEvent.setup();
+    render(<InteractiveFridge items={[]} onRemove={vi.fn()} onAddSlot={vi.fn()} lang="bg" />);
+    await user.click(screen.getByRole('button', { name: /отвори хладилника/i }));
+    expect(screen.getByRole('button', { name: /затвори/i })).toBeInTheDocument();
+  });
+
+  it('toggles back to Bulgarian open button when the door is closed again', async () => {
+    const user = userEvent.setup();
+    render(<InteractiveFridge items={[]} onRemove={vi.fn()} onAddSlot={vi.fn()} lang="bg" />);
+    await user.click(screen.getByRole('button', { name: /отвори хладилника/i }));
+    await user.click(screen.getByRole('button', { name: /затвори/i }));
+    expect(screen.getByRole('button', { name: /отвори хладилника/i })).toBeInTheDocument();
+  });
+
+  it('shows Bulgarian "Натисни за отваряне" hint when door is closed', () => {
+    render(<InteractiveFridge items={[]} onRemove={vi.fn()} onAddSlot={vi.fn()} lang="bg" />);
+    expect(screen.getByText(/натисни за отваряне/i)).toBeInTheDocument();
+  });
+
+  it('hides the hint when door is open', async () => {
+    const user = userEvent.setup();
+    render(<InteractiveFridge items={[]} onRemove={vi.fn()} onAddSlot={vi.fn()} lang="bg" />);
+    await user.click(screen.getByRole('button', { name: /отвори хладилника/i }));
+    expect(screen.queryByText(/натисни за отваряне/i)).not.toBeInTheDocument();
+  });
+
+  it('shows Bulgarian "Вратата е затворена" status by default', () => {
+    render(<InteractiveFridge items={[]} onRemove={vi.fn()} onAddSlot={vi.fn()} lang="bg" />);
+    expect(screen.getByText(/вратата е затворена/i)).toBeInTheDocument();
+  });
+
+  it('shows Bulgarian "Вратата е отворена" status when door is open', async () => {
+    const user = userEvent.setup();
+    render(<InteractiveFridge items={[]} onRemove={vi.fn()} onAddSlot={vi.fn()} lang="bg" />);
+    await user.click(screen.getByRole('button', { name: /отвори хладилника/i }));
+    expect(screen.getByText(/вратата е отворена/i)).toBeInTheDocument();
   });
 });

@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import type { FridgeItem } from '../../../shared/types';
+import type { FridgeItem, Language } from '../../../shared/types';
 import './InteractiveFridge.css';
 
 const CATEGORY_SHELF: Record<string, number> = {
@@ -28,6 +28,7 @@ interface InteractiveFridgeProps {
   items: FridgeItem[];
   onRemove: (id: string) => void;
   onAddSlot: () => void;
+  lang: Language;
   selectedIds?: Set<string>;
   onToggleSelect?: (id: string) => void;
 }
@@ -71,7 +72,8 @@ const FridgeShelf = ({ items, onRemove, onAddSlot, selectedIds, onToggleSelect, 
   </div>
 );
 
-export function InteractiveFridge({ items, onRemove, onAddSlot, selectedIds, onToggleSelect }: InteractiveFridgeProps) {
+export function InteractiveFridge({ items, onRemove, onAddSlot, lang, selectedIds, onToggleSelect }: InteractiveFridgeProps) {
+  const L = lang === 'en';
   const [open, setOpen] = useState(false);
 
   const byShelf = useMemo(() => {
@@ -91,10 +93,10 @@ export function InteractiveFridge({ items, onRemove, onAddSlot, selectedIds, onT
         <div className="scene-toolbar">
           <span className="chip-status">
             <span className="dot" />
-            {open ? 'Door open' : 'Door closed'} · 4°C
+            {open ? (L ? 'Door open' : 'Вратата е отворена') : (L ? 'Door closed' : 'Вратата е затворена')} · 4°C
           </span>
           <button className="btn-door" onClick={toggleDoor}>
-            {open ? '⤬ Close door' : '⇲ Open fridge'}
+            {open ? (L ? '⤬ Close door' : '⤬ Затвори') : (L ? '⇲ Open fridge' : '⇲ Отвори хладилника')}
           </button>
         </div>
 
@@ -129,7 +131,7 @@ export function InteractiveFridge({ items, onRemove, onAddSlot, selectedIds, onT
             <div className="door-wrap">
               <div className="door" onClick={toggleDoor}>
                 <div className="door-display">
-                  <span>FRESH</span>
+                  <span>{L ? 'FRESH' : 'СВЕЖО'}</span>
                   <span className="d-time">4°C</span>
                   <span>❄</span>
                 </div>
@@ -164,7 +166,7 @@ export function InteractiveFridge({ items, onRemove, onAddSlot, selectedIds, onT
 
             {!open && (
               <div className="tap-hint">
-                <span className="pill">👆 Tap to open</span>
+                <span className="pill">👆 {L ? 'Tap to open' : 'Натисни за отваряне'}</span>
               </div>
             )}
           </div>
