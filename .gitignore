@@ -1,5 +1,6 @@
 resources
 CLAUDE.md
+DESIGN_SYSTEM.md
 node_modules
 dist
 .env

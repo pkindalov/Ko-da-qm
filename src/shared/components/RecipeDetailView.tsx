@@ -54,113 +54,113 @@ export const RecipeDetailView = ({
   return (
     <div className="fade-in">
       {showBackButton && (
-        <button className="btn btn-ghost btn-sm recipe-detail-back" onClick={onBack}>
-          ← {L ? 'Back' : 'Назад'}
+        <button className="detail-back" onClick={onBack}>
+          ← {L ? 'Back to recipes' : 'Към рецептите'}
         </button>
       )}
 
-      <div className="recipe-detail-hero">
-        {recipe.imageUrl
-          ? <img src={recipe.imageUrl} alt={displayName} className="recipe-detail-hero-img" />
-          : <span className="recipe-detail-emoji">{recipe.emoji}</span>
-        }
-        <div className="recipe-detail-name">{displayName}</div>
-        <div className="recipe-detail-badges">
-          <Badge type={risk === 'safe' ? 'safe' : risk === 'allergy' ? 'allergy' : 'dislike'}>
-            {risk === 'safe'    && (L ? '✓ Safe for you'          : '✓ Безопасно')}
-            {risk === 'dislike' && (L ? '⚠ Contains restrictions' : '⚠ Съдържа ограничения')}
-            {risk === 'allergy' && (L ? '⚠ Contains allergens!'   : '⚠ Съдържа алергени!')}
-          </Badge>
-          <span className="badge badge-neutral">⏱ {recipe.time} {L ? 'min' : 'мин'}</span>
-          {recipe.isAI && <Badge type="primary">✨ AI</Badge>}
-          {recipe.isPublic && !isOwner && (
-            <span className="badge badge-neutral">🌐 {L ? 'Community' : 'Общност'}</span>
-          )}
+      <div className="detail-hero">
+        <div className="detail-image">
+          <div className="recipe-image-stripes" />
+          {recipe.imageUrl
+            ? <img src={recipe.imageUrl} alt={displayName} />
+            : <span className="detail-image-emoji">{recipe.emoji}</span>
+          }
         </div>
-        {recipe.authorName && !isOwner && (
-          <div className="recipe-detail-author">
-            👤 {L ? 'by' : 'от'}{' '}
-            {onAuthorClick
-              ? <button onClick={onAuthorClick} style={{ background: 'none', border: 'none', cursor: 'pointer', fontWeight: 700, color: 'var(--primary)', padding: 0 }}>{recipe.authorName}</button>
-              : <strong>{recipe.authorName}</strong>
-            }
+        <div className="detail-head">
+          <div className="eyebrow">
+            {recipe.tags?.[0] ?? (L ? 'recipe' : 'рецепта')} · {recipe.time} {L ? 'min' : 'мин'}
           </div>
-        )}
-        {!isOwner && onToggleFavorite && (
-          <button className="btn btn-ghost btn-sm" onClick={onToggleFavorite} style={{ marginTop: 12 }}>
-            {isFavorite
-              ? (L ? '♥ Saved' : '♥ Запазена')
-              : (L ? '♡ Save to favorites' : '♡ Запази в любими')}
-            {favoriteCount != null && favoriteCount > 0 && (
-              <span style={{ marginLeft: 6, color: 'var(--text2)', fontWeight: 600 }}>({favoriteCount})</span>
+          <h1 className="h-title italic">{displayName}</h1>
+          <div className="detail-head-badges">
+            <Badge type={risk === 'safe' ? 'safe' : risk === 'allergy' ? 'allergy' : 'dislike'}>
+              <span className={`dot dot-${risk === 'safe' ? 'safe' : 'danger'}`} />
+              {risk === 'safe'    && (L ? 'Safe for you'          : 'Безопасно')}
+              {risk === 'dislike' && (L ? 'Contains restrictions' : 'Съдържа ограничения')}
+              {risk === 'allergy' && (L ? 'Contains allergens!'   : 'Съдържа алергени!')}
+            </Badge>
+            <span className="badge badge-neutral">{recipe.time} {L ? 'minutes' : 'минути'}</span>
+            {recipe.isAI && <Badge type="primary">AI</Badge>}
+            {recipe.isPublic && !isOwner && (
+              <span className="badge badge-neutral">{L ? 'Community' : 'Общност'}</span>
             )}
-          </button>
-        )}
+          </div>
+          {recipe.authorName && !isOwner && (
+            <div className="detail-head-author">
+              {L ? 'by' : 'от'}{' '}
+              {onAuthorClick
+                ? <button onClick={onAuthorClick} style={{ background: 'none', border: 'none', cursor: 'pointer', fontWeight: 700, color: 'var(--clay-deep)', padding: 0 }}>{recipe.authorName}</button>
+                : <strong>{recipe.authorName}</strong>
+              }
+            </div>
+          )}
+          {!isOwner && onToggleFavorite && (
+            <button className="btn btn-secondary btn-sm" onClick={onToggleFavorite}>
+              {isFavorite
+                ? (L ? '♥ Saved' : '♥ Запазена')
+                : (L ? '♡ Save to favorites' : '♡ Запази в любими')}
+              {favoriteCount != null && favoriteCount > 0 && (
+                <span style={{ marginLeft: 6, color: 'var(--ink-3)', fontWeight: 600 }}>({favoriteCount})</span>
+              )}
+            </button>
+          )}
+          {showTranslateButton && (
+            <button className="btn btn-ghost btn-sm" onClick={handleTranslate} style={{ marginTop: 8 }}>
+              🌐 Преведи на български
+            </button>
+          )}
+          {isOwner && (onEdit || onDelete) && (
+            <div className="detail-actions">
+              {onEdit && (
+                <button className="btn btn-secondary btn-sm" onClick={onEdit}>
+                  ✏ {L ? 'Edit' : 'Редактирай'}
+                </button>
+              )}
+              {onDelete && (
+                <button className="btn btn-danger btn-sm" onClick={() => setConfirmDeleteOpen(true)}>
+                  {L ? 'Delete' : 'Изтрий'}
+                </button>
+              )}
+            </div>
+          )}
+        </div>
       </div>
 
-      {showTranslateButton && (
-        <div className="translate-section">
-          <button className="btn btn-ghost btn-sm" onClick={handleTranslate}>
-            🌐 Преведи на български
-          </button>
+      <div className="grid-2" style={{ alignItems: 'start', gap: 48 }}>
+        <div>
+          <div className="section-eyebrow">
+            <span className="label">{L ? 'Ingredients' : 'Съставки'}</span>
+          </div>
+          {recipe.ingredients.map((ing, i) => {
+            const isAllergyIng = allergies.some((b) => ing.toLowerCase().includes(b.toLowerCase()));
+            const isBlockedIng = isAllergyIng || dislikes.some((b) => ing.toLowerCase().includes(b.toLowerCase()));
+            return (
+              <div key={i} className={`ing-row${isBlockedIng ? ' blocked' : ''}`}>
+                <span className={`dot ${isBlockedIng ? 'dot-danger' : 'dot-safe'}`} />
+                <span className="ing-name">{ing}</span>
+                {isBlockedIng && (
+                  <Badge type={isAllergyIng ? 'allergy' : 'dislike'}>
+                    {isAllergyIng ? (L ? 'allergy' : 'алергия') : (L ? 'dislike' : 'нелюб.')}
+                  </Badge>
+                )}
+              </div>
+            );
+          })}
         </div>
-      )}
-
-      <div className="card recipe-detail-card">
-        <div className="recipe-detail-ingredients-row">
-          {recipe.imageUrl && (
-            <img src={recipe.imageUrl} alt={displayName} className="recipe-detail-photo" />
-          )}
-          <div className="recipe-detail-ingredients-col">
-            <div className="recipe-detail-section-label">
-              {L ? 'INGREDIENTS' : 'СЪСТАВКИ'} · {recipe.ingredients.length}
-            </div>
-            <div className="recipe-detail-ingredients">
-              {recipe.ingredients.map((ing, i) => {
-                const isAllergyIng = allergies.some((b) => ing.toLowerCase().includes(b.toLowerCase()));
-                const isBlockedIng = isAllergyIng || dislikes.some((b) => ing.toLowerCase().includes(b.toLowerCase()));
-                return (
-                  <div key={i} className="recipe-detail-ingredient">
-                    <span className={`ingredient-bullet ${isBlockedIng ? 'ingredient-bullet-blocked' : 'ingredient-bullet-safe'}`} />
-                    <span className={isBlockedIng ? 'ingredient-text-blocked' : ''}>
-                      {ing}
-                    </span>
-                    {isBlockedIng && (
-                      <Badge type={isAllergyIng ? 'allergy' : 'dislike'}>
-                        {isAllergyIng ? (L ? 'Allergy' : 'Алергия') : (L ? 'Dislike' : 'Нелюбимо')}
-                      </Badge>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
+        <div>
+          <div className="section-eyebrow">
+            <span className="label">{L ? 'Method' : 'Метод'}</span>
+          </div>
+          <div className="step-grid">
+            {recipe.steps.map((step, i) => (
+              <div key={i} className="step">
+                <span className="step-num">{String(i + 1).padStart(2, '0')}</span>
+                <div className="step-text">{step}</div>
+              </div>
+            ))}
           </div>
         </div>
       </div>
-      <div className="card recipe-detail-card">
-        <div className="recipe-detail-section-label">{L ? 'STEPS' : 'СТЪПКИ'}</div>
-        {recipe.steps.map((step, i) => (
-          <div key={i} className="step-item">
-            <div className="step-num">{i + 1}</div>
-            <div className="step-text">{step}</div>
-          </div>
-        ))}
-      </div>
-
-      {isOwner && (onEdit || onDelete) && (
-        <div className="recipe-detail-actions">
-          {onEdit && (
-            <button className="btn btn-secondary btn-sm" onClick={onEdit}>
-              ✏ {L ? 'Edit' : 'Редактирай'}
-            </button>
-          )}
-          {onDelete && (
-            <button className="btn btn-danger btn-sm" onClick={() => setConfirmDeleteOpen(true)}>
-              {L ? 'Delete' : 'Изтрий'}
-            </button>
-          )}
-        </div>
-      )}
 
       {onDelete && (
         <ConfirmDeleteModal
