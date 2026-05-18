@@ -116,6 +116,10 @@ a{color:inherit;text-decoration:none}
 .fridge-item{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:var(--r-sm);background:var(--surface);border:1.5px solid var(--border)}
 .fridge-emoji{font-size:24px}
 .fridge-name{font-size:14px;font-weight:700;flex:1}
+.fridge-search-desc{font-size:14px;color:var(--text2);margin-bottom:14px;font-weight:600}
+.fridge-search-desc--compact{margin-bottom:6px}
+.fridge-pin-hint{font-size:13px;color:var(--text2);margin-bottom:14px;font-weight:600}
+.fridge-pin-clear-btn{background:none;border:none;color:var(--primary);cursor:pointer;font-weight:700;padding:0;font:inherit;font-size:13px}
 
 /* Modal */
 .modal-overlay{position:fixed;inset:0;background:rgba(44,24,16,.35);z-index:500;display:flex;align-items:flex-end;justify-content:center}

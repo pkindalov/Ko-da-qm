@@ -9,5 +9,6 @@ export const CATEGORIES: Category[] = [
   { id: 'fruit',     label: 'Плодове',    labelEn: 'Fruits',      emoji: '🍎' },
   { id: 'grain',     label: 'Зърнени',    labelEn: 'Grains',      emoji: '🌾' },
   { id: 'condiment', label: 'Подправки',  labelEn: 'Condiments',  emoji: '🧂' },
+  { id: 'frozen',    label: 'Замразено',  labelEn: 'Frozen',      emoji: '🧊' },
   { id: 'other',     label: 'Друго',      labelEn: 'Other',       emoji: '📦' },
 ];

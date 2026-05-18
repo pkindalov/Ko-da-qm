@@ -334,13 +334,13 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, addRecip
           </label>
         </div>
       </div>
-      <p style={{ fontSize: 14, color: 'var(--text2)', marginBottom: selectedItemIds.size > 0 ? 6 : 14, fontWeight: 600 }}>
+      <p className={`fridge-search-desc${selectedItemIds.size > 0 ? ' fridge-search-desc--compact' : ''}`}>
         {geminiMode
           ? (L ? 'Ask Gemini AI to suggest recipes from your fridge.' : 'Попитай Gemini ИИ за рецепти от хладилника.')
           : (L ? 'Find recipes that match what you have at home.' : 'Намери рецепти спрямо наличните продукти и твоите ограничения.')}
       </p>
       {selectedItemIds.size > 0 && (
-        <p style={{ fontSize: 13, color: 'var(--text2)', marginBottom: 14, fontWeight: 600 }}>
+        <p className="fridge-pin-hint">
           {L
             ? `Searching with ${selectedItemIds.size} selected item${selectedItemIds.size !== 1 ? 's' : ''} only.`
             : selectedItemIds.size === 1
@@ -349,7 +349,7 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, addRecip
           }
           {' · '}
           <button
-            style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', fontWeight: 700, padding: 0, font: 'inherit', fontSize: 13 }}
+            className="fridge-pin-clear-btn"
             onClick={() => setSelectedItemIds(new Set())}
           >
             {L ? 'Clear selection' : 'Изчисти избора'}

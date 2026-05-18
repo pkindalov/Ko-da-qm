@@ -26,6 +26,7 @@ export type FridgeItemCategory =
   | 'fruit'
   | 'grain'
   | 'condiment'
+  | 'frozen'
   | 'other';
 
 export interface FridgeItem {

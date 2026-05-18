@@ -7,6 +7,7 @@ const CATEGORY_SHELF: Record<string, number> = {
   grain: 2, condiment: 2,
   veg: 3, fruit: 3,
   protein: 4, fish: 4,
+  frozen: 0,
   other: 2,
 };
 
@@ -19,6 +20,7 @@ const CATEGORY_TINT: Record<string, string> = {
   fruit: 'fruit',
   protein: 'meat',
   fish: 'meat',
+  frozen: 'frozen',
   other: 'jar',
 };
 
