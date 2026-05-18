@@ -8,9 +8,9 @@ interface TweaksPanelProps {
 }
 
 const THEMES = [
-  { id: 'warm' as const, label: '🌿 Топло', labelEn: '🌿 Warm' },
-  { id: 'cool' as const, label: '💙 Хладно', labelEn: '💙 Cool' },
-  { id: 'dark' as const, label: '🌙 Тъмно', labelEn: '🌙 Dark' },
+  { id: 'warm' as const, label: '☀ Топло', labelEn: '☀ Warm' },
+  { id: 'cool' as const, label: '🌿 Свежо', labelEn: '🌿 Fresh' },
+  { id: 'dark' as const, label: '🌙 Нощ', labelEn: '🌙 Night' },
 ];
 
 export function TweaksPanel({ open, tweaks, setTweaks, onClose }: TweaksPanelProps) {
@@ -19,7 +19,7 @@ export function TweaksPanel({ open, tweaks, setTweaks, onClose }: TweaksPanelPro
   return (
     <div className={`tweaks-panel${open ? ' open' : ''}`}>
       <div className="tweaks-title">
-        <span>⚙ {L ? 'Settings' : 'Настройки'}</span>
+        <span>{L ? 'Settings' : 'Настройки'}</span>
         <button className="tweaks-close" onClick={onClose} aria-label="Close settings">✕</button>
       </div>
 

@@ -43,15 +43,15 @@ describe('TweaksPanel language labels', () => {
   it('shows english theme names when lang is en', () => {
     renderPanel({ ...baseTweaks, lang: 'en' });
     expect(screen.getByRole('button', { name: /warm/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /cool/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /dark/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /fresh/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /night/i })).toBeInTheDocument();
   });
 
   it('shows bulgarian theme names when lang is bg', () => {
     renderPanel({ ...baseTweaks, lang: 'bg' });
     expect(screen.getByRole('button', { name: /топло/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /хладно/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /тъмно/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /свежо/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /нощ/i })).toBeInTheDocument();
   });
 });
 
@@ -59,7 +59,7 @@ describe('TweaksPanel interactions', () => {
   it('calls setTweaks with new theme when theme button is clicked', async () => {
     const setTweaks = vi.fn();
     render(<TweaksPanel open tweaks={baseTweaks} setTweaks={setTweaks} onClose={vi.fn()} />);
-    await userEvent.click(screen.getByRole('button', { name: /dark/i }));
+    await userEvent.click(screen.getByRole('button', { name: /night/i }));
     expect(setTweaks).toHaveBeenCalledWith({ ...baseTweaks, theme: 'dark' });
   });
 

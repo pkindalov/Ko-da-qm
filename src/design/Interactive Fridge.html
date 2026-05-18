@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Ко-да-ям — Interactive Fridge</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<style>
+*,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg:#FDF8F3;
+  --surface:#FFFFFF;
+  --primary:#C4633A;
+  --primary-light:#F4E6DE;
+  --secondary:#5F8A6B;
+  --secondary-light:#E1EDE4;
+  --danger:#C0392B;
+  --warn:#D4820A;
+  --text:#2C1810;
+  --text2:#7A6358;
+  --border:#EDE4DC;
+  --shadow:0 2px 12px rgba(44,24,16,.08);
+  --shadow-lg:0 12px 40px rgba(44,24,16,.16);
+  --font:'Nunito',sans-serif;
+
+  /* fridge surfaces (modern stainless default) */
+  --fr-shell-1:#f3eee8;
+  --fr-shell-2:#e3dccf;
+  --fr-shell-edge:#b9aea0;
+  --fr-handle:#3a3128;
+  --fr-handle-2:#5b4d40;
+  --fr-interior:#fbf6ef;
+  --fr-interior-2:#f0e9df;
+  --fr-shelf:#d9cfc0;
+  --fr-light:#ffe7b8;
+}
+html,body { background: var(--bg); }
+body {
+  font-family: var(--font);
+  color: var(--text);
+  min-height:100dvh;
+  overflow-x:hidden;
+  background:
+    radial-gradient(900px 600px at 80% -10%, #f4e9dc 0%, transparent 60%),
+    radial-gradient(700px 500px at -10% 110%, #e6ede3 0%, transparent 55%),
+    var(--bg);
+}
+
+/* ---------- Page chrome ---------- */
+.shell { display:grid; grid-template-columns: 260px 1fr; min-height:100dvh; }
+.side { padding:28px 22px; border-right:1.5px solid var(--border); background:rgba(255,255,255,.55); backdrop-filter:blur(8px); }
+.logo { font-weight:900; font-size:20px; color:var(--primary); letter-spacing:-.5px; }
+.logo small { display:block; font-size:11px; font-weight:700; color:var(--text2); letter-spacing:1.2px; text-transform:uppercase; margin-top:2px; }
+.nav { margin-top:28px; display:flex; flex-direction:column; gap:2px; }
+.nav button { display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:10px; font:inherit; font-weight:700; font-size:14px; color:var(--text2); background:none; border:none; cursor:pointer; text-align:left; }
+.nav button:hover { background:#fff; color:var(--text); }
+.nav button.active { background:var(--primary-light); color:var(--primary); }
+.nav .ico { width:22px; text-align:center; font-size:18px; }
+
+.main { padding: 28px 36px 60px; min-width:0; }
+.crumbs { color:var(--text2); font-size:13px; font-weight:700; letter-spacing:.4px; text-transform:uppercase; }
+.title-row { display:flex; align-items:baseline; gap:14px; margin-top:6px; }
+.title { font-size:36px; font-weight:900; letter-spacing:-1px; }
+.subtitle { color:var(--text2); font-size:15px; font-weight:600; }
+.kbd { display:inline-flex; padding:2px 8px; border-radius:6px; border:1.5px solid var(--border); background:#fff; font-size:11px; font-weight:800; color:var(--text2); }
+
+/* ---------- Stage: fridge + side rail ---------- */
+.stage {
+  margin-top: 22px;
+  display:grid;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  gap: 36px;
+  align-items:start;
+}
+@media (max-width: 1080px){ .stage { grid-template-columns: 1fr; } }
+
+.scene-wrap {
+  position:relative;
+  background:
+    radial-gradient(60% 60% at 50% 40%, rgba(255,255,255,.55), transparent 70%),
+    linear-gradient(180deg, #f6efe5 0%, #ede4d6 100%);
+  border:1.5px solid var(--border);
+  border-radius: 22px;
+  padding: 28px 28px 36px;
+  overflow:hidden;
+  min-height: 720px;
+  box-shadow: var(--shadow);
+}
+.scene-wrap::before{
+  /* tiled floor */
+  content:""; position:absolute; left:0; right:0; bottom:0; height:34%;
+  background:
+    linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(44,24,16,.06) 100%),
+    repeating-linear-gradient(115deg, #ece2d0 0 28px, #e4d8c1 28px 56px);
+  transform: perspective(800px) rotateX(58deg);
+  transform-origin: bottom center;
+  border-top: 1.5px solid rgba(44,24,16,.08);
+}
+.scene-wrap::after{
+  /* warm light pool when open */
+  content:""; position:absolute; left:50%; bottom:18%; width:520px; height:120px;
+  transform: translateX(-50%);
+  background: radial-gradient(closest-side, rgba(255,210,120,.55), transparent 70%);
+  opacity:0; transition: opacity .9s ease;
+  pointer-events:none;
+  filter: blur(8px);
+}
+.scene-wrap.open::after { opacity:1; }
+
+.scene-toolbar {
+  position:relative; z-index:2;
+  display:flex; align-items:center; justify-content:space-between;
+  margin-bottom: 12px;
+}
+.chip { display:inline-flex; align-items:center; gap:6px; background:#fff; border:1.5px solid var(--border); padding:6px 12px; border-radius:999px; font-size:12px; font-weight:800; color:var(--text2); }
+.chip .dot { width:7px; height:7px; border-radius:50%; background:var(--secondary); box-shadow:0 0 0 4px rgba(95,138,107,.18); }
+.scene-toolbar .toolbar-actions { display:flex; gap:8px; }
+.btn-pill { background:#fff; border:1.5px solid var(--border); border-radius:999px; padding:8px 14px; font:inherit; font-weight:800; font-size:13px; color:var(--text); cursor:pointer; transition: all .15s; display:inline-flex; gap:8px; align-items:center; }
+.btn-pill:hover { border-color:var(--primary); color:var(--primary); }
+.btn-pill.primary { background:var(--primary); color:#fff; border-color:var(--primary); }
+.btn-pill.primary:hover { background:#a8512c; }
+.btn-pill .ico { font-size:14px; }
+
+/* ---------- 3D fridge ---------- */
+.scene { position:relative; perspective: 2400px; perspective-origin: 50% 40%; height: 620px; display:flex; align-items:center; justify-content:center; }
+.fridge {
+  position:relative;
+  width: 380px;
+  height: 600px;
+  transform-style: preserve-3d;
+  filter: drop-shadow(0 30px 30px rgba(44,24,16,.18));
+}
+
+/* Outer body / cabinet */
+.cabinet {
+  position:absolute; inset:0;
+  background:
+    linear-gradient(180deg, var(--fr-shell-1) 0%, var(--fr-shell-2) 100%);
+  border-radius: 22px;
+  border: 1.5px solid var(--fr-shell-edge);
+  box-shadow:
+    inset 0 0 0 2px rgba(255,255,255,.55),
+    inset 0 -30px 60px rgba(0,0,0,.06);
+}
+.cabinet .seam {
+  position:absolute; left:8px; right:8px;
+  height:2px;
+  background: linear-gradient(90deg, transparent, var(--fr-shell-edge), transparent);
+  opacity:.55;
+}
+.cabinet .seam.freezer { top: 148px; }
+
+/* Interior (visible when door opens) */
+.interior {
+  position:absolute; inset: 8px;
+  background:
+    linear-gradient(180deg, var(--fr-interior) 0%, var(--fr-interior-2) 100%);
+  border-radius: 16px;
+  overflow:hidden;
+  box-shadow:
+    inset 0 0 0 1px rgba(44,24,16,.06),
+    inset 0 30px 50px rgba(44,24,16,.10);
+}
+.interior::before {
+  /* back wall warm light */
+  content:""; position:absolute; inset:0;
+  background:
+    radial-gradient(120% 60% at 50% -20%, var(--fr-light), transparent 70%);
+  opacity:0; transition: opacity .8s ease .25s;
+  mix-blend-mode: multiply;
+}
+.fridge.open .interior::before { opacity:.9; }
+.interior::after {
+  /* subtle vertical ribs */
+  content:""; position:absolute; inset:0;
+  background: repeating-linear-gradient(90deg, rgba(44,24,16,.04) 0 1px, transparent 1px 24px);
+  pointer-events:none;
+}
+
+/* Freezer compartment line */
+.freezer-line {
+  position:absolute; top:138px; left:0; right:0; height:2px;
+  background: rgba(44,24,16,.10);
+}
+
+/* Shelves */
+.shelves { position:absolute; inset:0; padding: 26px 16px 22px; display:flex; flex-direction:column; }
+.shelf {
+  flex:1;
+  position:relative;
+  border-bottom: 1.5px solid var(--fr-shelf);
+  margin-bottom: 6px;
+  display:flex; align-items:flex-end; gap: 8px;
+  padding: 0 6px 4px;
+}
+.shelf:last-child { border-bottom:none; margin-bottom:0; }
+.shelf::after{
+  /* glass reflection */
+  content:""; position:absolute; left:0; right:0; bottom:-1px; height: 6px;
+  background: linear-gradient(180deg, rgba(255,255,255,.85), transparent);
+  border-radius: 0 0 4px 4px;
+  pointer-events:none;
+}
+
+/* Freezer area (top section) */
+.freezer {
+  height: 130px;
+  position:relative;
+  border-bottom: 2px dashed rgba(44,24,16,.12);
+  margin: -10px 0 6px;
+  padding: 6px 4px 8px;
+  display:flex; align-items:flex-end; gap:6px;
+}
+.freezer .frost {
+  position:absolute; inset:0;
+  background:
+    radial-gradient(circle at 20% 30%, rgba(255,255,255,.7), transparent 30%),
+    radial-gradient(circle at 70% 60%, rgba(255,255,255,.6), transparent 30%),
+    linear-gradient(180deg, rgba(220,235,245,.55), rgba(220,235,245,.25));
+  pointer-events:none;
+  border-radius: 12px;
+}
+
+/* Products */
+.product {
+  position:relative;
+  flex: 0 0 auto;
+  width: 46px;
+  height: 64px;
+  border-radius: 8px 8px 4px 4px;
+  display:flex; flex-direction:column; align-items:center; justify-content:flex-end;
+  padding: 4px 2px 6px;
+  cursor:pointer;
+  transition: transform .18s ease, box-shadow .18s ease;
+  user-select:none;
+  background: linear-gradient(180deg, #fff 0%, #f3ece2 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.9),
+    0 4px 0 rgba(44,24,16,.06),
+    0 8px 10px rgba(44,24,16,.06);
+  border: 1px solid rgba(44,24,16,.08);
+}
+.product.tall { height: 78px; }
+.product.short { height: 50px; }
+.product.wide { width: 62px; }
+.product .emoji { font-size: 26px; line-height:1; margin-bottom:2px; filter: drop-shadow(0 1px 0 rgba(0,0,0,.08)); }
+.product .lbl { font-size: 9px; font-weight: 800; color: var(--text); text-transform: uppercase; letter-spacing:.2px; max-width: 100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.product:hover { transform: translateY(-3px); box-shadow: 0 6px 0 rgba(44,24,16,.06), 0 12px 18px rgba(44,24,16,.14); }
+.product .rm {
+  position:absolute; top:-7px; right:-7px;
+  width:18px; height:18px; border-radius:50%;
+  background: var(--danger); color:#fff;
+  display:flex; align-items:center; justify-content:center;
+  font-size:11px; font-weight:900; opacity:0; transition: opacity .15s;
+  border:2px solid #fff;
+}
+.product:hover .rm { opacity:1; }
+/* color tints for product variety */
+.product.tint-milk    { background: linear-gradient(180deg, #fff 0%, #eef3f7 100%); }
+.product.tint-egg     { background: linear-gradient(180deg, #fdf3da 0%, #f0dfb0 100%); }
+.product.tint-cheese  { background: linear-gradient(180deg, #fff2c9 0%, #f0d076 100%); }
+.product.tint-veg     { background: linear-gradient(180deg, #eef5e3 0%, #c9dfb1 100%); }
+.product.tint-meat    { background: linear-gradient(180deg, #fce0d5 0%, #e8a48a 100%); }
+.product.tint-fruit   { background: linear-gradient(180deg, #fde2dc 0%, #f0a59a 100%); }
+.product.tint-bread   { background: linear-gradient(180deg, #f7e4c7 0%, #cea170 100%); }
+.product.tint-jar     { background: linear-gradient(180deg, #f0e9da 0%, #cfc1a3 100%); }
+.product.tint-frozen  { background: linear-gradient(180deg, #ecf3f8 0%, #c7d8e3 100%); }
+
+.add-slot {
+  flex: 0 0 auto;
+  width:46px; height:50px;
+  border-radius:8px;
+  border: 1.5px dashed rgba(44,24,16,.22);
+  background: rgba(255,255,255,.4);
+  color: var(--text2);
+  font-weight: 900;
+  font-size: 20px;
+  cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  transition: all .15s;
+}
+.add-slot:hover { border-color: var(--primary); color: var(--primary); background: var(--primary-light); }
+
+/* Door */
+.door-wrap {
+  position:absolute; inset:0;
+  transform-style: preserve-3d;
+  perspective: 1600px;
+}
+.door {
+  position:absolute; inset:0;
+  transform-origin: left center;
+  transform: rotateY(0deg);
+  transition: transform 1.05s cubic-bezier(.66,-0.02,.27,1);
+  border-radius: 22px;
+  background:
+    linear-gradient(180deg, var(--fr-shell-1) 0%, var(--fr-shell-2) 100%);
+  border: 1.5px solid var(--fr-shell-edge);
+  box-shadow:
+    inset 0 0 0 2px rgba(255,255,255,.5),
+    inset 0 -30px 60px rgba(0,0,0,.06),
+    0 12px 28px rgba(44,24,16,.12);
+  backface-visibility: hidden;
+}
+.fridge.open .door { transform: rotateY(-118deg); }
+
+/* Door "inside" surface (visible when open) */
+.door-inside {
+  position:absolute; inset:0;
+  transform: rotateY(180deg) translateZ(-1px);
+  border-radius: 22px;
+  background:
+    linear-gradient(180deg, var(--fr-interior) 0%, var(--fr-interior-2) 100%);
+  border: 1.5px solid var(--fr-shell-edge);
+  display:flex; flex-direction:column; align-items:stretch;
+  padding: 30px 14px;
+  gap: 14px;
+  box-shadow: inset 0 0 0 1px rgba(44,24,16,.06);
+}
+.door-bin {
+  height: 60px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.85), rgba(255,255,255,.55));
+  border:1px solid rgba(44,24,16,.10);
+  border-radius: 10px 10px 14px 14px;
+  position:relative;
+  display:flex; align-items:flex-end; gap:5px;
+  padding: 0 6px 4px;
+}
+.door-bin .bin-glass {
+  position:absolute; inset:0;
+  border-radius:inherit;
+  background: linear-gradient(180deg, rgba(255,255,255,.5), transparent 30%);
+  pointer-events:none;
+}
+.door-bin .bottle {
+  width: 18px; height: 46px;
+  border-radius: 6px 6px 3px 3px;
+  background: linear-gradient(180deg, #fff 30%, #efe7da 100%);
+  box-shadow: 0 1px 0 rgba(44,24,16,.18), inset 0 1px 0 rgba(255,255,255,.7);
+  position:relative;
+}
+.door-bin .bottle::before {
+  content:""; position:absolute; top:-5px; left:50%; transform:translateX(-50%);
+  width:8px; height:6px; border-radius:2px;
+  background: var(--primary);
+}
+.bottle.b2::before { background: var(--secondary); }
+.bottle.b3::before { background: var(--warn); }
+.bottle.b4::before { background: #6b8db8; }
+.bottle.b5::before { background: var(--danger); }
+
+/* Door front decor: brand panel + handle */
+.door-display {
+  position:absolute; left: 24px; right: 56px; top: 28px; height: 42px;
+  border-radius: 10px;
+  background: linear-gradient(180deg, #1a1410 0%, #2e2620 100%);
+  color: var(--fr-light);
+  display:flex; align-items:center; justify-content:space-between;
+  padding: 0 14px;
+  box-shadow: inset 0 0 14px rgba(0,0,0,.5);
+  font-weight: 800; font-size: 11px; letter-spacing:1px;
+}
+.door-display .time { font-size: 14px; font-weight:900; letter-spacing:.5px; }
+.door-display .ico { font-size: 13px; opacity:.8; }
+
+.door-brand {
+  position:absolute; left:0; right:0; bottom: 26px;
+  text-align:center;
+  font-size: 11px; font-weight:900; letter-spacing: 5px;
+  color: rgba(44,24,16,.35);
+  text-transform: uppercase;
+}
+
+.handle {
+  position:absolute; top: 84px; bottom: 84px; right: 18px;
+  width: 12px;
+  border-radius: 8px;
+  background: linear-gradient(90deg, var(--fr-handle-2), var(--fr-handle) 40%, var(--fr-handle-2));
+  box-shadow:
+    0 0 0 4px rgba(0,0,0,.05),
+    inset 0 1px 0 rgba(255,255,255,.25),
+    inset 0 -1px 0 rgba(0,0,0,.25);
+  cursor:pointer;
+  transition: transform .2s ease;
+}
+.handle::before, .handle::after {
+  content:""; position:absolute; left:50%; transform:translateX(-50%);
+  width: 20px; height: 14px;
+  background: linear-gradient(180deg, var(--fr-handle-2), var(--fr-handle));
+  border-radius: 4px;
+}
+.handle::before { top: -10px; }
+.handle::after  { bottom: -10px; }
+.handle:hover { transform: scaleY(1.02); }
+
+/* Feet */
+.feet {
+  position:absolute; left: 14px; right: 14px; bottom: -10px; height: 12px;
+  display:flex; justify-content:space-between;
+}
+.feet span {
+  width: 30px; height: 12px; border-radius: 0 0 6px 6px;
+  background: linear-gradient(180deg, #4a3e34, #2d251e);
+}
+
+/* Tap hint over closed door */
+.tap-hint {
+  position:absolute; inset:auto 0 32% 0;
+  display:flex; justify-content:center; pointer-events:none;
+  opacity:1; transition: opacity .3s;
+}
+.fridge.open .tap-hint { opacity:0; }
+.tap-hint .pill {
+  background: rgba(44,24,16,.85); color:#fff;
+  font-size: 12px; font-weight:800; letter-spacing:.4px;
+  padding: 8px 14px; border-radius:999px;
+  box-shadow: 0 8px 20px rgba(0,0,0,.25);
+  display:inline-flex; gap:8px; align-items:center;
+  animation: floatY 2.2s ease-in-out infinite;
+}
+@keyframes floatY { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+
+/* ---------- Right rail ---------- */
+.rail { display:flex; flex-direction:column; gap:16px; min-width:0; }
+.card {
+  background:#fff; border:1.5px solid var(--border); border-radius:16px; padding:18px;
+  box-shadow: 0 1px 0 rgba(255,255,255,.7) inset;
+}
+.card h3 { font-size: 11px; font-weight:900; letter-spacing:1.5px; color: var(--text2); text-transform:uppercase; margin-bottom: 14px; }
+.stats { display:grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+.stat { background: var(--bg); border-radius: 12px; padding: 10px 12px; }
+.stat .n { font-size: 22px; font-weight:900; letter-spacing:-.5px; }
+.stat .l { font-size: 11px; font-weight:800; color: var(--text2); text-transform:uppercase; letter-spacing:.6px; margin-top:2px; }
+.stat.warn .n { color: var(--warn); }
+.stat.good .n { color: var(--secondary); }
+
+.cook {
+  background: linear-gradient(135deg, var(--primary) 0%, #a8512c 100%);
+  color: #fff;
+  border-radius: 16px;
+  padding: 20px;
+  position: relative;
+  overflow:hidden;
+}
+.cook::after {
+  content:"🍳"; position:absolute; right:-10px; bottom:-22px; font-size:120px; opacity:.12; transform: rotate(-12deg);
+}
+.cook h2 { font-size: 20px; font-weight: 900; letter-spacing:-.3px; margin-bottom: 6px; }
+.cook p { font-size: 13px; font-weight:600; opacity:.85; margin-bottom: 14px; max-width: 240px; }
+.cook button {
+  background:#fff; color:var(--primary); border:none; padding: 10px 16px;
+  font: inherit; font-weight:900; font-size: 14px; border-radius: 999px; cursor:pointer;
+  display:inline-flex; align-items:center; gap:8px;
+}
+.cook button:hover { background: var(--primary-light); }
+
+.recipe-row { display:flex; flex-direction:column; gap:10px; }
+.recipe {
+  display:flex; align-items:center; gap:12px;
+  background: var(--bg); border: 1.5px solid var(--border);
+  border-radius: 12px; padding: 10px 12px;
+  cursor:pointer; transition: all .15s;
+}
+.recipe:hover { border-color: var(--primary); transform: translateX(2px); }
+.recipe .thumb {
+  width: 44px; height: 44px; border-radius: 10px;
+  background: linear-gradient(135deg, var(--primary-light), var(--secondary-light));
+  display:flex; align-items:center; justify-content:center; font-size: 22px;
+  flex-shrink:0;
+}
+.recipe .body { flex:1; min-width:0; }
+.recipe .name { font-size: 14px; font-weight:800; }
+.recipe .meta { font-size: 11px; font-weight:700; color: var(--text2); margin-top: 2px; display:flex; gap:8px; }
+.recipe .badge { background: var(--secondary-light); color: var(--secondary); font-size:10px; font-weight:900; padding: 3px 8px; border-radius:999px; }
+
+/* ---------- Variants ---------- */
+.theme-retro {
+  --fr-shell-1:#f1bfbb;
+  --fr-shell-2:#e29893;
+  --fr-shell-edge:#b86c66;
+  --fr-handle:#3a3128;
+  --fr-handle-2:#7a655a;
+  --fr-interior:#fff7e9;
+  --fr-interior-2:#f5e6cf;
+  --fr-shelf:#e0c89b;
+  --fr-light:#ffd98a;
+}
+.theme-retro .door-display { background: linear-gradient(180deg, #f8e2dc 0%, #ebc2bb 100%); color: #6e342d; box-shadow: inset 0 0 14px rgba(110,52,45,.18); }
+.theme-retro .door-brand { color: rgba(110,52,45,.4); }
+
+.theme-glass {
+  --fr-shell-1:#2a3540;
+  --fr-shell-2:#1b242e;
+  --fr-shell-edge:#0f161d;
+  --fr-handle:#bdbdbd;
+  --fr-handle-2:#e6e6e6;
+  --fr-interior:#dde6ee;
+  --fr-interior-2:#c0cdd9;
+  --fr-shelf:#7c8a98;
+  --fr-light:#f7faff;
+}
+.theme-glass .door {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.18) 0%, rgba(255,255,255,.05) 50%, rgba(255,255,255,.18) 100%),
+    linear-gradient(180deg, rgba(43,55,68,.55) 0%, rgba(27,36,46,.45) 100%);
+  backdrop-filter: blur(2px);
+}
+.theme-glass .door::before {
+  content:""; position:absolute; inset:14px;
+  border-radius: 14px;
+  border:1.5px dashed rgba(255,255,255,.18);
+  pointer-events:none;
+}
+.theme-glass .door-display {
+  background: linear-gradient(180deg, #0b1117 0%, #1a232c 100%);
+  color: #79c7ff;
+  box-shadow: inset 0 0 20px rgba(121,199,255,.18);
+}
+.theme-glass .door-brand { color: rgba(255,255,255,.45); }
+
+/* ---------- Tweaks panel float ---------- */
+.tweaks-floater { position: fixed; right: 16px; bottom: 16px; z-index: 200; }
+.tw-btn {
+  background:#fff; color:var(--text); border:1.5px solid var(--border);
+  padding: 10px 14px; border-radius:999px; font-weight:800; font-size:13px;
+  display:inline-flex; gap:8px; align-items:center; cursor:pointer;
+  box-shadow: var(--shadow);
+}
+.tw-btn:hover { border-color: var(--primary); color: var(--primary); }
+.tw-btn .dot { width:8px; height:8px; border-radius:50%; background: var(--primary); }
+
+/* ---------- Toast ---------- */
+.toast-wrap { position:fixed; left:50%; bottom: 28px; transform: translateX(-50%); z-index: 300; display:flex; flex-direction:column; gap:8px; align-items:center; }
+.toast {
+  background: var(--text); color:#fff; padding: 10px 16px; border-radius: 999px;
+  font-size:13px; font-weight:800; box-shadow: var(--shadow-lg);
+  animation: toastIn .25s ease;
+}
+@keyframes toastIn { from { transform: translateY(10px); opacity:0; } to { transform: none; opacity:1; } }
+
+/* ---------- Add product sheet ---------- */
+.sheet-overlay { position:fixed; inset:0; background: rgba(44,24,16,.4); z-index:400; display:flex; align-items:center; justify-content:center; }
+.sheet { background:#fff; border-radius:18px; width: min(440px, 92vw); padding: 22px; box-shadow: var(--shadow-lg); }
+.sheet h2 { font-size: 18px; font-weight:900; margin-bottom: 12px; }
+.sheet .grid {
+  display:grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin: 8px 0 14px;
+}
+.sheet .grid button {
+  background: var(--bg); border:1.5px solid var(--border); border-radius: 12px;
+  padding: 10px 4px; font: inherit; cursor:pointer;
+  display:flex; flex-direction:column; align-items:center; gap:4px;
+}
+.sheet .grid button:hover { border-color: var(--primary); background: var(--primary-light); }
+.sheet .grid button .e { font-size: 26px; }
+.sheet .grid button .n { font-size: 11px; font-weight:800; color: var(--text2); }
+.sheet .row-btns { display:flex; gap: 8px; }
+.sheet input {
+  width:100%; padding: 10px 14px; border:1.5px solid var(--border); border-radius:10px;
+  font: inherit; font-weight:700; background: var(--bg);
+}
+.sheet input:focus { outline:none; border-color: var(--primary); background:#fff; }
+
+/* Small screens */
+@media (max-width: 760px){
+  .shell { grid-template-columns: 1fr; }
+  .side { display:none; }
+  .main { padding: 16px; }
+  .scene-wrap { min-height: 640px; padding: 18px; }
+  .fridge { width: 320px; height: 540px; }
+  .scene { height: 560px; }
+}
+</style>
+</head>
+<body>
+
+<div id="root"></div>
+
+<script type="text/babel" src="tweaks-panel.jsx"></script>
+<script type="text/babel">
+const { useState, useEffect, useMemo } = React;
+
+// ---- Data ----
+const STARTER_FRIDGE = [
+  { id:'a', name:'Milk',     emoji:'🥛', tint:'milk',    kind:'tall',  shelf:1, expires:3 },
+  { id:'b', name:'Eggs',     emoji:'🥚', tint:'egg',     kind:'short', shelf:1, expires:6 },
+  { id:'c', name:'Cheese',   emoji:'🧀', tint:'cheese',  kind:'short', shelf:2, expires:10 },
+  { id:'d', name:'Butter',   emoji:'🧈', tint:'cheese',  kind:'short', shelf:2, expires:14 },
+  { id:'e', name:'Yogurt',   emoji:'🫙', tint:'jar',     kind:'short', shelf:2, expires:5 },
+  { id:'f', name:'Tomato',   emoji:'🍅', tint:'fruit',   kind:'',      shelf:3, expires:4 },
+  { id:'g', name:'Lettuce',  emoji:'🥬', tint:'veg',     kind:'wide',  shelf:3, expires:2 },
+  { id:'h', name:'Carrot',   emoji:'🥕', tint:'veg',     kind:'',      shelf:3, expires:12 },
+  { id:'i', name:'Chicken',  emoji:'🍗', tint:'meat',    kind:'short', shelf:4, expires:1 },
+  { id:'j', name:'Salmon',   emoji:'🐟', tint:'meat',    kind:'short', shelf:4, expires:1 },
+  { id:'k', name:'Ice cream',emoji:'🍦', tint:'frozen',  kind:'tall',  shelf:0, expires:60 },
+  { id:'l', name:'Peas',     emoji:'🫛', tint:'frozen',  kind:'',      shelf:0, expires:90 },
+  { id:'m', name:'Berries',  emoji:'🫐', tint:'frozen',  kind:'short', shelf:0, expires:60 },
+];
+
+const ADDABLE = [
+  { name:'Bread',   emoji:'🍞', tint:'bread', kind:'wide',  shelf:3, expires:5 },
+  { name:'Apple',   emoji:'🍎', tint:'fruit', kind:'',      shelf:3, expires:14 },
+  { name:'Onion',   emoji:'🧅', tint:'veg',   kind:'',      shelf:3, expires:21 },
+  { name:'Potato',  emoji:'🥔', tint:'veg',   kind:'',      shelf:3, expires:21 },
+  { name:'Mushroom',emoji:'🍄', tint:'veg',   kind:'',      shelf:3, expires:5 },
+  { name:'Pepper',  emoji:'🫑', tint:'veg',   kind:'',      shelf:3, expires:7 },
+  { name:'Lemon',   emoji:'🍋', tint:'fruit', kind:'',      shelf:3, expires:14 },
+  { name:'Sauce',   emoji:'🫙', tint:'jar',   kind:'tall',  shelf:2, expires:60 },
+  { name:'Juice',   emoji:'🧃', tint:'milk',  kind:'tall',  shelf:1, expires:14 },
+  { name:'Pizza',   emoji:'🍕', tint:'frozen',kind:'wide',  shelf:0, expires:60 },
+];
+
+const RECIPES = [
+  { name:'Caprese salad',     emoji:'🥗', time:10, match:3, total:3, needs:['Tomato','Cheese','Lettuce'] },
+  { name:'Chicken stir-fry',  emoji:'🍜', time:25, match:4, total:5, needs:['Chicken','Carrot','Pepper','Onion'] },
+  { name:'Cheese omelette',   emoji:'🍳', time:8,  match:3, total:3, needs:['Eggs','Cheese','Butter'] },
+  { name:'Berry yogurt bowl', emoji:'🥣', time:5,  match:3, total:3, needs:['Yogurt','Berries','Honey'] },
+];
+
+// ---- Toast ----
+let toastSetter = null;
+const toast = (msg) => { if (toastSetter) toastSetter((q) => [...q, { id: crypto.randomUUID(), msg }]); };
+
+// ---- Product ----
+const Product = ({ item, onRemove }) => (
+  <div className={`product tint-${item.tint} ${item.kind}`} onClick={(e) => { e.stopPropagation(); }}>
+    <span className="emoji">{item.emoji}</span>
+    <span className="lbl">{item.name}</span>
+    <span className="rm" onClick={(e) => { e.stopPropagation(); onRemove(item.id); }} title="Remove">×</span>
+  </div>
+);
+
+// ---- Add sheet ----
+const AddSheet = ({ onAdd, onClose, existing }) => {
+  const remaining = ADDABLE.filter(a => !existing.some(e => e.name === a.name));
+  return (
+    <div className="sheet-overlay" onClick={onClose}>
+      <div className="sheet" onClick={(e) => e.stopPropagation()}>
+        <h2>Add to fridge</h2>
+        <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text2)', marginBottom: 8 }}>
+          Pick what you've got at home.
+        </p>
+        <div className="grid">
+          {remaining.map((p) => (
+            <button key={p.name} onClick={() => onAdd(p)}>
+              <span className="e">{p.emoji}</span>
+              <span className="n">{p.name}</span>
+            </button>
+          ))}
+          {remaining.length === 0 && (
+            <div style={{ gridColumn:'1/-1', color:'var(--text2)', fontWeight:700, padding:'12px 0', textAlign:'center' }}>
+              You've added everything we know about.
+            </div>
+          )}
+        </div>
+        <div className="row-btns">
+          <button className="btn-pill" onClick={onClose} style={{ marginLeft:'auto' }}>Done</button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ---- Shelf renderer ----
+const Shelf = ({ items, onRemove, onAddSlot, max = 5 }) => {
+  const free = Math.max(0, max - items.length);
+  return (
+    <div className="shelf">
+      {items.map((it) => <Product key={it.id} item={it} onRemove={onRemove} />)}
+      {free > 0 && <button className="add-slot" title="Add" onClick={onAddSlot}>+</button>}
+    </div>
+  );
+};
+
+const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+  "style": "modern",
+  "doorOpen": true,
+  "light": true,
+  "showHint": true
+}/*EDITMODE-END*/;
+
+const App = () => {
+  const [fridge, setFridge] = useState(STARTER_FRIDGE);
+  const [open, setOpen] = useState(false);
+  const [addOpen, setAddOpen] = useState(false);
+  const [toasts, setToasts] = useState([]);
+  const [tweaks, setTweak] = window.useTweaks(TWEAK_DEFAULTS);
+  toastSetter = setToasts;
+
+  // sync tweak.doorOpen with local state both ways
+  useEffect(() => { setOpen(!!tweaks.doorOpen); }, [tweaks.doorOpen]);
+
+  // auto-clear toasts
+  useEffect(() => {
+    if (toasts.length === 0) return;
+    const t = setTimeout(() => setToasts(q => q.slice(1)), 1800);
+    return () => clearTimeout(t);
+  }, [toasts]);
+
+  // open with a small delay for cinematic feel
+  const toggleDoor = () => {
+    const next = !open;
+    setOpen(next);
+    setTweak('doorOpen', next);
+  };
+
+  const byShelf = useMemo(() => {
+    const m = { 0: [], 1: [], 2: [], 3: [], 4: [] };
+    fridge.forEach((it) => { if (m[it.shelf]) m[it.shelf].push(it); });
+    return m;
+  }, [fridge]);
+
+  const remove = (id) => {
+    const it = fridge.find(f => f.id === id);
+    setFridge(fridge.filter(f => f.id !== id));
+    if (it) toast(`Removed ${it.name}`);
+  };
+  const add = (p) => {
+    const item = { ...p, id: crypto.randomUUID() };
+    setFridge((cur) => [...cur, item]);
+    toast(`${p.name} added`);
+  };
+
+  const expiringSoon = fridge.filter(f => f.expires <= 3).length;
+  const matchingRecipes = RECIPES.filter(r => r.match / r.total >= 0.7).length;
+
+  const theme = `theme-${tweaks.style}`;
+
+  return (
+    <div className="shell">
+      {/* Sidebar — kept minimal for context */}
+      <aside className="side">
+        <div className="logo">Ко-да-ям<small>What can I cook?</small></div>
+        <nav className="nav">
+          <button><span className="ico">🏠</span>Home</button>
+          <button className="active"><span className="ico">🧊</span>My fridge</button>
+          <button><span className="ico">📖</span>Recipes</button>
+          <button><span className="ico">🛒</span>Products</button>
+          <button><span className="ico">👤</span>Profile</button>
+        </nav>
+      </aside>
+
+      <main className="main">
+        <div className="crumbs">Kitchen / My fridge</div>
+        <div className="title-row">
+          <div className="title">My fridge</div>
+          <div className="subtitle">{fridge.length} items · tap the handle to open</div>
+        </div>
+
+        <div className="stage">
+          {/* Fridge scene */}
+          <div className={`scene-wrap ${open ? 'open' : ''}`}>
+            <div className="scene-toolbar">
+              <span className="chip"><span className="dot"></span>{open ? 'Door open' : 'Door closed'} · 4°C</span>
+              <div className="toolbar-actions">
+                <button className="btn-pill" onClick={() => setAddOpen(true)}><span className="ico">＋</span>Add item</button>
+                <button className="btn-pill primary" onClick={toggleDoor}>
+                  <span className="ico">{open ? '⤬' : '⇲'}</span>{open ? 'Close door' : 'Open fridge'}
+                </button>
+              </div>
+            </div>
+
+            <div className="scene">
+              <div className={`fridge ${theme} ${open ? 'open' : ''}`}>
+                <div className="cabinet">
+                  <div className="seam freezer"></div>
+                </div>
+                <div className="interior">
+                  <div className="shelves">
+                    {/* Freezer */}
+                    <div className="freezer">
+                      {(byShelf[0] || []).map(it => <Product key={it.id} item={it} onRemove={remove} />)}
+                      <button className="add-slot" title="Add to freezer" onClick={() => setAddOpen(true)}>+</button>
+                      <div className="frost"></div>
+                    </div>
+                    {/* Main shelves */}
+                    <Shelf items={byShelf[1]} onRemove={remove} onAddSlot={() => setAddOpen(true)} />
+                    <Shelf items={byShelf[2]} onRemove={remove} onAddSlot={() => setAddOpen(true)} />
+                    <Shelf items={byShelf[3]} onRemove={remove} onAddSlot={() => setAddOpen(true)} />
+                    <Shelf items={byShelf[4]} onRemove={remove} onAddSlot={() => setAddOpen(true)} />
+                  </div>
+                </div>
+
+                <div className="door-wrap">
+                  <div className="door" onClick={toggleDoor}>
+                    <div className="door-display">
+                      <span>FRESH</span>
+                      <span className="time">4°C</span>
+                      <span className="ico">❄</span>
+                    </div>
+                    <div className="door-brand">Ко-да-ям</div>
+                    <div className="handle" onClick={(e) => { e.stopPropagation(); toggleDoor(); }}></div>
+                    <div className="door-inside">
+                      <div className="door-bin">
+                        <div className="bin-glass"></div>
+                        <div className="bottle b1"></div>
+                        <div className="bottle b2"></div>
+                        <div className="bottle b3"></div>
+                      </div>
+                      <div className="door-bin">
+                        <div className="bin-glass"></div>
+                        <div className="bottle b4"></div>
+                        <div className="bottle b5"></div>
+                        <div className="bottle b2"></div>
+                        <div className="bottle b1"></div>
+                      </div>
+                      <div className="door-bin">
+                        <div className="bin-glass"></div>
+                        <div className="bottle b3"></div>
+                        <div className="bottle b4"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="feet"><span></span><span></span></div>
+
+                {tweaks.showHint && (
+                  <div className="tap-hint">
+                    <span className="pill">👆 Tap handle to open</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Right rail */}
+          <div className="rail">
+            <div className="card">
+              <h3>At a glance</h3>
+              <div className="stats">
+                <div className="stat"><div className="n">{fridge.length}</div><div className="l">Items</div></div>
+                <div className="stat warn"><div className="n">{expiringSoon}</div><div className="l">Expiring</div></div>
+                <div className="stat good"><div className="n">{matchingRecipes}</div><div className="l">Recipes</div></div>
+              </div>
+            </div>
+
+            <div className="cook">
+              <h2>What can I cook?</h2>
+              <p>We'll match {fridge.length} items in your fridge against your saved recipes and dietary rules.</p>
+              <button onClick={() => toast('Searching recipes…')}>🔍 Find recipes</button>
+            </div>
+
+            <div className="card">
+              <h3>You can make right now</h3>
+              <div className="recipe-row">
+                {RECIPES.map((r) => (
+                  <div className="recipe" key={r.name} onClick={() => toast(`Open ${r.name}`)}>
+                    <div className="thumb">{r.emoji}</div>
+                    <div className="body">
+                      <div className="name">{r.name}</div>
+                      <div className="meta">⏱ {r.time} min · {r.needs.slice(0,3).join(', ')}</div>
+                    </div>
+                    <div className="badge">{r.match}/{r.total}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      {addOpen && <AddSheet existing={fridge} onAdd={add} onClose={() => setAddOpen(false)} />}
+
+      {/* Tweaks panel */}
+      <window.TweaksPanel title="Tweaks">
+        <window.TweakSection title="Fridge style">
+          <window.TweakSelect
+            label="Style"
+            value={tweaks.style}
+            onChange={(v) => setTweak('style', v)}
+            options={[
+              { value: 'modern', label: 'Modern stainless' },
+              { value: 'retro',  label: 'Retro pastel'    },
+              { value: 'glass',  label: 'Smart glass'     },
+            ]}
+          />
+        </window.TweakSection>
+        <window.TweakSection title="Behavior">
+          <window.TweakToggle
+            label="Door open"
+            value={!!tweaks.doorOpen}
+            onChange={(v) => setTweak('doorOpen', v)}
+          />
+          <window.TweakToggle
+            label="Show tap hint"
+            value={!!tweaks.showHint}
+            onChange={(v) => setTweak('showHint', v)}
+          />
+        </window.TweakSection>
+      </window.TweaksPanel>
+
+      {/* Toasts */}
+      <div className="toast-wrap">
+        {toasts.map(t => <div key={t.id} className="toast">{t.msg}</div>)}
+      </div>
+    </div>
+  );
+};
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>

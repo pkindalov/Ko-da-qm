@@ -38,7 +38,7 @@ export function Sidebar({ tab, setTab, lang, onTweaksToggle, onLogout, notificat
   return (
     <nav className="sidebar">
       <div className="sidebar-logo">
-        Ко-да-ям
+        <span className="sidebar-logo-mark">Ко-да-ям</span>
         <span>{lang === 'en' ? 'for picky eaters' : 'за капризни хора'}</span>
       </div>
 
@@ -66,22 +66,18 @@ export function Sidebar({ tab, setTab, lang, onTweaksToggle, onLogout, notificat
         lang={lang}
       />
 
-      <div style={{ flex: 1 }} />
+      <div className="sidebar-spacer" />
 
-      <button
-        className="nav-item"
-        onClick={onTweaksToggle}
-        style={{ color: 'var(--text2)' }}
-      >
-        <span className="nav-icon">⚙</span> Tweaks
-      </button>
-      <button
-        className="nav-item"
-        onClick={onLogout}
-        style={{ color: 'var(--danger)' }}
-      >
-        <span className="nav-icon">🚪</span> {lang === 'en' ? 'Log out' : 'Изход'}
-      </button>
+      <div className="sidebar-footer">
+        <button className="nav-item" onClick={onTweaksToggle}>
+          <span className="nav-icon">⚙</span>
+          {lang === 'en' ? 'Settings' : 'Настройки'}
+        </button>
+        <button className="nav-item" onClick={onLogout} style={{ color: 'var(--rust)' }}>
+          <span className="nav-icon">🚪</span>
+          {lang === 'en' ? 'Log out' : 'Изход'}
+        </button>
+      </div>
     </nav>
   );
 }

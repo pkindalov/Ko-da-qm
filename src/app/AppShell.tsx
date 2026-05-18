@@ -54,7 +54,8 @@ export function AppShell() {
   }, []);
 
   const themeClass =
-    tweaks.theme === 'cool' ? 'theme-cool' : tweaks.theme === 'dark' ? 'theme-dark' : '';
+    tweaks.theme === 'cool' ? 'theme-cool' :
+    tweaks.theme === 'dark' ? 'theme-dark' : '';
 
   if (loading) {
     return (
