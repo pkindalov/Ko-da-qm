@@ -43,8 +43,6 @@ export function HomeScreen({ profile, recipes, fridge, publicRecipes, favoriteId
   const [selectedSafeRecipe, setSelectedSafeRecipe] = useState<Recipe | null>(null);
   const [communityPage, setCommunityPage] = useState(1);
   const [openStatModal, setOpenStatModal] = useState<'safeRecipes' | 'fridge' | 'allergies' | 'dislikes' | null>(null);
-  const [allergiesExpanded, setAllergiesExpanded] = useState(false);
-
   const [fridgeFormMode, setFridgeFormMode] = useState<'add' | 'edit' | null>(null);
   const [fridgeFormItem, setFridgeFormItem] = useState<FridgeItem | null>(null);
   const [fridgeFormName, setFridgeFormName] = useState('');
@@ -198,63 +196,84 @@ export function HomeScreen({ profile, recipes, fridge, publicRecipes, favoriteId
   const safeRecipes = recipes.filter((r) => isSafe(r, blocked));
   const greeting = getGreeting(new Date().getHours(), lang);
 
+  const today = new Date().toLocaleDateString(isEnglish ? 'en-GB' : 'bg-BG', { weekday: 'long', day: 'numeric', month: 'long' });
+
   return (
     <div className="fade-in">
-      <div style={{ marginBottom: 28 }}>
-        <div style={{ fontSize: 28, fontWeight: 900, letterSpacing: -0.5 }}>
-          {greeting}{profile.name ? `, ${profile.name}` : ''}! 👋
+      {/* Topbar */}
+      <div className="topbar">
+        <div className="breadcrumb">
+          {isEnglish ? 'Kitchen' : 'Кухня'} <span>/ {isEnglish ? 'Today' : 'Днес'}</span>
         </div>
-        <div style={{ color: 'var(--text2)', fontSize: 15, marginTop: 4, fontWeight: 600 }}>
-          {isEnglish ? 'What are we eating today?' : 'Какво ядем днес?'}
-        </div>
-      </div>
-
-      <div className="grid-2" style={{ marginBottom: 20 }}>
-        <div className="stat-card" style={{ cursor: 'pointer' }} onClick={() => setOpenStatModal('safeRecipes')}>
-          <div className="stat-num" style={{ color: 'var(--primary)' }}>{safeRecipes.length}</div>
-          <div className="stat-label">{isEnglish ? 'safe recipes' : 'безопасни рецепти'}</div>
-        </div>
-        <div className="stat-card" style={{ cursor: 'pointer' }} onClick={() => setOpenStatModal('fridge')}>
-          <div className="stat-num" style={{ color: 'var(--secondary)' }}>{fridge.length}</div>
-          <div className="stat-label">{isEnglish ? 'fridge items' : 'в хладилника'}</div>
-        </div>
-        <div className="stat-card" style={{ cursor: 'pointer' }} onClick={() => setOpenStatModal('allergies')}>
-          <div className="stat-num" style={{ color: 'var(--danger)' }}>{allergies.length}</div>
-          <div className="stat-label">{isEnglish ? 'allergies' : 'алергии'}</div>
-        </div>
-        <div className="stat-card" style={{ cursor: 'pointer' }} onClick={() => setOpenStatModal('dislikes')}>
-          <div className="stat-num" style={{ color: 'var(--warn)' }}>{dislikes.length}</div>
-          <div className="stat-label">{isEnglish ? 'dislikes' : 'нелюбими'}</div>
+        <div className="topbar-actions">
+          <div className="topbar-date">{today}</div>
         </div>
       </div>
 
+      {/* Hero */}
+      <section className="hero-grid">
+        <div>
+          <div className="eyebrow" style={{ marginBottom: 18 }}>
+            {greeting}{profile.name ? `, ${profile.name}` : ''}
+          </div>
+          <h1 className="h-display">
+            {isEnglish ? 'What can we ' : 'Какво да '}
+            <span className="it">{isEnglish ? 'cook' : 'сготвим'}</span>
+            <br />{isEnglish ? 'today?' : 'днес?'}
+          </h1>
+          <p className="h-sub" style={{ marginTop: 22 }}>
+            {isEnglish
+              ? 'A quiet cookbook that already knows what you cannot eat. Pick something safe, or stretch a little.'
+              : 'Тиха готварска книга, която вече знае какво не можеш да ядеш. Избери нещо безопасно — или излез от зоната.'}
+          </p>
+          <div style={{ display: 'flex', gap: 10, marginTop: 28, flexWrap: 'wrap' }}>
+            <button className="btn btn-primary" onClick={() => setTab('recipes')}>
+              {isEnglish ? 'Browse recipes' : 'Към рецептите'} <span style={{ opacity: .6 }}>→</span>
+            </button>
+            <button className="btn btn-secondary" onClick={() => setTab('profile')}>
+              {isEnglish ? 'Edit restrictions' : 'Промени ограниченията'}
+            </button>
+          </div>
+        </div>
+        <div className="hero-stats">
+          <div className="hero-stat-card" onClick={() => setOpenStatModal('safeRecipes')}>
+            <div className="hero-stat-num italic clay">{safeRecipes.length}</div>
+            <div className="hero-stat-label">{isEnglish ? 'safe recipes' : 'безопасни рецепти'}</div>
+          </div>
+          <div className="hero-stat-card" onClick={() => setOpenStatModal('allergies')}>
+            <div className="hero-stat-num italic rust">{allergies.length}</div>
+            <div className="hero-stat-label">{isEnglish ? 'allergies' : 'алергии'}</div>
+          </div>
+          <div className="hero-stat-card" onClick={() => setOpenStatModal('dislikes')}>
+            <div className="hero-stat-num italic amber">{dislikes.length}</div>
+            <div className="hero-stat-label">{isEnglish ? 'dislikes' : 'нелюбими'}</div>
+          </div>
+          <div className="hero-stat-card" onClick={() => setOpenStatModal('fridge')}>
+            <div className="hero-stat-num italic moss">{fridge.length}</div>
+            <div className="hero-stat-label">{isEnglish ? 'in your fridge' : 'в хладилника'}</div>
+          </div>
+        </div>
+      </section>
+
+      {/* Alert banner */}
       {allergies.length > 0 && (
-        <div className="card" style={{ marginBottom: 16 }}>
-          <button
-            type="button"
-            style={{ background: 'none', border: 'none', padding: 0, width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}
-            onClick={() => setAllergiesExpanded(v => !v)}
-            aria-expanded={allergiesExpanded}
-          >
-            <span style={{ fontWeight: 800, fontSize: 14, color: 'var(--danger)' }}>
-              ⚠ {isEnglish ? 'Active Allergies' : 'Активни алергии'} ({allergies.length})
-            </span>
-            <span style={{ fontSize: 12, color: 'var(--danger)' }}>
-              {allergiesExpanded ? '▲' : '▼'}
-            </span>
-          </button>
-          {allergiesExpanded && (
-            <div className="tag-list" style={{ marginTop: 8 }}>
-              {allergies.map((a) => (
-                <Badge type="allergy" key={a}>{a}</Badge>
-              ))}
-            </div>
-          )}
+        <div className="alert-banner">
+          <span className="dot dot-danger" />
+          <div className="alert-banner-text">
+            <strong>{isEnglish ? 'Active allergies' : 'Активни алергии'}.</strong>{' '}
+            {isEnglish ? 'These ingredients are always flagged.' : 'Тези съставки винаги се маркират.'}
+          </div>
+          <div className="alert-banner-tags">
+            {allergies.map((a) => <Badge type="allergy" key={a}>{a}</Badge>)}
+          </div>
         </div>
       )}
 
-      <div className="divider" />
-      <div className="section-title">{isEnglish ? 'QUICK IDEAS' : 'БЪРЗИ ИДЕИ'}</div>
+      {/* Safe recipes section */}
+      <div className="section-eyebrow">
+        <span className="label">{isEnglish ? 'Quiet ideas — safe for you' : 'Тихи идеи — безопасни за теб'}</span>
+        <span className="label">{safeRecipes.length} {isEnglish ? 'matches' : 'броя'}</span>
+      </div>
 
       {recipes.length === 0 ? (
         <EmptyState
@@ -263,21 +282,28 @@ export function HomeScreen({ profile, recipes, fridge, publicRecipes, favoriteId
           subtitle={isEnglish ? 'Add recipes or update your restrictions' : 'Добави рецепти или промени ограниченията си'}
         />
       ) : (
-        <div className="grid-2">
+        <div className="grid-3">
           {recipes.slice(0, RECIPES_PREVIEW_SIZE).map((r) => {
             const risk = recipeRisk(r, allergies, dislikes);
+            const name = isEnglish && r.nameEn ? r.nameEn : r.name;
+            const tag = r.tags?.[0] ?? (isEnglish ? 'recipe' : 'рецепта');
             return (
               <div key={r.id} className={`recipe-card${risk === 'allergy' ? ' allergy' : ''}`} onClick={() => setTab('recipes')}>
-                {r.imageUrl
-                  ? <img src={r.imageUrl} alt={isEnglish && r.nameEn ? r.nameEn : r.name} className="recipe-card-img" />
-                  : <div className="recipe-emoji">{r.emoji}</div>
-                }
-                <div className="recipe-name">{isEnglish && r.nameEn ? r.nameEn : r.name}</div>
-                <div className="recipe-meta">⏱ {r.time} {isEnglish ? 'min' : 'мин'}</div>
-                <div style={{ marginTop: 6 }}>
-                  {risk === 'safe'    && <Badge type="safe">{isEnglish ? 'Safe' : 'Безопасно'}</Badge>}
-                  {risk === 'dislike' && <Badge type="dislike">{isEnglish ? 'Check' : 'Провери!'}</Badge>}
-                  {risk === 'allergy' && <Badge type="allergy">⚠ {isEnglish ? 'Allergy risk!' : 'Алергия!'}</Badge>}
+                <div className="recipe-image">
+                  <div className="recipe-image-stripes" />
+                  {r.imageUrl
+                    ? <img src={r.imageUrl} alt={name} className="recipe-card-img" />
+                    : <div className="recipe-image-emoji">{r.emoji}</div>}
+                  <div className="recipe-image-label">{tag} · {r.time}min</div>
+                </div>
+                <div className="recipe-body">
+                  <div className="recipe-name italic">{name}</div>
+                  <div className="recipe-meta">⏱ {r.time} {isEnglish ? 'min' : 'мин'}</div>
+                  <div className="recipe-tags">
+                    {risk === 'safe'    && <Badge type="safe"><span className="dot dot-safe" /> {isEnglish ? 'safe' : 'безопасно'}</Badge>}
+                    {risk === 'dislike' && <Badge type="dislike"><span className="dot dot-warn" /> {isEnglish ? 'check' : 'провери'}</Badge>}
+                    {risk === 'allergy' && <Badge type="allergy"><span className="dot dot-danger" /> {isEnglish ? 'allergy' : 'алергия'}</Badge>}
+                  </div>
                 </div>
               </div>
             );
@@ -285,69 +311,71 @@ export function HomeScreen({ profile, recipes, fridge, publicRecipes, favoriteId
         </div>
       )}
 
+      {/* Community recipes */}
       {publicRecipes.length > 0 && (
         <>
           <div className="divider" />
-          <div className="section-title">{isEnglish ? 'FROM THE COMMUNITY' : 'ОТ ОБЩНОСТТА'}</div>
-          <div className="grid-2">
+          <div className="section-eyebrow">
+            <span className="label">{isEnglish ? 'From the community' : 'От общността'}</span>
+            <span className="label">{publicRecipes.length} {isEnglish ? 'recipes' : 'рецепти'}</span>
+          </div>
+          <div className="grid-3">
             {publicRecipes.slice(0, communityPage * COMMUNITY_PAGE_SIZE).map((r) => {
               const risk = recipeRisk(r, allergies, dislikes);
+              const name = isEnglish && r.nameEn ? r.nameEn : r.name;
+              const tag = r.tags?.[0] ?? (isEnglish ? 'recipe' : 'рецепта');
               return (
                 <div key={r.id} className={`recipe-card${risk === 'allergy' ? ' allergy' : ''}`} onClick={() => setSelectedRecipe(r)}>
-                  <button
-                    className="btn-favorite"
-                    onClick={(e) => { e.stopPropagation(); onToggleFavorite(r); }}
-                    aria-label={favoriteIds.includes(r.id) ? 'Remove from favorites' : 'Add to favorites'}
-                  >
-                    {favoriteIds.includes(r.id) ? '♥' : '♡'}
-                  </button>
-                  {r.imageUrl
-                    ? <img src={r.imageUrl} alt={isEnglish && r.nameEn ? r.nameEn : r.name} className="recipe-card-img" />
-                    : <div className="recipe-emoji">{r.emoji}</div>
-                  }
-                  <div className="recipe-name">{isEnglish && r.nameEn ? r.nameEn : r.name}</div>
-                  <div className="recipe-meta">⏱ {r.time} {isEnglish ? 'min' : 'мин'}</div>
-                  {communityFavoriteCounts[r.id] > 0 && (
-                    <div className="recipe-meta">♥ {communityFavoriteCounts[r.id]}</div>
-                  )}
-                  {r.authorName && r.authorId && onNavigateToUser && (
+                  <div className="recipe-image">
+                    <div className="recipe-image-stripes" />
+                    {r.imageUrl
+                      ? <img src={r.imageUrl} alt={name} className="recipe-card-img" />
+                      : <div className="recipe-image-emoji">{r.emoji}</div>}
+                    <div className="recipe-image-label">{tag} · {r.time}min</div>
                     <button
-                      className="recipe-meta"
-                      onClick={(e) => { e.stopPropagation(); onNavigateToUser(r.authorId!); }}
-                      style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: 'var(--primary)', fontWeight: 700, textAlign: 'left' }}
+                      className="btn-favorite"
+                      style={{ position: 'absolute', top: 10, right: 10, zIndex: 1 }}
+                      onClick={(e) => { e.stopPropagation(); onToggleFavorite(r); }}
+                      aria-label={favoriteIds.includes(r.id) ? 'Remove from favorites' : 'Add to favorites'}
                     >
-                      👤 {r.authorName}
+                      {favoriteIds.includes(r.id) ? '♥' : '♡'}
                     </button>
-                  )}
-                  {r.authorName && (!r.authorId || !onNavigateToUser) && (
-                    <div className="recipe-meta">👤 {r.authorName}</div>
-                  )}
-                  <div style={{ marginTop: 6 }}>
-                    {risk === 'safe'    && <Badge type="safe">{isEnglish ? 'Safe' : 'Безопасно'}</Badge>}
-                    {risk === 'dislike' && <Badge type="dislike">{isEnglish ? 'Check' : 'Провери!'}</Badge>}
-                    {risk === 'allergy' && <Badge type="allergy">⚠ {isEnglish ? 'Allergy risk!' : 'Алергия!'}</Badge>}
+                  </div>
+                  <div className="recipe-body">
+                    <div className="recipe-name italic">{name}</div>
+                    <div className="recipe-meta">⏱ {r.time} {isEnglish ? 'min' : 'мин'}</div>
+                    {communityFavoriteCounts[r.id] > 0 && (
+                      <div className="recipe-meta">♥ {communityFavoriteCounts[r.id]}</div>
+                    )}
+                    {r.authorName && r.authorId && onNavigateToUser && (
+                      <button
+                        className="recipe-meta"
+                        onClick={(e) => { e.stopPropagation(); onNavigateToUser(r.authorId!); }}
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: 'var(--clay-deep)', fontWeight: 600, textAlign: 'left', fontFamily: 'var(--mono)', fontSize: 11, letterSpacing: '.4px', textTransform: 'uppercase' }}
+                      >
+                        👤 {r.authorName}
+                      </button>
+                    )}
+                    {r.authorName && (!r.authorId || !onNavigateToUser) && (
+                      <div className="recipe-meta">👤 {r.authorName}</div>
+                    )}
+                    <div className="recipe-tags">
+                      {risk === 'safe'    && <Badge type="safe"><span className="dot dot-safe" /> {isEnglish ? 'safe' : 'безопасно'}</Badge>}
+                      {risk === 'dislike' && <Badge type="dislike"><span className="dot dot-warn" /> {isEnglish ? 'check' : 'провери'}</Badge>}
+                      {risk === 'allergy' && <Badge type="allergy"><span className="dot dot-danger" /> {isEnglish ? 'allergy' : 'алергия'}</Badge>}
+                    </div>
                   </div>
                 </div>
               );
             })}
           </div>
           {publicRecipes.length > communityPage * COMMUNITY_PAGE_SIZE && (
-            <button className="btn btn-ghost btn-full" style={{ marginTop: 8 }} onClick={() => setCommunityPage(p => p + 1)}>
+            <button className="btn btn-ghost btn-full" style={{ marginTop: 16 }} onClick={() => setCommunityPage(p => p + 1)}>
               {isEnglish ? `Show more (${publicRecipes.length - communityPage * COMMUNITY_PAGE_SIZE} left)` : `Покажи още (${publicRecipes.length - communityPage * COMMUNITY_PAGE_SIZE} остават)`}
             </button>
           )}
         </>
       )}
-
-      <div className="divider" />
-      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-        <button className="btn btn-primary" onClick={() => setTab('fridge')}>
-          🧊 {isEnglish ? 'Open Fridge' : 'Отвори хладилника'}
-        </button>
-        <button className="btn btn-ghost" onClick={() => setTab('recipes')}>
-          📖 {isEnglish ? 'All Recipes' : 'Всички рецепти'}
-        </button>
-      </div>
 
       <Modal
         open={openStatModal === 'safeRecipes'}

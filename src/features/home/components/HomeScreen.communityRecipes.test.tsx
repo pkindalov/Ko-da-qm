@@ -48,21 +48,21 @@ describe('HomeScreen – community recipe risk badges', () => {
   it('shows safe badge on a community recipe with no blocked ingredients', () => {
     const recipe = makeRecipe({ ingredients: ['пилешко'], requiredIngredients: ['пилешко'] });
     render(<HomeScreen {...makeProps({ publicRecipes: [recipe] })} />);
-    expect(screen.getByText('Безопасно')).toBeInTheDocument();
+    expect(screen.getByText('безопасно')).toBeInTheDocument();
   });
 
   it('shows allergy badge when a community recipe contains an allergen from the profile', () => {
     const profile: Profile = { ...baseProfile, allergies: ['пилешко'] };
     const recipe = makeRecipe({ ingredients: ['пилешко'], requiredIngredients: ['пилешко'] });
     render(<HomeScreen {...makeProps({ profile, publicRecipes: [recipe] })} />);
-    expect(screen.getByText(/Алергия!/i)).toBeInTheDocument();
+    expect(screen.getByText(/алергия/i)).toBeInTheDocument();
   });
 
   it('shows dislike badge when a community recipe contains a disliked ingredient', () => {
     const profile: Profile = { ...baseProfile, dislikes: ['лук'] };
     const recipe = makeRecipe({ ingredients: ['лук'], requiredIngredients: ['лук'] });
     render(<HomeScreen {...makeProps({ profile, publicRecipes: [recipe] })} />);
-    expect(screen.getByText('Провери!')).toBeInTheDocument();
+    expect(screen.getByText('провери')).toBeInTheDocument();
   });
 
   it('adds allergy CSS class to the card when the recipe contains an allergen', () => {
@@ -82,7 +82,7 @@ describe('HomeScreen – community recipe risk badges', () => {
     const product: Product = { id: 'p1', name: 'пилешко', category: 'protein', status: 'allergic', emoji: '🍗' };
     const recipe = makeRecipe({ ingredients: ['пилешко'], requiredIngredients: ['пилешко'] });
     render(<HomeScreen {...makeProps({ publicRecipes: [recipe], products: [product] })} />);
-    expect(screen.getByText(/Алергия!/i)).toBeInTheDocument();
+    expect(screen.getByText(/алергия/i)).toBeInTheDocument();
   });
 });
 

@@ -106,14 +106,14 @@ describe('FeedScreen – recipe display', () => {
     mockFavoriteIds.length = 0;
   });
 
-  it('renders the feed section title', () => {
+  it('renders the feed breadcrumb', () => {
     renderFeed('en');
-    expect(screen.getByText('YOUR FEED')).toBeInTheDocument();
+    expect(screen.getByText(/Feed/)).toBeInTheDocument();
   });
 
-  it('renders the bulgarian section title', () => {
+  it('renders the bulgarian feed breadcrumb', () => {
     renderFeed('bg');
-    expect(screen.getByText('ВАШАТА ЛЕНТА')).toBeInTheDocument();
+    expect(screen.getByText(/Лента/)).toBeInTheDocument();
   });
 
   it('renders recipe cards for followed users', () => {

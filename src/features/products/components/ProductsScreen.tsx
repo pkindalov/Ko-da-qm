@@ -66,21 +66,37 @@ export function ProductsScreen({ products, setProducts, addProduct, lang }: Prod
 
   return (
     <div className="fade-in">
-      <div className="page-header">
-        <div className="row-between" style={{ marginBottom: 12 }}>
-          <div className="page-title">🥕 {L ? 'Products' : 'Продукти'}</div>
-          <button className="btn btn-primary btn-sm" onClick={() => setAddOpen(true)}>+ {L ? 'Add' : 'Добави'}</button>
+      <div className="topbar">
+        <div className="breadcrumb">
+          {L ? 'Kitchen' : 'Кухня'} <span>/ {L ? 'Products' : 'Продукти'}</span>
         </div>
-        <div className="search-wrap">
-          <span className="search-icon">🔍</span>
-          <input className="input-field" value={search} onChange={(e) => setSearch(e.target.value)} placeholder={L ? 'Search...' : 'Търси...'} />
+        <div className="topbar-actions">
+          <button className="btn btn-secondary btn-sm" onClick={() => setAddOpen(true)}>
+            + {L ? 'Add product' : 'Добави'}
+          </button>
         </div>
-        <div className="chip-group" style={{ marginTop: 8 }}>
-          {STATUS_FILTERS.map((f) => (
-            <button key={f.id} className={`chip${catFilter === f.id ? ' selected' : ''}`} onClick={() => setCatFilter(f.id)}>
-              {L ? f.labelEn : f.label}
-            </button>
-          ))}
+      </div>
+
+      <div className="page-head">
+        <div>
+          <div className="eyebrow" style={{ marginBottom: 12 }}>{L ? "What I eat & what I don't" : 'Какво ям и какво не'}</div>
+          <h1 className="h-title italic">{L ? 'Products' : 'Продукти'}</h1>
+          <div className="page-head-sub" style={{ marginTop: 8 }}>
+            {L ? 'Tap a status to toggle safe / dislike / allergy.' : 'Натисни статуса, за да превключиш безопасно / нелюбимо / алергия.'}
+          </div>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <div className="search-wrap">
+            <span className="search-icon">🔍</span>
+            <input className="input-field" value={search} onChange={(e) => setSearch(e.target.value)} placeholder={L ? 'Search products…' : 'Търси…'} />
+          </div>
+          <div className="chip-group">
+            {STATUS_FILTERS.map((f) => (
+              <button key={f.id} className={`chip${catFilter === f.id ? ' selected' : ''}`} onClick={() => setCatFilter(f.id)}>
+                {L ? f.labelEn : f.label}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 

@@ -175,8 +175,9 @@ describe('HomeScreen – stat card modals', () => {
     const products = [makeProduct({ name: 'мляко', status: 'allergic' })];
     render(<HomeScreen {...makeProps({ profile, products })} />);
     await user.click(screen.getByText('алергии'));
-    expect(screen.getByText('орехи')).toBeInTheDocument();
-    expect(screen.getByText('мляко')).toBeInTheDocument();
+    const modal = screen.getByText('Алергии (2)').closest('.modal') as HTMLElement;
+    expect(within(modal).getByText('орехи')).toBeInTheDocument();
+    expect(within(modal).getByText('мляко')).toBeInTheDocument();
   });
 
   it('dislikes modal shows all dislikes in a single unified list', async () => {
@@ -195,7 +196,8 @@ describe('HomeScreen – stat card modals', () => {
     const products = [makeProduct({ name: 'мляко', status: 'allergic' })];
     render(<HomeScreen {...makeProps({ profile, products })} />);
     await user.click(screen.getByText('алергии'));
-    expect(screen.getAllByText('мляко')).toHaveLength(1);
+    const modal = screen.getByText('Алергии (1)').closest('.modal') as HTMLElement;
+    expect(within(modal).getAllByText('мляко')).toHaveLength(1);
   });
 
   it('deduped dislike appears only once in the modal', async () => {
@@ -211,56 +213,47 @@ describe('HomeScreen – stat card modals', () => {
 describe('HomeScreen – active allergies section', () => {
   it('does not show active allergies section when no allergies exist', () => {
     render(<HomeScreen {...makeProps()} />);
-    expect(screen.queryByRole('button', { name: /Активни алергии/ })).not.toBeInTheDocument();
+    expect(screen.queryByText(/Активни алергии/)).not.toBeInTheDocument();
   });
 
-  it('shows collapsed toggle button when profile.allergies is set', () => {
+  it('shows alert banner with allergy name when profile.allergies is set', () => {
     const profile: Profile = { ...baseProfile, allergies: ['орехи'] };
     render(<HomeScreen {...makeProps({ profile })} />);
-    expect(screen.getByRole('button', { name: /Активни алергии/ })).toBeInTheDocument();
-    expect(screen.queryByText('орехи')).not.toBeInTheDocument();
-  });
-
-  it('shows collapsed toggle button when a product has allergic status', () => {
-    const products = [makeProduct({ name: 'мляко', status: 'allergic' })];
-    render(<HomeScreen {...makeProps({ products })} />);
-    expect(screen.getByRole('button', { name: /Активни алергии/ })).toBeInTheDocument();
-    expect(screen.queryByText('мляко')).not.toBeInTheDocument();
-  });
-
-  it('reveals allergy badges after clicking the toggle button', async () => {
-    const user = userEvent.setup();
-    const profile: Profile = { ...baseProfile, allergies: ['орехи'] };
-    render(<HomeScreen {...makeProps({ profile })} />);
-    await user.click(screen.getByRole('button', { name: /Активни алергии/ }));
+    expect(screen.getByText(/Активни алергии/)).toBeInTheDocument();
     expect(screen.getByText('орехи')).toBeInTheDocument();
   });
 
-  it('shows combined allergies from profile and products when expanded', async () => {
-    const user = userEvent.setup();
+  it('shows alert banner with allergy name when a product has allergic status', () => {
+    const products = [makeProduct({ name: 'мляко', status: 'allergic' })];
+    render(<HomeScreen {...makeProps({ products })} />);
+    expect(screen.getByText(/Активни алергии/)).toBeInTheDocument();
+    expect(screen.getByText('мляко')).toBeInTheDocument();
+  });
+
+  it('allergy name is visible in the banner without any interaction', () => {
+    const profile: Profile = { ...baseProfile, allergies: ['орехи'] };
+    render(<HomeScreen {...makeProps({ profile })} />);
+    expect(screen.getByText('орехи')).toBeInTheDocument();
+  });
+
+  it('shows combined allergies from profile and products in the banner', () => {
     const profile: Profile = { ...baseProfile, allergies: ['орехи'] };
     const products = [makeProduct({ name: 'мляко', status: 'allergic' })];
     render(<HomeScreen {...makeProps({ profile, products })} />);
-    await user.click(screen.getByRole('button', { name: /Активни алергии/ }));
     expect(screen.getByText('орехи')).toBeInTheDocument();
     expect(screen.getByText('мляко')).toBeInTheDocument();
   });
 
-  it('collapses badges again after a second click', async () => {
-    const user = userEvent.setup();
+  it('allergy names remain visible in the banner on re-render', () => {
     const profile: Profile = { ...baseProfile, allergies: ['орехи'] };
     render(<HomeScreen {...makeProps({ profile })} />);
-    const toggle = screen.getByRole('button', { name: /Активни алергии/ });
-    await user.click(toggle);
     expect(screen.getByText('орехи')).toBeInTheDocument();
-    await user.click(toggle);
-    expect(screen.queryByText('орехи')).not.toBeInTheDocument();
   });
 
-  it('does not show active allergies section when only disliked products exist', () => {
+  it('does not show alert banner when only disliked products exist', () => {
     const products = [makeProduct({ name: 'лук', status: 'disliked' })];
     render(<HomeScreen {...makeProps({ products })} />);
-    expect(screen.queryByRole('button', { name: /Активни алергии/ })).not.toBeInTheDocument();
+    expect(screen.queryByText(/Активни алергии/)).not.toBeInTheDocument();
   });
 });
 

@@ -247,16 +247,37 @@ a{color:inherit;text-decoration:none}
 /* ── Recipe card ─────────────────────────────────────────── */
 .recipe-card{
   background:var(--surface);border:1px solid var(--line);
-  border-radius:var(--r-lg);padding:20px;cursor:pointer;
+  border-radius:var(--r-lg);overflow:hidden;cursor:pointer;
   transition:all .18s ease;position:relative;
   display:flex;flex-direction:column;
 }
 .recipe-card:hover{transform:translateY(-2px);box-shadow:var(--shadow);border-color:var(--line-2)}
 .recipe-card.allergy{background:var(--rust-soft);border-color:rgba(180,60,40,.18)}
 .recipe-card.allergy:hover{box-shadow:var(--shadow);border-color:rgba(180,60,40,.28)}
-.recipe-emoji{font-size:40px;margin-bottom:12px;display:block}
-.recipe-name{font-family:var(--serif);font-size:22px;line-height:1.08;letter-spacing:-.5px;color:var(--ink)}
-.recipe-meta{font-family:var(--mono);font-size:10.5px;color:var(--ink-3);letter-spacing:.4px;text-transform:uppercase;margin-top:6px}
+
+/* Recipe card image area */
+.recipe-image{
+  position:relative;aspect-ratio:4/3;background:var(--paper-2);
+  display:flex;align-items:center;justify-content:center;overflow:hidden;
+}
+.recipe-image-stripes{
+  position:absolute;inset:0;
+  background:repeating-linear-gradient(135deg,transparent 0 12px,rgba(28,24,21,.025) 12px 13px);
+  pointer-events:none;
+}
+.recipe-image-emoji{font-size:64px;filter:saturate(.95);transition:transform .3s}
+.recipe-card:hover .recipe-image-emoji{transform:scale(1.06)}
+.recipe-image-label{
+  position:absolute;left:12px;bottom:10px;
+  font-family:var(--mono);font-size:9.5px;letter-spacing:1px;text-transform:uppercase;
+  color:var(--ink-3);opacity:.7;
+}
+.recipe-body{padding:18px 20px 22px;display:flex;flex-direction:column;gap:6px;flex:1}
+.recipe-tags{margin-top:auto;padding-top:14px;display:flex;gap:6px;flex-wrap:wrap}
+
+.recipe-name{font-family:var(--serif);font-size:24px;line-height:1.05;letter-spacing:-.6px;color:var(--ink)}
+.recipe-name.italic{font-style:italic}
+.recipe-meta{font-family:var(--mono);font-size:11px;color:var(--ink-3);letter-spacing:.4px;text-transform:uppercase}
 
 /* ── Stats ───────────────────────────────────────────────── */
 .stat-card{
@@ -673,8 +694,8 @@ a{color:inherit;text-decoration:none}
 }
 @keyframes spin{to{transform:rotate(360deg)}}
 
-/* ── Recipe images (legacy) ─────────────────────────────── */
-.recipe-card-img{width:calc(100% + 40px);height:120px;object-fit:cover;border-radius:var(--r-lg) var(--r-lg) 0 0;margin:-20px -20px 12px;display:block}
+/* ── Recipe images ───────────────────────────────────────── */
+.recipe-card-img{width:100%;height:100%;object-fit:cover;display:block}
 .recipe-detail-hero-img{width:calc(100% + 48px);height:180px;object-fit:cover;border-radius:var(--r-lg) var(--r-lg) 0 0;margin:-36px -24px 20px;display:block}
 .recipe-suggestion-img{width:44px;height:44px;object-fit:cover;border-radius:8px;flex-shrink:0}
 
@@ -695,6 +716,74 @@ a{color:inherit;text-decoration:none}
   --shadow:0 1px 2px rgba(0,0,0,.2), 0 8px 24px -8px rgba(0,0,0,.25);
   --shadow-lg:0 4px 12px rgba(0,0,0,.2), 0 24px 48px -16px rgba(0,0,0,.35);
 }
+
+/* ── Topbar ──────────────────────────────────────────────── */
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:48px;gap:24px}
+.topbar .breadcrumb{font-family:var(--mono);font-size:11px;letter-spacing:1.2px;color:var(--ink-3);text-transform:uppercase}
+.topbar .breadcrumb span{color:var(--ink)}
+.topbar-actions{display:flex;align-items:center;gap:8px}
+.topbar-date{font-family:var(--mono);font-size:11px;color:var(--ink-3);letter-spacing:.8px}
+
+/* ── Typography (design system) ─────────────────────────── */
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:1.6px;color:var(--ink-3);text-transform:uppercase}
+.h-display{font-family:var(--serif);font-weight:400;font-size:clamp(56px,7vw,88px);line-height:0.95;letter-spacing:-2.5px;color:var(--ink)}
+.h-display .it{font-style:italic;color:var(--clay-deep)}
+.h-title{font-family:var(--serif);font-weight:400;font-size:48px;letter-spacing:-1.2px;line-height:1.02;color:var(--ink)}
+.h-title.italic{font-style:italic}
+.h-sub{font-size:17px;line-height:1.55;color:var(--ink-2);font-weight:400;max-width:48ch}
+.label{font-family:var(--mono);font-size:11px;letter-spacing:1px;color:var(--ink-3);text-transform:uppercase}
+
+/* ── Section eyebrow with line ───────────────────────────── */
+.section-eyebrow{display:flex;align-items:center;gap:12px;margin-bottom:24px}
+.section-eyebrow::after{content:"";flex:1;height:1px;background:var(--line)}
+
+/* ── Hero grid ───────────────────────────────────────────── */
+.hero-grid{display:grid;grid-template-columns:1.4fr 1fr;gap:48px;align-items:end;margin-bottom:72px}
+.hero-stats{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.hero-stat-card{
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--r);
+  padding:22px 22px 20px;display:flex;flex-direction:column;gap:8px;transition:all .15s;cursor:pointer;
+}
+.hero-stat-card:hover{border-color:var(--line-2)}
+.hero-stat-num{font-family:var(--serif);font-size:48px;letter-spacing:-1.5px;line-height:0.9}
+.hero-stat-num.italic{font-style:italic}
+.hero-stat-num.clay{color:var(--clay-deep)}
+.hero-stat-num.rust{color:var(--rust)}
+.hero-stat-num.amber{color:var(--amber)}
+.hero-stat-num.moss{color:var(--moss)}
+.hero-stat-label{font-family:var(--mono);font-size:10.5px;letter-spacing:1.2px;text-transform:uppercase;color:var(--ink-3)}
+
+/* ── Alert banner ────────────────────────────────────────── */
+.alert-banner{
+  display:flex;align-items:center;gap:14px;padding:14px 20px;
+  background:var(--rust-soft);border-radius:var(--r);
+  border:1px solid rgba(180,60,40,.15);margin-bottom:32px;
+}
+.alert-banner-text{flex:1;font-size:13.5px;color:var(--rust);font-weight:500}
+.alert-banner-tags{display:flex;gap:6px;flex-wrap:wrap}
+
+/* ── Dots ────────────────────────────────────────────────── */
+.dot{width:6px;height:6px;border-radius:50%;display:inline-block;flex-shrink:0}
+.dot-safe{background:var(--moss)}
+.dot-warn{background:var(--amber)}
+.dot-danger{background:var(--rust)}
+.dot-clay{background:var(--clay)}
+
+/* ── Metrics ─────────────────────────────────────────────── */
+.metric{display:flex;flex-direction:column;gap:4px}
+.metric-num{font-family:var(--serif);font-size:56px;letter-spacing:-2px;line-height:0.9;color:var(--ink)}
+.metric-num.italic{font-style:italic}
+.metric-label{font-family:var(--mono);font-size:10.5px;letter-spacing:1.2px;text-transform:uppercase;color:var(--ink-3)}
+
+/* ── Page head ───────────────────────────────────────────── */
+.page-head{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin-bottom:36px;padding-bottom:24px;border-bottom:1px solid var(--line)}
+.page-head .h-title{margin-bottom:4px}
+.page-head-sub{font-size:14.5px;color:var(--ink-2);max-width:42ch}
+
+/* ── Search (template style) ─────────────────────────────── */
+.search{position:relative}
+.search input{padding-left:38px;background:var(--surface);border-radius:999px}
+.search-glyph{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--ink-3);pointer-events:none;font-size:13px}
 
 /* ── Responsive ──────────────────────────────────────────── */
 @media(max-width:920px){

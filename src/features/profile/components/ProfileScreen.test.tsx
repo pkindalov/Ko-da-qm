@@ -95,13 +95,13 @@ describe('ProfileScreen settings button', () => {
 describe('ProfileScreen labels language', () => {
   it('shows english labels when lang is en', () => {
     renderProfile({ lang: 'en' });
-    expect(screen.getByText(/my profile/i)).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /^Profile$/i })).toBeInTheDocument();
     expect(screen.getByText(/display name/i)).toBeInTheDocument();
   });
 
   it('shows bulgarian labels when lang is bg', () => {
     renderProfile({ lang: 'bg' });
-    expect(screen.getByText(/моят профил/i)).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /^Профил$/i })).toBeInTheDocument();
     expect(screen.getByText(/^ИМЕ$/i)).toBeInTheDocument();
   });
 });
@@ -145,24 +145,24 @@ describe('ProfileScreen view public profile button', () => {
 
   it('renders view public profile button when onViewPublicProfile is provided', () => {
     renderProfile({ onViewPublicProfile: vi.fn() });
-    expect(screen.getByRole('button', { name: /view my public profile/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Public profile/i })).toBeInTheDocument();
   });
 
   it('does not render view public profile button when onViewPublicProfile is not provided', () => {
     renderProfile();
-    expect(screen.queryByRole('button', { name: /view my public profile/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Public profile/i })).not.toBeInTheDocument();
   });
 
   it('calls onViewPublicProfile when the button is clicked', async () => {
     const onViewPublicProfile = vi.fn();
     renderProfile({ onViewPublicProfile });
-    await userEvent.click(screen.getByRole('button', { name: /view my public profile/i }));
+    await userEvent.click(screen.getByRole('button', { name: /Public profile/i }));
     expect(onViewPublicProfile).toHaveBeenCalledOnce();
   });
 
   it('shows bulgarian label when lang is bg', () => {
     renderProfile({ lang: 'bg', onViewPublicProfile: vi.fn() });
-    expect(screen.getByRole('button', { name: /виж моя публичен профил/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Публичен профил/i })).toBeInTheDocument();
   });
 });
 

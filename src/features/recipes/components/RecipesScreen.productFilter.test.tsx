@@ -35,7 +35,7 @@ const renderScreen = (products: Product[], lang: 'bg' | 'en' = 'bg') =>
   render(<RecipesScreen {...defaultProps} products={products} lang={lang} />);
 
 const openAddModal = async (user: ReturnType<typeof userEvent.setup>) => {
-  await user.click(screen.getByRole('button', { name: '+' }));
+  await user.click(screen.getByRole('button', { name: /new recipe|нова рецепта/i }));
 };
 
 describe('RecipesScreen – product filter', () => {

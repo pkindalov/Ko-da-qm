@@ -39,7 +39,9 @@ export const FeedScreen = ({ lang, allergies, dislikes }: FeedScreenProps) => {
   if (followingIds.length === 0) {
     return (
       <div className="fade-in">
-        <div className="section-title">{isEnglish ? 'YOUR FEED' : 'ВАШАТА ЛЕНТА'}</div>
+        <div className="topbar">
+          <div className="breadcrumb">{isEnglish ? 'Kitchen' : 'Кухня'} <span>/ {isEnglish ? 'Feed' : 'Лента'}</span></div>
+        </div>
         <EmptyState
           icon="👥"
           title={isEnglish ? 'You are not following anyone yet' : 'Все още не следвате никого'}
@@ -61,7 +63,9 @@ export const FeedScreen = ({ lang, allergies, dislikes }: FeedScreenProps) => {
   if (recipes.length === 0) {
     return (
       <div className="fade-in">
-        <div className="section-title">{isEnglish ? 'YOUR FEED' : 'ВАШАТА ЛЕНТА'}</div>
+        <div className="topbar">
+          <div className="breadcrumb">{isEnglish ? 'Kitchen' : 'Кухня'} <span>/ {isEnglish ? 'Feed' : 'Лента'}</span></div>
+        </div>
         <EmptyState
           icon="🍽"
           title={isEnglish ? 'Nothing here yet' : 'Все още няма рецепти'}
@@ -77,17 +81,25 @@ export const FeedScreen = ({ lang, allergies, dislikes }: FeedScreenProps) => {
 
   return (
     <div className="fade-in">
-      <div className="section-title">{isEnglish ? 'YOUR FEED' : 'ВАШАТА ЛЕНТА'}</div>
-      <div className="feed-recipe-count">
-        {isEnglish
-          ? `${recipes.length} recipe${recipes.length !== 1 ? 's' : ''} from people you follow`
-          : `${recipes.length} рецепт${recipes.length === 1 ? 'а' : 'и'} от хора, които следвате`}
+      <div className="topbar">
+        <div className="breadcrumb">
+          {isEnglish ? 'Kitchen' : 'Кухня'} <span>/ {isEnglish ? 'Feed' : 'Лента'}</span>
+        </div>
+        <div className="topbar-actions">
+          <div className="topbar-date feed-recipe-count">
+            {isEnglish
+              ? `${recipes.length} recipe${recipes.length !== 1 ? 's' : ''} from people you follow`
+              : `${recipes.length} рецепт${recipes.length === 1 ? 'а' : 'и'} от хора, които следвате`}
+          </div>
+        </div>
       </div>
 
-      <div className="grid-2">
+      <div className="grid-3">
         {recipes.map((recipe) => {
           const risk = recipeRisk(recipe, allergies, dislikes);
           const isFavorited = favoriteIds.includes(recipe.id);
+          const name = isEnglish && recipe.nameEn ? recipe.nameEn : recipe.name;
+          const tag = recipe.tags?.[0] ?? (isEnglish ? 'recipe' : 'рецепта');
 
           return (
             <div
@@ -95,35 +107,40 @@ export const FeedScreen = ({ lang, allergies, dislikes }: FeedScreenProps) => {
               className={`recipe-card${risk === 'allergy' ? ' allergy' : ''}`}
               onClick={() => setSelectedRecipe(recipe)}
             >
-              <button
-                className="btn-favorite"
-                onClick={(e) => { e.stopPropagation(); toggleFavorite(recipe); }}
-                aria-label={isFavorited ? 'Remove from favorites' : 'Add to favorites'}
-              >
-                {isFavorited ? '♥' : '♡'}
-              </button>
-
-              {recipe.imageUrl
-                ? <img src={recipe.imageUrl} alt={isEnglish && recipe.nameEn ? recipe.nameEn : recipe.name} className="recipe-card-img" />
-                : <div className="recipe-emoji">{recipe.emoji}</div>
-              }
-
-              <div className="recipe-name">{isEnglish && recipe.nameEn ? recipe.nameEn : recipe.name}</div>
-              <div className="recipe-meta">⏱ {recipe.time} {isEnglish ? 'min' : 'мин'}</div>
-
-              {recipe.authorName && recipe.authorId && (
-                <div className="recipe-meta">
-                  <button
-                    className="btn-link"
-                    onClick={(e) => { e.stopPropagation(); navigate(`/user/${recipe.authorId}`); }}
-                  >
-                    👤 {recipe.authorName}
-                  </button>
+              <div className="recipe-image">
+                <div className="recipe-image-stripes" />
+                {recipe.imageUrl
+                  ? <img src={recipe.imageUrl} alt={name} className="recipe-card-img" />
+                  : <div className="recipe-image-emoji">{recipe.emoji}</div>}
+                <div className="recipe-image-label">{tag} · {recipe.time}min</div>
+                <button
+                  className="btn-favorite"
+                  style={{ position: 'absolute', top: 10, right: 10, zIndex: 1 }}
+                  onClick={(e) => { e.stopPropagation(); toggleFavorite(recipe); }}
+                  aria-label={isFavorited ? 'Remove from favorites' : 'Add to favorites'}
+                >
+                  {isFavorited ? '♥' : '♡'}
+                </button>
+              </div>
+              <div className="recipe-body">
+                <div className="recipe-name italic">{name}</div>
+                <div className="recipe-meta">⏱ {recipe.time} {isEnglish ? 'min' : 'мин'}</div>
+                {recipe.authorName && recipe.authorId && (
+                  <div className="recipe-meta">
+                    <button
+                      className="btn-link"
+                      onClick={(e) => { e.stopPropagation(); navigate(`/user/${recipe.authorId}`); }}
+                    >
+                      👤 {recipe.authorName}
+                    </button>
+                  </div>
+                )}
+                <div className="recipe-tags">
+                  {recipe.isAI && <Badge type="primary">✨ AI</Badge>}
+                  {risk === 'safe'    && <Badge type="safe"><span className="dot dot-safe" /> {isEnglish ? 'safe' : 'безопасно'}</Badge>}
+                  {risk === 'dislike' && <Badge type="dislike"><span className="dot dot-warn" /> {isEnglish ? 'check' : 'провери'}</Badge>}
+                  {risk === 'allergy' && <Badge type="allergy"><span className="dot dot-danger" /> {isEnglish ? 'allergy' : 'алергия'}</Badge>}
                 </div>
-              )}
-
-              <div className="feed-recipe-badge">
-                {recipe.isAI && <Badge type="primary">✨ AI</Badge>}
               </div>
             </div>
           );

@@ -80,7 +80,7 @@ describe('RecipesScreen – favorites section', () => {
     const profile: Profile = { ...baseProfile, allergies: ['flour'] };
     const recipe = makeFavorite({ ingredients: ['flour'], requiredIngredients: ['flour'] });
     render(<RecipesScreen {...makeProps({ favoriteRecipes: [recipe], profile })} />);
-    expect(screen.getByText(/Allergy risk!/i)).toBeInTheDocument();
+    expect(screen.getByText('allergy')).toBeInTheDocument();
   });
 
   it('opens the favorite recipe detail view when a favorite card is clicked', async () => {
@@ -107,13 +107,13 @@ describe('RecipesScreen – favorites section', () => {
 
   it('shows Safe badge on a favorite card when profile has no allergens or dislikes', () => {
     render(<RecipesScreen {...makeProps({ favoriteRecipes: [makeFavorite()] })} />);
-    expect(screen.getByText('Safe')).toBeInTheDocument();
+    expect(screen.getByText('safe')).toBeInTheDocument();
   });
 
   it('shows Check badge on a favorite card when recipe contains a disliked ingredient', () => {
     const profile: Profile = { ...baseProfile, dislikes: ['flour'] };
     render(<RecipesScreen {...makeProps({ favoriteRecipes: [makeFavorite()], profile })} />);
-    expect(screen.getByText('Check')).toBeInTheDocument();
+    expect(screen.getByText('check')).toBeInTheDocument();
   });
 
   it('renders all favorite recipes when multiple are present', () => {

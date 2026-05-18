@@ -356,7 +356,7 @@ describe('RecipesScreen – Safe for me chip still works without inline search',
     ];
     const profile: Profile = { ...baseProfile, allergies: ['peanuts'] };
     render(<RecipesScreen {...makeProps({ recipes, profile })} />);
-    await user.click(screen.getByRole('button', { name: /Safe for me/i }));
+    await user.click(screen.getByRole('button', { name: /Safe only/i }));
     expect(screen.getByText('Safe Dish')).toBeInTheDocument();
     expect(screen.queryByText('Risky Dish')).not.toBeInTheDocument();
   });
@@ -369,7 +369,7 @@ describe('RecipesScreen – Safe for me chip still works without inline search',
     ];
     const profile: Profile = { ...baseProfile, allergies: ['peanuts'] };
     render(<RecipesScreen {...makeProps({ recipes, profile })} />);
-    const chip = screen.getByRole('button', { name: /Safe for me/i });
+    const chip = screen.getByRole('button', { name: /Safe only/i });
     await user.click(chip);
     await user.click(chip);
     expect(screen.getByText('Safe Dish')).toBeInTheDocument();

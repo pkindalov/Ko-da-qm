@@ -227,22 +227,29 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, addRecip
 
   return (
     <div className="fade-in">
-      <div className="page-header">
-        <div className="row-between">
-          <div>
-            <div className="page-title">🧊 {L ? 'My Fridge' : 'Моят хладилник'}</div>
+      <div className="topbar">
+        <div className="breadcrumb">
+          {L ? 'Kitchen' : 'Кухня'} <span>/ {L ? 'Fridge' : 'Хладилник'}</span>
+        </div>
+        <div className="topbar-actions">
+          <button className="btn btn-secondary btn-sm" onClick={openAddModal}>
+            + {L ? 'Add item' : 'Добави'}
+          </button>
+        </div>
+      </div>
+
+      <div className="page-head">
+        <div>
+          <div className="eyebrow" style={{ marginBottom: 12 }}>{L ? "What's inside" : 'Какво е вътре'}</div>
+          <h1 className="h-title italic">{L ? 'Fridge' : 'Хладилник'}</h1>
+          <div className="page-head-sub" style={{ marginTop: 8 }}>
+            {L ? 'Add what you have, remove what you used.' : 'Добави какво имаш, премахни използваното.'}
             {fridge.length > 0 && (
-              <button className="fridge-toggle" onClick={() => setFridgeExpanded((v) => !v)}>
+              <button className="fridge-toggle" style={{ marginLeft: 12 }} onClick={() => setFridgeExpanded((v) => !v)}>
                 {fridge.length} {L ? 'items' : 'продукта'} {fridgeExpanded ? '▲' : '▼'}
               </button>
             )}
-            {fridge.length === 0 && (
-              <div className="page-sub">0 {L ? 'items' : 'продукта'}</div>
-            )}
           </div>
-          <button className="btn btn-primary btn-sm" onClick={openAddModal}>
-            + {L ? 'Add' : 'Добави'}
-          </button>
         </div>
       </div>
 

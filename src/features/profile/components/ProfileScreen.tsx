@@ -43,14 +43,27 @@ export function ProfileScreen({ profile, setProfile, products, lang, onLogout, o
 
   return (
     <div className="fade-in">
-      <div className="page-header">
-        <div className="page-title">👤 {L ? 'My Profile' : 'Моят профил'}</div>
-        <div className="page-sub">{L ? 'Manage your food restrictions' : 'Управлявай хранителните си ограничения'}</div>
+      <div className="topbar">
+        <div className="breadcrumb">
+          {L ? 'Kitchen' : 'Кухня'} <span>/ {L ? 'Profile' : 'Профил'}</span>
+        </div>
         {onViewPublicProfile && (
-          <button className="btn btn-ghost btn-sm" onClick={onViewPublicProfile} style={{ marginTop: 8 }}>
-            {L ? '→ View my public profile' : '→ Виж моя публичен профил'}
-          </button>
+          <div className="topbar-actions">
+            <button className="btn btn-secondary btn-sm" onClick={onViewPublicProfile}>
+              {L ? 'Public profile →' : 'Публичен профил →'}
+            </button>
+          </div>
         )}
+      </div>
+
+      <div className="page-head">
+        <div>
+          <div className="eyebrow" style={{ marginBottom: 12 }}>{L ? 'Your shape of hunger' : 'Твоята форма на глад'}</div>
+          <h1 className="h-title italic">{L ? 'Profile' : 'Профил'}</h1>
+          <div className="page-head-sub" style={{ marginTop: 8 }}>
+            {L ? 'Tell the kitchen what to avoid. The cookbook will quietly remember.' : 'Кажи на кухнята какво да избягва. Книгата ще го помни.'}
+          </div>
+        </div>
       </div>
 
       <div className="card" style={{ marginBottom: 16 }}>

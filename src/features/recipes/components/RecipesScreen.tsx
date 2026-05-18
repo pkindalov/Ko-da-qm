@@ -184,55 +184,73 @@ export function RecipesScreen({ recipes, addRecipe, removeRecipe, updateRecipe, 
         />
       ) : (
         <div>
-          <div className="page-header">
-            <div className="row-between" style={{ marginBottom: 12 }}>
-              <div className="page-title">📖 {lang === 'en' ? 'Recipes' : 'Рецепти'}</div>
-              <div style={{ display: 'flex', gap: 8 }}>
-                <button className="btn btn-secondary btn-sm" onClick={() => setDbOpen(true)}>
-                  🔍 {lang === 'en' ? 'Search' : 'Търси'}
-                </button>
-                <button className="btn btn-primary btn-sm" onClick={() => setAddOpen(true)}>+</button>
+          <div className="topbar">
+            <div className="breadcrumb">
+              {lang === 'en' ? 'Kitchen' : 'Кухня'} <span>/ {lang === 'en' ? 'Recipes' : 'Рецепти'}</span>
+            </div>
+            <div className="topbar-actions">
+              <button className="btn btn-secondary btn-sm" onClick={() => setDbOpen(true)}>
+                🔍 {lang === 'en' ? 'Search' : 'Търси'}
+              </button>
+              <button className="btn btn-primary btn-sm" onClick={() => setAddOpen(true)}>
+                + {lang === 'en' ? 'New recipe' : 'Нова рецепта'}
+              </button>
+            </div>
+          </div>
+
+          <div className="page-head">
+            <div>
+              <div className="eyebrow" style={{ marginBottom: 12 }}>{lang === 'en' ? 'Your cookbook' : 'Твоята книга'}</div>
+              <h1 className="h-title italic">{lang === 'en' ? 'Recipes' : 'Рецепти'}</h1>
+              <div className="page-head-sub" style={{ marginTop: 8 }}>
+                {recipes.length} {lang === 'en' ? 'recipes saved · filtered against' : 'рецепти · филтрирани спрямо'}{' '}
+                {blocked.length} {lang === 'en' ? 'restrictions' : 'ограничения'}
               </div>
             </div>
-
-            <div style={{ display: 'flex', gap: 8 }}>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
               <button className={`chip${filterSafe ? ' selected' : ''}`} onClick={() => setFilterSafe(!filterSafe)}>
-                ✓ {lang === 'en' ? 'Safe for me' : 'Безопасни за мен'}
+                ✓ {lang === 'en' ? 'Safe only' : 'Само безопасни'}
               </button>
             </div>
           </div>
 
           {favoriteRecipes.length > 0 && (
             <>
-              <button className="section-title-toggle" onClick={() => setFavoritesOpen(o => !o)}>
-                ♥ {lang === 'en' ? 'FAVORITES' : 'ЛЮБИМИ'} <span className="section-title-chevron">{favoritesOpen ? '▲' : '▼'}</span>
-              </button>
+              <div className="section-eyebrow">
+                <button className="label" style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }} onClick={() => setFavoritesOpen(o => !o)}>
+                  ♥ {lang === 'en' ? 'Favorites' : 'Любими'} {favoritesOpen ? '▲' : '▼'}
+                </button>
+              </div>
               {favoritesOpen && (
-                <div className="grid-2">
+                <div className="grid-3" style={{ marginBottom: 24 }}>
                   {favoriteRecipes.map((r) => {
                     const risk = recipeRisk(r, allergies, dislikes);
+                    const name = lang === 'en' && r.nameEn ? r.nameEn : r.name;
+                    const tag = r.tags?.[0] ?? (lang === 'en' ? 'recipe' : 'рецепта');
                     return (
                       <div key={r.id} className={`recipe-card${risk === 'allergy' ? ' allergy' : ''}`} onClick={() => setFavoriteDetail(r)}>
-                        <button
-                          className="btn-favorite"
-                          onClick={(e) => { e.stopPropagation(); onToggleFavorite(r); }}
-                          aria-label="Remove from favorites"
-                        >
-                          ♥
-                        </button>
-                        {r.imageUrl
-                          ? <img src={r.imageUrl} alt={lang === 'en' && r.nameEn ? r.nameEn : r.name} className="recipe-card-img" />
-                          : <div className="recipe-emoji">{r.emoji}</div>
-                        }
-                        <div className="recipe-name">{lang === 'en' && r.nameEn ? r.nameEn : r.name}</div>
-                        <div className="recipe-meta">⏱ {r.time} {lang === 'en' ? 'min' : 'мин'}</div>
-                        {r.authorName && (
-                          <div className="recipe-meta">👤 {r.authorName}</div>
-                        )}
-                        <div style={{ marginTop: 6 }}>
-                          {risk === 'safe'    && <Badge type="safe">{lang === 'en' ? 'Safe' : 'Безопасно'}</Badge>}
-                          {risk === 'dislike' && <Badge type="dislike">{lang === 'en' ? 'Check' : 'Провери!'}</Badge>}
-                          {risk === 'allergy' && <Badge type="allergy">⚠ {lang === 'en' ? 'Allergy risk!' : 'Алергия!'}</Badge>}
+                        <div className="recipe-image">
+                          <div className="recipe-image-stripes" />
+                          {r.imageUrl
+                            ? <img src={r.imageUrl} alt={name} className="recipe-card-img" />
+                            : <div className="recipe-image-emoji">{r.emoji}</div>}
+                          <div className="recipe-image-label">{tag} · {r.time}min</div>
+                          <button
+                            className="btn-favorite"
+                            style={{ position: 'absolute', top: 10, right: 10, zIndex: 1 }}
+                            onClick={(e) => { e.stopPropagation(); onToggleFavorite(r); }}
+                            aria-label="Remove from favorites"
+                          >♥</button>
+                        </div>
+                        <div className="recipe-body">
+                          <div className="recipe-name italic">{name}</div>
+                          <div className="recipe-meta">⏱ {r.time} {lang === 'en' ? 'min' : 'мин'}</div>
+                          {r.authorName && <div className="recipe-meta">👤 {r.authorName}</div>}
+                          <div className="recipe-tags">
+                            {risk === 'safe'    && <Badge type="safe"><span className="dot dot-safe" /> {lang === 'en' ? 'safe' : 'безопасно'}</Badge>}
+                            {risk === 'dislike' && <Badge type="dislike"><span className="dot dot-warn" /> {lang === 'en' ? 'check' : 'провери'}</Badge>}
+                            {risk === 'allergy' && <Badge type="allergy"><span className="dot dot-danger" /> {lang === 'en' ? 'allergy' : 'алергия'}</Badge>}
+                          </div>
                         </div>
                       </div>
                     );
@@ -250,30 +268,37 @@ export function RecipesScreen({ recipes, addRecipe, removeRecipe, updateRecipe, 
               subtitle={lang === 'en' ? 'Add a recipe or search the database' : 'Добави рецепта или търси в базата'}
             />
           ) : (
-            <div className="grid-2">
+            <div className="grid-3">
               {filtered.map((r) => {
                 const risk = recipeRisk(r, allergies, dislikes);
+                const name = lang === 'en' && r.nameEn ? r.nameEn : r.name;
+                const tag = r.tags?.[0] ?? (lang === 'en' ? 'recipe' : 'рецепта');
                 return (
                   <div key={r.id} className={`recipe-card${risk === 'allergy' ? ' allergy' : ''}`} onClick={() => setDetail(r.id)}>
-                    {r.isAI && <div style={{ position: 'absolute', top: 12, right: 12 }}><Badge type="primary">✨ AI</Badge></div>}
-                    {r.imageUrl
-                      ? <img src={r.imageUrl} alt={lang === 'en' && r.nameEn ? r.nameEn : r.name} className="recipe-card-img" />
-                      : <div className="recipe-emoji">{r.emoji}</div>
-                    }
-                    <div className="recipe-name">{lang === 'en' && r.nameEn ? r.nameEn : r.name}</div>
-                    <div className="recipe-meta">⏱ {r.time} {lang === 'en' ? 'min' : 'мин'}</div>
-                    <div style={{ marginTop: 6 }}>
-                      {risk === 'safe'    && <Badge type="safe">{lang === 'en' ? 'Safe' : 'Безопасно'}</Badge>}
-                      {risk === 'dislike' && <Badge type="dislike">{lang === 'en' ? 'Check' : 'Провери!'}</Badge>}
-                      {risk === 'allergy' && <Badge type="allergy">⚠ {lang === 'en' ? 'Allergy risk!' : 'Алергия!'}</Badge>}
+                    <div className="recipe-image">
+                      <div className="recipe-image-stripes" />
+                      {r.imageUrl
+                        ? <img src={r.imageUrl} alt={name} className="recipe-card-img" />
+                        : <div className="recipe-image-emoji">{r.emoji}</div>}
+                      <div className="recipe-image-label">{tag} · {r.time}min</div>
+                      {r.isAI && <span style={{ position: 'absolute', top: 10, left: 10, zIndex: 1 }}><Badge type="primary">✨ AI</Badge></span>}
                     </div>
-                    <button
-                      className="btn btn-danger btn-sm"
-                      style={{ marginTop: 8, width: '100%' }}
-                      onClick={(e) => { e.stopPropagation(); setPendingDeleteId(r.id); }}
-                    >
-                      🗑 {lang === 'en' ? 'Delete' : 'Изтрий'}
-                    </button>
+                    <div className="recipe-body">
+                      <div className="recipe-name italic">{name}</div>
+                      <div className="recipe-meta">⏱ {r.time} {lang === 'en' ? 'min' : 'мин'}</div>
+                      <div className="recipe-tags">
+                        {risk === 'safe'    && <Badge type="safe"><span className="dot dot-safe" /> {lang === 'en' ? 'safe' : 'безопасно'}</Badge>}
+                        {risk === 'dislike' && <Badge type="dislike"><span className="dot dot-warn" /> {lang === 'en' ? 'check' : 'провери'}</Badge>}
+                        {risk === 'allergy' && <Badge type="allergy"><span className="dot dot-danger" /> {lang === 'en' ? 'allergy' : 'алергия'}</Badge>}
+                      </div>
+                      <button
+                        className="btn btn-danger btn-sm"
+                        style={{ marginTop: 8, width: '100%' }}
+                        onClick={(e) => { e.stopPropagation(); setPendingDeleteId(r.id); }}
+                      >
+                        🗑 {lang === 'en' ? 'Delete' : 'Изтрий'}
+                      </button>
+                    </div>
                   </div>
                 );
               })}
