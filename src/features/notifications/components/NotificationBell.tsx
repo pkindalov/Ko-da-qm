@@ -92,8 +92,9 @@ export const NotificationBell = ({
         onClick={() => setIsOpen(open => !open)}
         aria-label={lang === 'en' ? 'Notifications' : 'Известия'}
       >
-        <span className="nav-icon">🔔</span>
-        {lang === 'en' ? 'Notifications' : 'Известия'}
+        <span className="nav-num">07</span>
+        <span className="nav-glyph">🔔</span>
+        <span>{lang === 'en' ? 'Notifications' : 'Известия'}</span>
         {unreadCount > 0 && (
           <span className="notif-badge" aria-label={`${unreadCount} unread`}>{badgeLabel}</span>
         )}

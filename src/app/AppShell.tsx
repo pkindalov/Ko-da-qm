@@ -103,7 +103,7 @@ export function AppShell() {
 
   return (
     <div className={`app-shell ${themeClass}`}>
-      <Sidebar tab={tab} setTab={setTab} lang={tweaks.lang} profile={profile} tweaksOpen={tweaksOpen} onTweaksToggle={() => setTweaksOpen((o) => !o)} onLangToggle={() => setTweaks({ ...tweaks, lang: tweaks.lang === 'bg' ? 'en' : 'bg' })} notifications={notifications} unreadCount={unreadCount} onMarkAsRead={markAsRead} onMarkAllAsRead={markAllAsRead} onMarkAsUnread={markAsUnread} onMarkAllAsUnread={markAllAsUnread} onDeleteNotification={deleteNotification} onDeleteAll={deleteAllNotifications} onEntityClick={handleEntityClick} />
+      <Sidebar tab={tab} setTab={setTab} lang={tweaks.lang} profile={profile} tweaksOpen={tweaksOpen} onTweaksToggle={() => setTweaksOpen((o) => !o)} onLangToggle={() => setTweaks({ ...tweaks, lang: tweaks.lang === 'bg' ? 'en' : 'bg' })} onUserClick={userId ? () => navigate(`/user/${userId}`) : undefined} notifications={notifications} unreadCount={unreadCount} onMarkAsRead={markAsRead} onMarkAllAsRead={markAllAsRead} onMarkAsUnread={markAsUnread} onMarkAllAsUnread={markAllAsUnread} onDeleteNotification={deleteNotification} onDeleteAll={deleteAllNotifications} onEntityClick={handleEntityClick} />
       <main className="main-content">
         <div className="mobile-notif-bar">
           <NotificationBell notifications={notifications} unreadCount={unreadCount} onMarkAsRead={markAsRead} onMarkAllAsRead={markAllAsRead} onMarkAsUnread={markAsUnread} onMarkAllAsUnread={markAllAsUnread} onDeleteNotification={deleteNotification} onDeleteAll={deleteAllNotifications} onEntityClick={handleEntityClick} lang={tweaks.lang} />

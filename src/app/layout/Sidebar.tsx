@@ -1,4 +1,4 @@
-import type { Tab, Language, Notification, Profile } from '../../shared/types';
+import type { Tab, Language, Profile, Notification } from '../../shared/types';
 import { NotificationBell } from '../../features/notifications/components/NotificationBell';
 
 interface NavItem {
@@ -25,6 +25,7 @@ interface SidebarProps {
   tweaksOpen: boolean;
   onTweaksToggle: () => void;
   onLangToggle: () => void;
+  onUserClick?: () => void;
   notifications: Notification[];
   unreadCount: number;
   onMarkAsRead: (id: string) => void;
@@ -36,7 +37,7 @@ interface SidebarProps {
   onEntityClick?: (entityType: string, entityId: string) => void;
 }
 
-export function Sidebar({ tab, setTab, lang, profile, tweaksOpen, onTweaksToggle, onLangToggle, notifications, unreadCount, onMarkAsRead, onMarkAllAsRead, onMarkAsUnread, onMarkAllAsUnread, onDeleteNotification, onDeleteAll, onEntityClick }: SidebarProps) {
+export function Sidebar({ tab, setTab, lang, profile, tweaksOpen, onTweaksToggle, onLangToggle, onUserClick, notifications, unreadCount, onMarkAsRead, onMarkAllAsRead, onMarkAsUnread, onMarkAllAsUnread, onDeleteNotification, onDeleteAll, onEntityClick }: SidebarProps) {
   const userInitial = (profile.name || 'К').trim().charAt(0).toUpperCase();
   const filterCount = profile.allergies.length + profile.dislikes.length;
 
@@ -56,29 +57,29 @@ export function Sidebar({ tab, setTab, lang, profile, tweaksOpen, onTweaksToggle
             <span>{lang === 'en' ? n.labelEn : n.label}</span>
           </button>
         ))}
+        <NotificationBell
+          notifications={notifications}
+          unreadCount={unreadCount}
+          onMarkAsRead={onMarkAsRead}
+          onMarkAllAsRead={onMarkAllAsRead}
+          onMarkAsUnread={onMarkAsUnread}
+          onMarkAllAsUnread={onMarkAllAsUnread}
+          onDeleteNotification={onDeleteNotification}
+          onDeleteAll={onDeleteAll}
+          onEntityClick={onEntityClick}
+          lang={lang}
+        />
       </nav>
 
       <div className="sidebar-footer">
-        <div className="user-chip">
+        <button className="user-chip" onClick={onUserClick} disabled={onUserClick == null}>
           <div className="user-avatar">{userInitial}</div>
           <div>
             <div className="user-name">{profile.name || (lang === 'en' ? 'Guest cook' : 'Гост')}</div>
             <div className="user-meta">{filterCount} {lang === 'en' ? 'filters' : 'филтри'}</div>
           </div>
-        </div>
+        </button>
         <div className="sidebar-utility">
-          <NotificationBell
-            notifications={notifications}
-            unreadCount={unreadCount}
-            onMarkAsRead={onMarkAsRead}
-            onMarkAllAsRead={onMarkAllAsRead}
-            onMarkAsUnread={onMarkAsUnread}
-            onMarkAllAsUnread={onMarkAllAsUnread}
-            onDeleteNotification={onDeleteNotification}
-            onDeleteAll={onDeleteAll}
-            onEntityClick={onEntityClick}
-            lang={lang}
-          />
           <button className={tweaksOpen ? 'on' : ''} onClick={onTweaksToggle}>Tweaks</button>
           <button onClick={onLangToggle}>{lang === 'bg' ? 'EN' : 'BG'}</button>
         </div>
