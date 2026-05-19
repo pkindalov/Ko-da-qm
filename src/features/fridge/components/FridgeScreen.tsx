@@ -11,6 +11,7 @@ import { searchWithGemini } from '../utils/searchWithGemini';
 import { useSaveGeminiRecipe } from '../hooks/useSaveGeminiRecipe';
 import { openGoogleTranslate } from '../../../shared/utils/openGoogleTranslate';
 import { recipeDisplayName } from '../../../shared/utils/recipeDisplayName';
+import { SaveTranslationModal } from '../../../shared/components/SaveTranslationModal';
 import { CATEGORIES } from '../../../shared/constants/categories';
 import type { FridgeItem, Profile, Recipe, Language, Product, ProductStatus } from '../../../shared/types';
 
@@ -24,13 +25,14 @@ interface FridgeScreenProps {
   addProduct: (product: Omit<Product, 'id'>) => Promise<void>;
   addRecipe: (recipe: Recipe) => void;
   removeRecipe: (id: string) => void;
+  updateRecipe?: (recipe: Recipe) => void;
   profile: Profile;
   recipes: Recipe[];
   products: Product[];
   lang: Language;
 }
 
-export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, removeProduct, addProduct, addRecipe, removeRecipe, profile, recipes, products, lang }: FridgeScreenProps) {
+export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, removeProduct, addProduct, addRecipe, removeRecipe, updateRecipe, profile, recipes, products, lang }: FridgeScreenProps) {
   const L = lang === 'en';
 
   const productStatusByName = useMemo(() => {
@@ -74,6 +76,7 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, removePr
 
   const [pendingRemoveItemId, setPendingRemoveItemId] = useState<string | null>(null);
   const [pendingRemoveSuggestionId, setPendingRemoveSuggestionId] = useState<string | null>(null);
+  const [saveTranslationFor, setSaveTranslationFor] = useState<MatchedRecipe | null>(null);
 
   const handleTranslateCard = async (r: MatchedRecipe) => {
     const { clipboardUsed } = await openGoogleTranslate(r);
@@ -465,12 +468,26 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, removePr
                   )}
                   <div style={{ marginTop: 10 }}>
                     {(savedIdMap.has(r.id) || savedRecipeByName.has(r.name)) ? (
-                      <button
-                        className="btn btn-danger btn-sm"
-                        onClick={() => setPendingRemoveSuggestionId(r.id)}
-                      >
-                        🗑 {L ? 'Remove' : 'Премахни'}
-                      </button>
+                      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                        <button
+                          className="btn btn-danger btn-sm"
+                          onClick={() => setPendingRemoveSuggestionId(r.id)}
+                        >
+                          🗑 {L ? 'Remove' : 'Премахни'}
+                        </button>
+                        {updateRecipe != null && lang === 'bg' && !r.isAI && r.nameEn != null && r.nameEn !== '' && (
+                          <button
+                            className="btn btn-ghost btn-sm"
+                            onClick={() => setSaveTranslationFor(r)}
+                          >
+                            💾 {(() => {
+                              const savedId = savedIdMap.get(r.id) ?? savedRecipeByName.get(r.name);
+                              const saved = savedId ? recipes.find(rec => rec.id === savedId) : null;
+                              return saved?.ingredientsTranslated?.length ? 'Обнови превода' : 'Запази превод';
+                            })()}
+                          </button>
+                        )}
+                      </div>
                     ) : (
                       <button
                         className="btn btn-primary btn-sm"
@@ -706,6 +723,22 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, removePr
           </>
         )}
       </Modal>
+
+      {updateRecipe != null && (
+        <SaveTranslationModal
+          open={saveTranslationFor !== null}
+          lang={lang}
+          onConfirm={async (name, ingredients, steps) => {
+            if (!saveTranslationFor) return;
+            const savedId = savedIdMap.get(saveTranslationFor.id) ?? savedRecipeByName.get(saveTranslationFor.name);
+            const savedRecipe = savedId ? recipes.find(r => r.id === savedId) : null;
+            if (!savedRecipe) return;
+            updateRecipe({ ...savedRecipe, nameTranslated: name, ingredientsTranslated: ingredients, stepsTranslated: steps });
+            toast.success(L ? 'Translation saved!' : 'Преводът е запазен!');
+          }}
+          onCancel={() => setSaveTranslationFor(null)}
+        />
+      )}
     </div>
   );
 }
