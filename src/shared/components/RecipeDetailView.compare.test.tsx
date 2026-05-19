@@ -4,6 +4,11 @@ import userEvent from '@testing-library/user-event';
 import { RecipeDetailView } from './RecipeDetailView';
 import type { Recipe } from '../types';
 
+vi.mock('./SaveTranslationModal', () => ({
+  SaveTranslationModal: ({ open }: { open: boolean }) =>
+    open ? <div data-testid="save-translation-modal" /> : null,
+}));
+
 vi.mock('../utils/openGoogleTranslate', () => ({
   openGoogleTranslate: vi.fn().mockResolvedValue({ clipboardUsed: false }),
 }));
@@ -24,6 +29,14 @@ const makeRecipe = (overrides: Partial<Recipe> = {}): Recipe => ({
   isPublic: false,
   ...overrides,
 });
+
+const makeTranslatedRecipe = (overrides: Partial<Recipe> = {}): Recipe =>
+  makeRecipe({
+    nameTranslated: 'Пилешка супа',
+    ingredientsTranslated: ['1 пиле', 'сол', 'вода'],
+    stepsTranslated: ['Сварете водата', 'Добавете пилето', 'Подправете'],
+    ...overrides,
+  });
 
 const defaultProps = (overrides: Partial<Parameters<typeof RecipeDetailView>[0]> = {}) => ({
   recipe: makeRecipe(),
@@ -54,6 +67,83 @@ describe('RecipeDetailView – translate button visibility', () => {
   it('does not show translate button when nameEn is an empty string', () => {
     render(<RecipeDetailView {...defaultProps({ recipe: makeRecipe({ nameEn: '' }) })} />);
     expect(screen.queryByRole('button', { name: /Преведи на български/i })).not.toBeInTheDocument();
+  });
+});
+
+describe('RecipeDetailView – save translation button', () => {
+  const onSaveTranslation = vi.fn().mockResolvedValue(undefined);
+
+  it('shows save translation button when isOwner, onSaveTranslation provided, and conditions met', () => {
+    render(<RecipeDetailView {...defaultProps({ isOwner: true, onSaveTranslation })} />);
+    expect(screen.getByRole('button', { name: /Запази превод/i })).toBeInTheDocument();
+  });
+
+  it('does not show save translation button when not owner', () => {
+    render(<RecipeDetailView {...defaultProps({ isOwner: false, onSaveTranslation })} />);
+    expect(screen.queryByRole('button', { name: /Запази превод/i })).not.toBeInTheDocument();
+  });
+
+  it('does not show save translation button when onSaveTranslation is not provided', () => {
+    render(<RecipeDetailView {...defaultProps({ isOwner: true })} />);
+    expect(screen.queryByRole('button', { name: /Запази превод/i })).not.toBeInTheDocument();
+  });
+
+  it('opens the save translation modal when the button is clicked', async () => {
+    const user = userEvent.setup();
+    render(<RecipeDetailView {...defaultProps({ isOwner: true, onSaveTranslation })} />);
+    await user.click(screen.getByRole('button', { name: /Запази превод/i }));
+    expect(screen.getByTestId('save-translation-modal')).toBeInTheDocument();
+  });
+
+  it('shows "Обнови превода" label when a translation already exists', () => {
+    render(
+      <RecipeDetailView
+        {...defaultProps({ isOwner: true, onSaveTranslation, recipe: makeTranslatedRecipe() })}
+      />,
+    );
+    expect(screen.getByRole('button', { name: /Обнови превода/i })).toBeInTheDocument();
+  });
+});
+
+describe('RecipeDetailView – translation toggle', () => {
+  it('shows language toggle when recipe has a translation and lang is bg', () => {
+    render(<RecipeDetailView {...defaultProps({ recipe: makeTranslatedRecipe() })} />);
+    expect(screen.getByRole('button', { name: 'Оригинал' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Превод' })).toBeInTheDocument();
+  });
+
+  it('does not show language toggle when recipe has no translation', () => {
+    render(<RecipeDetailView {...defaultProps()} />);
+    expect(screen.queryByRole('button', { name: 'Оригинал' })).not.toBeInTheDocument();
+  });
+
+  it('does not show language toggle when lang is en', () => {
+    render(<RecipeDetailView {...defaultProps({ lang: 'en', recipe: makeTranslatedRecipe() })} />);
+    expect(screen.queryByRole('button', { name: 'Оригинал' })).not.toBeInTheDocument();
+  });
+
+  it('displays translated ingredients after clicking Превод', async () => {
+    const user = userEvent.setup();
+    render(<RecipeDetailView {...defaultProps({ recipe: makeTranslatedRecipe() })} />);
+    await user.click(screen.getByRole('button', { name: 'Превод' }));
+    expect(screen.getByText('1 пиле')).toBeInTheDocument();
+    expect(screen.queryByText('1 chicken')).not.toBeInTheDocument();
+  });
+
+  it('displays original ingredients after switching back to Оригинал', async () => {
+    const user = userEvent.setup();
+    render(<RecipeDetailView {...defaultProps({ recipe: makeTranslatedRecipe() })} />);
+    await user.click(screen.getByRole('button', { name: 'Превод' }));
+    await user.click(screen.getByRole('button', { name: 'Оригинал' }));
+    expect(screen.getByText('1 chicken')).toBeInTheDocument();
+    expect(screen.queryByText('1 пиле')).not.toBeInTheDocument();
+  });
+
+  it('displays translated steps after clicking Превод', async () => {
+    const user = userEvent.setup();
+    render(<RecipeDetailView {...defaultProps({ recipe: makeTranslatedRecipe() })} />);
+    await user.click(screen.getByRole('button', { name: 'Превод' }));
+    expect(screen.getByText('Сварете водата')).toBeInTheDocument();
   });
 });
 

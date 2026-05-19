@@ -51,10 +51,13 @@ export interface Recipe {
   id: string;
   name: string;
   nameEn?: string;
+  nameTranslated?: string;
   emoji: string;
   imageUrl?: string;
   ingredients: string[];
   steps: string[];
+  ingredientsTranslated?: string[];
+  stepsTranslated?: string[];
   time: number;
   tags: string[];
   requiredIngredients: string[];

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Badge } from './Badge';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
+import { SaveTranslationModal } from './SaveTranslationModal';
 import { recipeRisk } from '../utils/recipeUtils';
 import { toast } from 'sonner';
 import { openGoogleTranslate } from '../utils/openGoogleTranslate';
@@ -20,6 +21,7 @@ interface RecipeDetailViewProps {
   onAuthorClick?: () => void;
   onEdit?: () => void;
   onDelete?: () => void;
+  onSaveTranslation?: (name: string, ingredients: string[], steps: string[]) => Promise<void>;
 }
 
 export const RecipeDetailView = ({
@@ -36,11 +38,16 @@ export const RecipeDetailView = ({
   onAuthorClick,
   onEdit,
   onDelete,
+  onSaveTranslation,
 }: RecipeDetailViewProps) => {
   const L = lang === 'en';
   const risk = recipeRisk(recipe, allergies, dislikes);
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+  const [saveTranslationOpen, setSaveTranslationOpen] = useState(false);
+  const [showTranslated, setShowTranslated] = useState(false);
+
   const showTranslateButton = lang === 'bg' && !recipe.isAI && recipe.nameEn != null && recipe.nameEn !== '';
+  const hasTranslation = recipe.ingredientsTranslated != null && recipe.ingredientsTranslated.length > 0;
 
   const handleTranslate = async () => {
     const { clipboardUsed } = await openGoogleTranslate(recipe);
@@ -49,7 +56,15 @@ export const RecipeDetailView = ({
     }
   };
 
-  const displayName = L && recipe.nameEn ? recipe.nameEn : recipe.name;
+  const displayName = showTranslated && recipe.nameTranslated
+    ? recipe.nameTranslated
+    : (L && recipe.nameEn ? recipe.nameEn : recipe.name);
+  const displayIngredients = showTranslated && recipe.ingredientsTranslated
+    ? recipe.ingredientsTranslated
+    : recipe.ingredients;
+  const displaySteps = showTranslated && recipe.stepsTranslated
+    ? recipe.stepsTranslated
+    : recipe.steps;
 
   return (
     <div className="fade-in">
@@ -104,9 +119,34 @@ export const RecipeDetailView = ({
               )}
             </button>
           )}
+          {lang === 'bg' && hasTranslation && (
+            <div style={{ display: 'flex', gap: 4, marginTop: 8 }}>
+              <button
+                className={`chip${!showTranslated ? ' selected' : ''}`}
+                onClick={() => setShowTranslated(false)}
+              >
+                Оригинал
+              </button>
+              <button
+                className={`chip${showTranslated ? ' selected' : ''}`}
+                onClick={() => setShowTranslated(true)}
+              >
+                Превод
+              </button>
+            </div>
+          )}
           {showTranslateButton && (
             <button className="btn btn-ghost btn-sm" onClick={handleTranslate} style={{ marginTop: 8 }}>
               🌐 Преведи на български
+            </button>
+          )}
+          {isOwner && onSaveTranslation != null && showTranslateButton && (
+            <button
+              className="btn btn-ghost btn-sm"
+              onClick={() => setSaveTranslationOpen(true)}
+              style={{ marginTop: 4 }}
+            >
+              💾 {hasTranslation ? 'Обнови превода' : 'Запази превод'}
             </button>
           )}
           {isOwner && (onEdit || onDelete) && (
@@ -131,7 +171,7 @@ export const RecipeDetailView = ({
           <div className="section-eyebrow">
             <span className="label">{L ? 'Ingredients' : 'Съставки'}</span>
           </div>
-          {recipe.ingredients.map((ing, i) => {
+          {displayIngredients.map((ing, i) => {
             const isAllergyIng = allergies.some((b) => ing.toLowerCase().includes(b.toLowerCase()));
             const isBlockedIng = isAllergyIng || dislikes.some((b) => ing.toLowerCase().includes(b.toLowerCase()));
             return (
@@ -152,7 +192,7 @@ export const RecipeDetailView = ({
             <span className="label">{L ? 'Method' : 'Метод'}</span>
           </div>
           <div className="step-grid">
-            {recipe.steps.map((step, i) => (
+            {displaySteps.map((step, i) => (
               <div key={i} className="step">
                 <span className="step-num">{String(i + 1).padStart(2, '0')}</span>
                 <div className="step-text">{step}</div>
@@ -169,6 +209,15 @@ export const RecipeDetailView = ({
           lang={lang}
           onConfirm={() => { setConfirmDeleteOpen(false); onDelete(); }}
           onCancel={() => setConfirmDeleteOpen(false)}
+        />
+      )}
+
+      {onSaveTranslation != null && (
+        <SaveTranslationModal
+          open={saveTranslationOpen}
+          lang={lang}
+          onConfirm={onSaveTranslation}
+          onCancel={() => setSaveTranslationOpen(false)}
         />
       )}
     </div>

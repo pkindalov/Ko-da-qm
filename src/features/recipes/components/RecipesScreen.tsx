@@ -143,7 +143,7 @@ export function RecipesScreen({ recipes, addRecipe, removeRecipe, updateRecipe, 
     if (editingId) {
       const existing = recipes.find(r => r.id === editingId);
       if (existing) {
-        updateRecipe({ ...parsed, id: editingId, authorName: existing.authorName, authorEmail: existing.authorEmail });
+        updateRecipe({ ...existing, ...parsed, id: editingId });
         toast.success(lang === 'en' ? 'Recipe updated!' : 'Рецептата е обновена!');
       }
     } else {
@@ -170,6 +170,10 @@ export function RecipesScreen({ recipes, addRecipe, removeRecipe, updateRecipe, 
           onBack={() => setDetail(null)}
           onEdit={() => openEditModal(detailRecipe)}
           onDelete={() => { removeRecipe(detailRecipe.id); toast.success(lang === 'en' ? 'Recipe deleted' : 'Рецептата е изтрита'); setDetail(null); }}
+          onSaveTranslation={async (name, ingredients, steps) => {
+            await updateRecipe({ ...detailRecipe, nameTranslated: name, ingredientsTranslated: ingredients, stepsTranslated: steps });
+            toast.success(lang === 'en' ? 'Translation saved!' : 'Преводът е запазен!');
+          }}
         />
       ) : favoriteDetail ? (
         <RecipeDetailView
