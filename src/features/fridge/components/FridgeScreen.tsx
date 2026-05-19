@@ -404,15 +404,22 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, removePr
             />
           ) : (
             <div className="stack">
-              {suggestions.map((r) => (
+              {suggestions.map((r) => {
+                const savedId = savedIdMap.get(r.id) ?? savedRecipeByName.get(r.name);
+                const savedRecipe = savedId ? recipes.find(rec => rec.id === savedId) : null;
+                const hasTranslation = lang === 'bg' && savedRecipe?.ingredientsTranslated?.length;
+                const displayName = savedRecipe ? recipeDisplayName(savedRecipe, lang) : recipeDisplayName(r, lang);
+                const displayIngredients = hasTranslation ? savedRecipe!.ingredientsTranslated! : r.ingredients;
+                const displaySteps = hasTranslation && savedRecipe?.stepsTranslated?.length ? savedRecipe.stepsTranslated : r.steps;
+                return (
                 <div key={r.id} className="card-sm" style={{ borderLeft: `3px solid ${r.isAI ? 'var(--secondary)' : 'var(--primary)'}` }}>
                   <div className="row-between" style={{ marginBottom: 6 }}>
                     <div className="row" style={{ gap: 8 }}>
                       {r.imageUrl
-                        ? <img src={r.imageUrl} alt={r.name} className="recipe-suggestion-img" />
+                        ? <img src={r.imageUrl} alt={displayName} className="recipe-suggestion-img" />
                         : <span style={{ fontSize: 22 }}>{r.emoji}</span>
                       }
-                      <span style={{ fontWeight: 800, fontSize: 15 }}>{r.name}</span>
+                      <span style={{ fontWeight: 800, fontSize: 15 }}>{displayName}</span>
                       {r.isAI && <span className="badge badge-neutral" style={{ fontSize: 11 }}>✨ AI</span>}
                     </div>
                     <span className="badge badge-safe">
@@ -420,7 +427,7 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, removePr
                     </span>
                   </div>
                   <div style={{ fontSize: 13, color: 'var(--text2)', fontWeight: 600 }}>
-                    ⏱ {r.time} {L ? 'min' : 'мин'} · {r.ingredients.slice(0, 3).join(', ')}{r.ingredients.length > 3 ? '...' : ''}
+                    ⏱ {r.time} {L ? 'min' : 'мин'} · {displayIngredients.slice(0, 3).join(', ')}{displayIngredients.length > 3 ? '...' : ''}
                   </div>
                   <div style={{ marginTop: 8, display: 'flex', flexWrap: 'wrap', gap: 4 }}>
                     {r.requiredIngredients.map((ing) => {
@@ -450,7 +457,7 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, removePr
                     <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text2)', marginBottom: 4 }}>
                       {L ? 'Steps:' : 'Стъпки:'}
                     </div>
-                    {r.steps.map((s, i) => (
+                    {displaySteps.map((s, i) => (
                       <div key={i} style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', paddingLeft: 4, marginBottom: 2 }}>
                         {i + 1}. {s}
                       </div>
@@ -501,7 +508,8 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, removePr
                     )}
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
           )}
           <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>
