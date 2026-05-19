@@ -44,10 +44,10 @@ export function Sidebar({ tab, setTab, lang, profile, tweaksOpen, onTweaksToggle
 
   return (
     <aside className="sidebar">
-      <div className="brand">
+      <button className="brand" onClick={() => setTab('home')}>
         <span className="brand-mark">Ко-да-ям</span>
         <span className="brand-sub">{lang === 'en' ? 'for picky eaters' : 'за капризни хора'}</span>
-      </div>
+      </button>
 
       <nav className="nav">
         <div className="nav-section-label">{lang === 'en' ? 'Sections' : 'Секции'}</div>
