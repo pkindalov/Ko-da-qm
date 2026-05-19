@@ -29,6 +29,7 @@ import { searchWithGemini } from '../utils/searchWithGemini';
 const makeProps = (overrides: Partial<Parameters<typeof FridgeScreen>[0]> = {}) => ({
   fridge: [{ id: 'f1', name: 'Eggs', emoji: '🥚', category: 'egg' }] as FridgeItem[],
   addFridgeItem: vi.fn().mockResolvedValue(undefined),
+  addProduct: vi.fn().mockResolvedValue(undefined),
   removeFridgeItem: vi.fn().mockResolvedValue(undefined),
   addRecipe: vi.fn(),
   removeRecipe: vi.fn(),

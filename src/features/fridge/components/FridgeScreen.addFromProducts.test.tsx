@@ -7,6 +7,7 @@ import type { FridgeItem, Product, Profile, Recipe } from '../../../shared/types
 const makeProps = (overrides: Partial<Parameters<typeof FridgeScreen>[0]> = {}) => ({
   fridge: [] as FridgeItem[],
   addFridgeItem: vi.fn().mockResolvedValue(undefined),
+  addProduct: vi.fn().mockResolvedValue(undefined),
   removeFridgeItem: vi.fn().mockResolvedValue(undefined),
   addRecipe: vi.fn(),
   removeRecipe: vi.fn(),
@@ -132,13 +133,41 @@ describe('FridgeScreen – add from products', () => {
   it('adds item manually after switching to manual mode', async () => {
     const user = userEvent.setup();
     const addFridgeItem = vi.fn().mockResolvedValue(undefined);
-    render(<FridgeScreen {...makeProps({ products: sampleProducts, addFridgeItem })} />);
+    const addProduct = vi.fn().mockResolvedValue(undefined);
+    render(<FridgeScreen {...makeProps({ products: sampleProducts, addFridgeItem, addProduct })} />);
     await openAddModal(user);
     await user.click(screen.getByText('Ръчно'));
     await user.type(screen.getByPlaceholderText('напр. Домати'), 'Краставица');
     await user.click(screen.getByRole('button', { name: 'Добави' }));
+    await waitFor(() => {
+      expect(addProduct).toHaveBeenCalledWith({ name: 'Краставица', emoji: '📦', category: 'other', status: 'liked' });
+      expect(addFridgeItem).toHaveBeenCalledWith({ name: 'Краставица', emoji: '📦', category: 'other' });
+    });
+  });
+
+  it('does not save to products when name already exists (case-insensitive)', async () => {
+    const user = userEvent.setup();
+    const addFridgeItem = vi.fn().mockResolvedValue(undefined);
+    const addProduct = vi.fn().mockResolvedValue(undefined);
+    render(<FridgeScreen {...makeProps({ products: sampleProducts, addFridgeItem, addProduct })} />);
+    await openAddModal(user);
+    await user.click(screen.getByText('Ръчно'));
+    await user.type(screen.getByPlaceholderText('напр. Домати'), 'домати');
+    await user.click(screen.getByRole('button', { name: 'Добави' }));
+    await waitFor(() => expect(addFridgeItem).toHaveBeenCalled());
+    expect(addProduct).not.toHaveBeenCalled();
+  });
+
+  it('still adds to fridge even when product is a duplicate', async () => {
+    const user = userEvent.setup();
+    const addFridgeItem = vi.fn().mockResolvedValue(undefined);
+    render(<FridgeScreen {...makeProps({ products: sampleProducts, addFridgeItem })} />);
+    await openAddModal(user);
+    await user.click(screen.getByText('Ръчно'));
+    await user.type(screen.getByPlaceholderText('напр. Домати'), 'Домати');
+    await user.click(screen.getByRole('button', { name: 'Добави' }));
     await waitFor(() =>
-      expect(addFridgeItem).toHaveBeenCalledWith({ name: 'Краставица', emoji: '📦', category: 'other' }),
+      expect(addFridgeItem).toHaveBeenCalledWith({ name: 'Домати', emoji: '📦', category: 'other' }),
     );
   });
 

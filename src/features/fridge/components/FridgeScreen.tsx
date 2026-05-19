@@ -10,7 +10,8 @@ import { searchByFridge, toEnglish } from '../utils/searchTheMealDB';
 import { searchWithGemini } from '../utils/searchWithGemini';
 import { useSaveGeminiRecipe } from '../hooks/useSaveGeminiRecipe';
 import { openGoogleTranslate } from '../../../shared/utils/openGoogleTranslate';
-import type { FridgeItem, Profile, Recipe, Language, Product } from '../../../shared/types';
+import { CATEGORIES } from '../../../shared/constants/categories';
+import type { FridgeItem, Profile, Recipe, Language, Product, ProductStatus } from '../../../shared/types';
 
 const FRIDGE_EMOJIS = ['🥚', '🧀', '🍞', '🧈', '🥛', '🍚', '🍗', '🥔', '🍎', '🍅', '🥕', '🥦', '🧅', '🫙', '📦'];
 
@@ -18,6 +19,7 @@ interface FridgeScreenProps {
   fridge: FridgeItem[];
   addFridgeItem: (item: Omit<FridgeItem, 'id'>) => Promise<void>;
   removeFridgeItem: (id: string) => Promise<void>;
+  addProduct: (product: Omit<Product, 'id'>) => Promise<void>;
   addRecipe: (recipe: Recipe) => void;
   removeRecipe: (id: string) => void;
   profile: Profile;
@@ -26,10 +28,12 @@ interface FridgeScreenProps {
   lang: Language;
 }
 
-export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, addRecipe, removeRecipe, profile, recipes, products, lang }: FridgeScreenProps) {
+export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, addProduct, addRecipe, removeRecipe, profile, recipes, products, lang }: FridgeScreenProps) {
   const L = lang === 'en';
   const [newItem, setNewItem] = useState('');
   const [newEmoji, setNewEmoji] = useState('📦');
+  const [newCategory, setNewCategory] = useState<FridgeItem['category']>('other');
+  const [newStatus, setNewStatus] = useState<ProductStatus>('liked');
   const [addOpen, setAddOpen] = useState(false);
   const [addMode, setAddMode] = useState<'select' | 'manual'>('select');
   const [productSearch, setProductSearch] = useState('');
@@ -75,6 +79,8 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, addRecip
     setProductSearch('');
     setNewItem('');
     setNewEmoji('📦');
+    setNewCategory('other');
+    setNewStatus('liked');
     setAddOpen(true);
   };
 
@@ -83,11 +89,18 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, addRecip
     setProductSearch('');
     setNewItem('');
     setNewEmoji('📦');
+    setNewCategory('other');
+    setNewStatus('liked');
   };
 
   const addItemManually = async () => {
     if (!newItem.trim()) return;
-    await addFridgeItem({ name: newItem.trim(), emoji: newEmoji, category: 'other' });
+    const trimmedName = newItem.trim();
+    const isDuplicate = products.some(p => p.name.toLowerCase() === trimmedName.toLowerCase());
+    if (!isDuplicate) {
+      await addProduct({ name: trimmedName, emoji: newEmoji, category: newCategory, status: newStatus });
+    }
+    await addFridgeItem({ name: trimmedName, emoji: newEmoji, category: newCategory });
     closeAddModal();
   };
 
@@ -615,7 +628,7 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, addRecip
                 autoFocus
               />
             </div>
-            <div style={{ marginBottom: 20 }}>
+            <div style={{ marginBottom: 14 }}>
               <label className="input-label">{L ? 'Pick an emoji' : 'Избери емоджи'}</label>
               <div className="chip-group">
                 {FRIDGE_EMOJIS.map((e) => (
@@ -628,6 +641,22 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, addRecip
                     {e}
                   </span>
                 ))}
+              </div>
+            </div>
+            <div style={{ marginBottom: 14 }}>
+              <label className="input-label">{L ? 'Category' : 'Категория'}</label>
+              <select className="input-field" value={newCategory} onChange={(e) => setNewCategory(e.target.value as FridgeItem['category'])}>
+                {CATEGORIES.map((c) => (
+                  <option key={c.id} value={c.id}>{c.emoji} {L ? c.labelEn : c.label}</option>
+                ))}
+              </select>
+            </div>
+            <div style={{ marginBottom: 20 }}>
+              <label className="input-label">{L ? 'My relationship with this food' : 'Моето отношение'}</label>
+              <div className="chip-group">
+                <span className={`chip${newStatus === 'liked' ? ' selected' : ''}`} onClick={() => setNewStatus('liked')}>✓ {L ? 'I like it' : 'Харесвам'}</span>
+                <span className={`chip${newStatus === 'disliked' ? ' sel-warn' : ''}`} onClick={() => setNewStatus('disliked')}>✗ {L ? 'I dislike it' : 'Не харесвам'}</span>
+                <span className={`chip${newStatus === 'allergic' ? ' sel-danger' : ''}`} onClick={() => setNewStatus('allergic')}>⚠ {L ? 'Allergic' : 'Алергия'}</span>
               </div>
             </div>
             <div style={{ display: 'flex', gap: 10 }}>

@@ -25,6 +25,7 @@ const tomatoFridgeItem: FridgeItem = { id: 'f2', name: 'Домати', emoji: '�
 const makeProps = (overrides: Partial<Parameters<typeof FridgeScreen>[0]> = {}) => ({
   fridge: [] as FridgeItem[],
   addFridgeItem: vi.fn().mockResolvedValue(undefined),
+  addProduct: vi.fn().mockResolvedValue(undefined),
   removeFridgeItem: vi.fn().mockResolvedValue(undefined),
   addRecipe: vi.fn(),
   removeRecipe: vi.fn(),

@@ -25,6 +25,7 @@ import { searchByFridge } from '../utils/searchTheMealDB';
 const makeProps = (overrides: Partial<Parameters<typeof FridgeScreen>[0]> = {}) => ({
   fridge: [{ id: 'f1', name: 'Домати', emoji: '🍅', category: 'veg' }] as FridgeItem[],
   addFridgeItem: vi.fn().mockResolvedValue(undefined),
+  addProduct: vi.fn().mockResolvedValue(undefined),
   removeFridgeItem: vi.fn().mockResolvedValue(undefined),
   addRecipe: vi.fn(),
   removeRecipe: vi.fn(),
