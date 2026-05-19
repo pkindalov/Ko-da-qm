@@ -305,3 +305,174 @@ describe('InteractiveFridge – door toggle (Bulgarian)', () => {
     expect(screen.getByText(/вратата е отворена/i)).toBeInTheDocument();
   });
 });
+
+describe('InteractiveFridge – status badges', () => {
+  const allergyItem = makeItem({ id: 'a1', name: 'Peanuts', category: 'other' });
+  const dislikedItem = makeItem({ id: 'd1', name: 'Broccoli', category: 'veg' });
+  const normalItem   = makeItem({ id: 'n1', name: 'Milk', category: 'dairy' });
+
+  const statusMap = new Map<string, 'disliked' | 'allergic'>([
+    ['peanuts', 'allergic'],
+    ['broccoli', 'disliked'],
+  ]);
+
+  it('renders the ! badge for an allergic item', () => {
+    const { container } = render(
+      <InteractiveFridge
+        items={[allergyItem]}
+        onRemove={vi.fn()}
+        onAddSlot={vi.fn()}
+        lang="en"
+        productStatusByName={statusMap}
+      />,
+    );
+    expect(container.querySelector('.product.status-allergic .p-status')).not.toBeNull();
+  });
+
+  it('renders the – badge for a disliked item', () => {
+    const { container } = render(
+      <InteractiveFridge
+        items={[dislikedItem]}
+        onRemove={vi.fn()}
+        onAddSlot={vi.fn()}
+        lang="en"
+        productStatusByName={statusMap}
+      />,
+    );
+    expect(container.querySelector('.product.status-disliked .p-status')).not.toBeNull();
+  });
+
+  it('renders no status badge for a normal item', () => {
+    const { container } = render(
+      <InteractiveFridge
+        items={[normalItem]}
+        onRemove={vi.fn()}
+        onAddSlot={vi.fn()}
+        lang="en"
+        productStatusByName={statusMap}
+      />,
+    );
+    expect(container.querySelector('.p-status')).toBeNull();
+  });
+
+  it('shows a popover with the full name and status label when the badge is clicked', async () => {
+    const user = userEvent.setup();
+    render(
+      <InteractiveFridge
+        items={[allergyItem]}
+        onRemove={vi.fn()}
+        onAddSlot={vi.fn()}
+        lang="en"
+        productStatusByName={statusMap}
+      />,
+    );
+    await user.click(screen.getByRole('button', { name: /peanuts: allergic/i }));
+    const tooltip = screen.getByRole('tooltip');
+    expect(tooltip).toBeInTheDocument();
+    expect(within(tooltip).getByText('Peanuts')).toBeInTheDocument();
+    expect(within(tooltip).getByText('Allergic')).toBeInTheDocument();
+  });
+
+  it('shows the correct description for a disliked item popover', async () => {
+    const user = userEvent.setup();
+    render(
+      <InteractiveFridge
+        items={[dislikedItem]}
+        onRemove={vi.fn()}
+        onAddSlot={vi.fn()}
+        lang="en"
+        productStatusByName={statusMap}
+      />,
+    );
+    await user.click(screen.getByRole('button', { name: /broccoli: disliked/i }));
+    expect(screen.getByText('Disliked')).toBeInTheDocument();
+    expect(screen.getByText(/You marked this as disliked/i)).toBeInTheDocument();
+  });
+
+  it('does not trigger onToggleSelect when the status badge is clicked', async () => {
+    const user = userEvent.setup();
+    const onToggleSelect = vi.fn();
+    render(
+      <InteractiveFridge
+        items={[allergyItem]}
+        onRemove={vi.fn()}
+        onAddSlot={vi.fn()}
+        lang="en"
+        productStatusByName={statusMap}
+        onToggleSelect={onToggleSelect}
+      />,
+    );
+    await user.click(screen.getByRole('button', { name: /peanuts: allergic/i }));
+    expect(onToggleSelect).not.toHaveBeenCalled();
+  });
+
+  it('shows the popover and calls onToggleSelect when tapping the card (not the badge)', async () => {
+    const user = userEvent.setup();
+    const onToggleSelect = vi.fn();
+    const { container } = render(
+      <InteractiveFridge
+        items={[allergyItem]}
+        onRemove={vi.fn()}
+        onAddSlot={vi.fn()}
+        lang="en"
+        productStatusByName={statusMap}
+        onToggleSelect={onToggleSelect}
+      />,
+    );
+    const card = container.querySelector('.product') as HTMLElement;
+    await user.click(card);
+    expect(onToggleSelect).toHaveBeenCalledWith('a1');
+    expect(screen.getByRole('tooltip')).toBeInTheDocument();
+  });
+
+  it('includes status in the title attribute for desktop hover', () => {
+    const { container } = render(
+      <InteractiveFridge
+        items={[allergyItem, dislikedItem, normalItem]}
+        onRemove={vi.fn()}
+        onAddSlot={vi.fn()}
+        lang="en"
+        productStatusByName={statusMap}
+      />,
+    );
+    const products = container.querySelectorAll('.product');
+    const titles = Array.from(products).map(p => p.getAttribute('title'));
+    expect(titles).toContain('Peanuts — Allergic ⚠');
+    expect(titles).toContain('Broccoli — Disliked');
+    expect(titles).toContain('Milk');
+  });
+
+  it('dismisses the popover when clicking elsewhere', async () => {
+    const user = userEvent.setup();
+    render(
+      <InteractiveFridge
+        items={[allergyItem]}
+        onRemove={vi.fn()}
+        onAddSlot={vi.fn()}
+        lang="en"
+        productStatusByName={statusMap}
+      />,
+    );
+    await user.click(screen.getByRole('button', { name: /peanuts: allergic/i }));
+    expect(screen.getByRole('tooltip')).toBeInTheDocument();
+    await user.click(screen.getByTestId('popover-backdrop'));
+    expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
+  });
+
+  it('dismisses the popover when Escape is pressed', async () => {
+    const user = userEvent.setup();
+    render(
+      <InteractiveFridge
+        items={[allergyItem]}
+        onRemove={vi.fn()}
+        onAddSlot={vi.fn()}
+        lang="en"
+        productStatusByName={statusMap}
+      />,
+    );
+    await user.click(screen.getByRole('button', { name: /peanuts: allergic/i }));
+    expect(screen.getByRole('tooltip')).toBeInTheDocument();
+    await user.keyboard('{Escape}');
+    expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
+  });
+});

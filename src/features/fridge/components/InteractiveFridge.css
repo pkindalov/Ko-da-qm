@@ -321,11 +321,46 @@
   font-size: 9px;
   font-weight: 900;
   border: 2px solid #fff;
-  pointer-events: none;
+  cursor: pointer;
 }
 .ifridge .product.status-allergic .p-status { display: flex; background: var(--danger); }
 .ifridge .product.status-disliked .p-status { display: flex; background: var(--warn); }
 .ifridge .product.selected .p-status { display: none; }
+
+/* Status popover (position: fixed — escapes overflow:hidden) */
+.p-popover {
+  background: #fff;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  box-shadow: 0 8px 24px rgba(44,24,16,.18);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  pointer-events: auto;
+}
+.p-popover-allergic { border-color: rgba(220,38,38,.35); }
+.p-popover-disliked  { border-color: rgba(217,119,6,.35); }
+.p-popover-name {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 156px;
+}
+.p-popover-status {
+  font-size: 11px;
+  font-weight: 700;
+}
+.p-popover-allergic .p-popover-status { color: var(--danger); }
+.p-popover-disliked  .p-popover-status { color: var(--warn); }
+.p-popover-desc {
+  font-size: 11px;
+  color: var(--text2);
+  line-height: 1.4;
+}
 
 .ifridge .product.status-allergic { border-color: rgba(220, 38, 38, 0.45); }
 .ifridge .product.status-disliked { border-color: rgba(217, 119, 6, 0.4); }

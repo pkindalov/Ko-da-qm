@@ -19,7 +19,7 @@ interface FridgeScreenProps {
   fridge: FridgeItem[];
   addFridgeItem: (item: Omit<FridgeItem, 'id'>) => Promise<void>;
   removeFridgeItem: (id: string) => Promise<void>;
-  removeProduct: (id: string) => void;
+  removeProduct?: (id: string) => void;
   addProduct: (product: Omit<Product, 'id'>) => Promise<void>;
   addRecipe: (recipe: Recipe) => void;
   removeRecipe: (id: string) => void;
@@ -535,7 +535,7 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, removePr
                   {L ? 'Remove from fridge' : 'Само от хладилника'}
                 </button>
               </div>
-              {matchingProduct && (
+              {matchingProduct && removeProduct && (
                 <button className="btn btn-danger" onClick={() => {
                   if (pendingRemoveItemId) removeFridgeItem(pendingRemoveItemId);
                   removeProduct(matchingProduct.id);

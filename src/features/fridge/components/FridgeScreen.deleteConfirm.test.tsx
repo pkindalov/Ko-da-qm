@@ -99,8 +99,8 @@ describe('FridgeScreen – fridge item delete confirmation', () => {
 
     await user.click(screen.getByRole('button', { name: '✕' }));
 
-    expect(screen.getByText('Confirm Delete')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Confirm/i })).toBeInTheDocument();
+    expect(screen.getByText('Remove item?')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Remove from fridge/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Cancel/i })).toBeInTheDocument();
   });
 
@@ -110,7 +110,7 @@ describe('FridgeScreen – fridge item delete confirmation', () => {
 
     await user.click(screen.getByRole('button', { name: '✕' }));
 
-    expect(screen.getByText('Delete "Milk"?')).toBeInTheDocument();
+    expect(screen.getByText('Remove "Milk" from fridge?')).toBeInTheDocument();
   });
 
   it('calls removeFridgeItem when X is clicked and confirmed', async () => {
@@ -119,7 +119,7 @@ describe('FridgeScreen – fridge item delete confirmation', () => {
     render(<FridgeScreen {...makeProps({ removeFridgeItem })} />);
 
     await user.click(screen.getByRole('button', { name: '✕' }));
-    await user.click(screen.getByRole('button', { name: /Confirm/i }));
+    await user.click(screen.getByRole('button', { name: /Remove from fridge/i }));
 
     expect(removeFridgeItem).toHaveBeenCalledWith('f1');
   });
@@ -142,7 +142,7 @@ describe('FridgeScreen – fridge item delete confirmation', () => {
     await user.click(screen.getByRole('button', { name: '✕' }));
     await user.click(screen.getByRole('button', { name: /Cancel/i }));
 
-    expect(screen.queryByText('Confirm Delete')).not.toBeInTheDocument();
+    expect(screen.queryByText('Remove item?')).not.toBeInTheDocument();
   });
 
   it('closes the confirmation modal after confirming', async () => {
@@ -150,9 +150,9 @@ describe('FridgeScreen – fridge item delete confirmation', () => {
     render(<FridgeScreen {...makeProps()} />);
 
     await user.click(screen.getByRole('button', { name: '✕' }));
-    await user.click(screen.getByRole('button', { name: /Confirm/i }));
+    await user.click(screen.getByRole('button', { name: /Remove from fridge/i }));
 
-    expect(screen.queryByText('Confirm Delete')).not.toBeInTheDocument();
+    expect(screen.queryByText('Remove item?')).not.toBeInTheDocument();
   });
 
   it('calls removeFridgeItem for the correct item when multiple exist', async () => {
@@ -168,7 +168,7 @@ describe('FridgeScreen – fridge item delete confirmation', () => {
     // InteractiveFridge shelves by SHELF_ORDER: dairy before egg,
     // so Milk(f2/dairy) is at index 0 and Eggs(f1/egg) at index 1.
     await user.click(removeButtons[0]);
-    await user.click(screen.getByRole('button', { name: /Confirm/i }));
+    await user.click(screen.getByRole('button', { name: /Remove from fridge/i }));
 
     expect(removeFridgeItem).toHaveBeenCalledWith('f2');
     expect(removeFridgeItem).not.toHaveBeenCalledWith('f1');
@@ -186,11 +186,11 @@ describe('FridgeScreen – fridge item delete confirmation', () => {
     // InteractiveFridge shelves by SHELF_ORDER: dairy before egg,
     // so Milk(f2/dairy) is at index 0 and Eggs(f1/egg) at index 1.
     await user.click(removeButtons[0]);
-    expect(screen.getByText('Delete "Milk"?')).toBeInTheDocument();
+    expect(screen.getByText('Remove "Milk" from fridge?')).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: /Cancel/i }));
 
     await user.click(removeButtons[1]);
-    expect(screen.getByText('Delete "Eggs"?')).toBeInTheDocument();
+    expect(screen.getByText('Remove "Eggs" from fridge?')).toBeInTheDocument();
   });
 });
 

@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import type { FridgeItem, FridgeItemCategory, Language } from '../../../shared/types';
 import { CATEGORIES } from '../../../shared/constants/categories';
 import './InteractiveFridge.css';
@@ -21,6 +21,20 @@ const SHELF_ORDER: FridgeItemCategory[] = [
   'dairy', 'egg', 'protein', 'fish', 'veg', 'fruit', 'grain', 'condiment', 'other',
 ];
 
+const POPOVER_W = 180;
+const POPOVER_H_EST = 72;
+
+interface PopoverState {
+  id: string;
+  name: string;
+  status: 'disliked' | 'allergic';
+  badgeLeft: number;
+  badgeRight: number;
+  badgeTop: number;
+  badgeBottom: number;
+  badgeWidth: number;
+}
+
 interface InteractiveFridgeProps {
   items: FridgeItem[];
   onRemove: (id: string) => void;
@@ -31,26 +45,49 @@ interface InteractiveFridgeProps {
   productStatusByName?: Map<string, 'disliked' | 'allergic'>;
 }
 
-const FridgeProduct = ({ item, onRemove, selected, onToggleSelect, status }: {
+const FridgeProduct = ({ item, onRemove, selected, onToggleSelect, status, onStatusBadgeClick, lang }: {
   item: FridgeItem;
   onRemove: (id: string) => void;
   selected?: boolean;
   onToggleSelect?: (id: string) => void;
   status?: 'disliked' | 'allergic';
-}) => (
-  <div
-    className={`product tint-${CATEGORY_TINT[item.category] ?? 'jar'}${selected ? ' selected' : ''}${onToggleSelect ? ' selectable' : ''}${status ? ` status-${status}` : ''}`}
-    onClick={() => onToggleSelect?.(item.id)}
-  >
-    <span className="p-check">✓</span>
-    {status && <span className="p-status">{status === 'allergic' ? '!' : '–'}</span>}
-    <span className="p-emoji">{item.emoji}</span>
-    <span className="p-lbl">{item.name}</span>
-    <button className="p-rm" onClick={(e) => { e.stopPropagation(); onRemove(item.id); }}>✕</button>
-  </div>
-);
+  onStatusBadgeClick?: (e: React.MouseEvent, item: FridgeItem, status: 'disliked' | 'allergic') => void;
+  lang: Language;
+}) => {
+  const L = lang === 'en';
+  const statusLabel = status === 'allergic'
+    ? (L ? 'Allergic ⚠' : 'Алергичен ⚠')
+    : status === 'disliked'
+    ? (L ? 'Disliked' : 'Нехаресван')
+    : undefined;
+  return (
+    <div
+      className={`product tint-${CATEGORY_TINT[item.category] ?? 'jar'}${selected ? ' selected' : ''}${onToggleSelect ? ' selectable' : ''}${status ? ` status-${status}` : ''}`}
+      title={statusLabel ? `${item.name} — ${statusLabel}` : item.name}
+      onClick={(e) => {
+        onToggleSelect?.(item.id);
+        if (status) onStatusBadgeClick?.(e, item, status);
+      }}
+    >
+      <span className="p-check">✓</span>
+      {status && (
+        <span
+          className="p-status"
+          role="button"
+          aria-label={`${item.name}: ${status}`}
+          onClick={(e) => { e.stopPropagation(); onStatusBadgeClick?.(e, item, status); }}
+        >
+          {status === 'allergic' ? '!' : '–'}
+        </span>
+      )}
+      <span className="p-emoji">{item.emoji}</span>
+      <span className="p-lbl">{item.name}</span>
+      <button className="p-rm" onClick={(e) => { e.stopPropagation(); onRemove(item.id); }}>✕</button>
+    </div>
+  );
+};
 
-const FridgeShelf = ({ items, onRemove, onAddSlot, selectedIds, onToggleSelect, shelfLabel, max = 5, productStatusByName }: {
+const FridgeShelf = ({ items, onRemove, onAddSlot, selectedIds, onToggleSelect, shelfLabel, max = 5, productStatusByName, onStatusBadgeClick, lang }: {
   items: FridgeItem[];
   onRemove: (id: string) => void;
   onAddSlot: () => void;
@@ -59,6 +96,8 @@ const FridgeShelf = ({ items, onRemove, onAddSlot, selectedIds, onToggleSelect, 
   shelfLabel?: string;
   max?: number;
   productStatusByName?: Map<string, 'disliked' | 'allergic'>;
+  onStatusBadgeClick?: (e: React.MouseEvent, item: FridgeItem, status: 'disliked' | 'allergic') => void;
+  lang: Language;
 }) => (
   <div className="shelf">
     {shelfLabel && <span className="shelf-label">{shelfLabel}</span>}
@@ -70,6 +109,8 @@ const FridgeShelf = ({ items, onRemove, onAddSlot, selectedIds, onToggleSelect, 
         selected={selectedIds?.has(it.id)}
         onToggleSelect={onToggleSelect}
         status={productStatusByName?.get(it.name.toLowerCase())}
+        onStatusBadgeClick={onStatusBadgeClick}
+        lang={lang}
       />
     ))}
     {items.length < max && <button className="add-slot" onClick={onAddSlot}>+</button>}
@@ -79,6 +120,7 @@ const FridgeShelf = ({ items, onRemove, onAddSlot, selectedIds, onToggleSelect, 
 export function InteractiveFridge({ items, onRemove, onAddSlot, lang, selectedIds, onToggleSelect, productStatusByName }: InteractiveFridgeProps) {
   const L = lang === 'en';
   const [open, setOpen] = useState(false);
+  const [activePopover, setActivePopover] = useState<PopoverState | null>(null);
 
   const byCategory = useMemo(() => {
     const m: Partial<Record<FridgeItemCategory, FridgeItem[]>> = {};
@@ -94,7 +136,68 @@ export function InteractiveFridge({ items, onRemove, onAddSlot, lang, selectedId
     [byCategory]
   );
 
+  const handleStatusBadgeClick = useCallback((e: React.MouseEvent, item: FridgeItem, status: 'disliked' | 'allergic') => {
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    setActivePopover({
+      id: item.id,
+      name: item.name,
+      status,
+      badgeLeft: rect.left,
+      badgeRight: rect.right,
+      badgeTop: rect.top,
+      badgeBottom: rect.bottom,
+      badgeWidth: rect.width,
+    });
+  }, []);
+
+  // Escape key dismissal only — click dismissal is handled by the backdrop overlay
+  useEffect(() => {
+    if (!activePopover) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setActivePopover(null); };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [activePopover]);
+
   const toggleDoor = () => setOpen((v) => !v);
+
+  const popover = (() => {
+    if (!activePopover) return null;
+    const vw = window.innerWidth || 800;
+    const vh = window.innerHeight || 600;
+    const midX = activePopover.badgeLeft + activePopover.badgeWidth / 2;
+    const showAbove = vh - activePopover.badgeBottom < POPOVER_H_EST + 12;
+    const top = showAbove
+      ? activePopover.badgeTop - POPOVER_H_EST - 8
+      : activePopover.badgeBottom + 8;
+    const left = Math.max(8, Math.min(midX - POPOVER_W / 2, vw - POPOVER_W - 8));
+    const statusLabel = activePopover.status === 'allergic'
+      ? (L ? 'Allergic' : 'Алергичен')
+      : (L ? 'Disliked' : 'Нехаресван');
+    const statusDesc = activePopover.status === 'allergic'
+      ? (L ? 'You marked this as an allergen.' : 'Маркиран като алерген.')
+      : (L ? 'You marked this as disliked.' : 'Маркиран като нехаресван.');
+    return (
+      <>
+        {/* Backdrop: covers the viewport so any tap outside the popover closes it.
+            Sits below the popover (z-index 9998 vs 9999) so the popover itself is still interactive. */}
+        <div
+          data-testid="popover-backdrop"
+          style={{ position: 'fixed', inset: 0, zIndex: 9998 }}
+          onClick={() => setActivePopover(null)}
+          aria-hidden="true"
+        />
+        <div
+          className={`p-popover p-popover-${activePopover.status}`}
+          style={{ position: 'fixed', top, left, width: POPOVER_W, zIndex: 9999 }}
+          role="tooltip"
+        >
+          <span className="p-popover-name">{activePopover.name}</span>
+          <span className="p-popover-status">{statusLabel}</span>
+          <span className="p-popover-desc">{statusDesc}</span>
+        </div>
+      </>
+    );
+  })();
 
   return (
     <div className="ifridge">
@@ -126,6 +229,8 @@ export function InteractiveFridge({ items, onRemove, onAddSlot, lang, selectedId
                       selected={selectedIds?.has(it.id)}
                       onToggleSelect={onToggleSelect}
                       status={productStatusByName?.get(it.name.toLowerCase())}
+                      onStatusBadgeClick={handleStatusBadgeClick}
+                      lang={lang}
                     />
                   ))}
                   <button className="add-slot" onClick={onAddSlot}>+</button>
@@ -146,10 +251,12 @@ export function InteractiveFridge({ items, onRemove, onAddSlot, lang, selectedId
                           onToggleSelect={onToggleSelect}
                           shelfLabel={`${meta.emoji} ${L ? meta.labelEn : meta.label}`}
                           productStatusByName={productStatusByName}
+                          onStatusBadgeClick={handleStatusBadgeClick}
+                          lang={lang}
                         />
                       );
                     })
-                  : <FridgeShelf items={[]} onRemove={onRemove} onAddSlot={onAddSlot} selectedIds={selectedIds} onToggleSelect={onToggleSelect} productStatusByName={productStatusByName} />
+                  : <FridgeShelf items={[]} onRemove={onRemove} onAddSlot={onAddSlot} selectedIds={selectedIds} onToggleSelect={onToggleSelect} productStatusByName={productStatusByName} onStatusBadgeClick={handleStatusBadgeClick} lang={lang} />
                 }
               </div>
             </div>
@@ -198,6 +305,8 @@ export function InteractiveFridge({ items, onRemove, onAddSlot, lang, selectedId
           </div>
         </div>
       </div>
+
+      {popover}
     </div>
   );
 }
