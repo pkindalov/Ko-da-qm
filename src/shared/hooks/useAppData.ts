@@ -278,5 +278,9 @@ export function useAppData(lang: Language = 'bg') {
     toast.success(t('Продуктът е добавен', 'Product added'));
   }, []);
 
-  return { loading, userId, userEmail, profile, setProfile, fridge, addFridgeItem, removeFridgeItem, updateFridgeItem, recipes, addRecipe, removeRecipe, updateRecipe, products, setProducts, addProduct };
+  const removeProduct = useCallback((id: string) => {
+    setProducts(products.filter(p => p.id !== id));
+  }, [products, setProducts]);
+
+  return { loading, userId, userEmail, profile, setProfile, fridge, addFridgeItem, removeFridgeItem, updateFridgeItem, recipes, addRecipe, removeRecipe, updateRecipe, products, setProducts, addProduct, removeProduct };
 }

@@ -19,6 +19,7 @@ interface FridgeScreenProps {
   fridge: FridgeItem[];
   addFridgeItem: (item: Omit<FridgeItem, 'id'>) => Promise<void>;
   removeFridgeItem: (id: string) => Promise<void>;
+  removeProduct: (id: string) => void;
   addProduct: (product: Omit<Product, 'id'>) => Promise<void>;
   addRecipe: (recipe: Recipe) => void;
   removeRecipe: (id: string) => void;
@@ -28,7 +29,7 @@ interface FridgeScreenProps {
   lang: Language;
 }
 
-export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, addProduct, addRecipe, removeRecipe, profile, recipes, products, lang }: FridgeScreenProps) {
+export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, removeProduct, addProduct, addRecipe, removeRecipe, profile, recipes, products, lang }: FridgeScreenProps) {
   const L = lang === 'en';
   const [newItem, setNewItem] = useState('');
   const [newEmoji, setNewEmoji] = useState('📦');
@@ -503,13 +504,39 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, addProdu
         </div>
       )}
 
-      <ConfirmDeleteModal
-        open={pendingRemoveItemId !== null}
-        itemName={fridge.find((f) => f.id === pendingRemoveItemId)?.name ?? ''}
-        lang={lang}
-        onConfirm={() => { if (pendingRemoveItemId) removeItem(pendingRemoveItemId); setPendingRemoveItemId(null); }}
-        onCancel={() => setPendingRemoveItemId(null)}
-      />
+      {(() => {
+        const pendingItem = fridge.find(f => f.id === pendingRemoveItemId);
+        const matchingProduct = pendingItem
+          ? products.find(p => p.name.toLowerCase() === pendingItem.name.toLowerCase())
+          : undefined;
+        return (
+          <Modal open={pendingRemoveItemId !== null} onClose={() => setPendingRemoveItemId(null)} title={L ? 'Remove item?' : 'Премахване на продукт?'}>
+            <p style={{ marginBottom: 16, fontWeight: 600, fontSize: 14 }}>
+              {L ? `Remove "${pendingItem?.name}" from fridge?` : `Премахни "${pendingItem?.name}" от хладилника?`}
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <div style={{ display: 'flex', gap: 10 }}>
+                <button className="btn btn-ghost" style={{ flex: 1 }} onClick={() => setPendingRemoveItemId(null)}>
+                  {L ? 'Cancel' : 'Отказ'}
+                </button>
+                <button className="btn btn-danger" style={{ flex: 1 }} onClick={() => { if (pendingRemoveItemId) removeItem(pendingRemoveItemId); setPendingRemoveItemId(null); }}>
+                  {L ? 'Remove from fridge' : 'Само от хладилника'}
+                </button>
+              </div>
+              {matchingProduct && (
+                <button className="btn btn-danger" onClick={() => {
+                  if (pendingRemoveItemId) removeFridgeItem(pendingRemoveItemId);
+                  removeProduct(matchingProduct.id);
+                  setPendingRemoveItemId(null);
+                  toast.success(L ? 'Removed from fridge and products' : 'Премахнат от хладилника и продуктите');
+                }}>
+                  {L ? 'Remove from fridge & products' : 'Премахни и от продуктите'}
+                </button>
+              )}
+            </div>
+          </Modal>
+        );
+      })()}
 
       <ConfirmDeleteModal
         open={pendingRemoveSuggestionId !== null}

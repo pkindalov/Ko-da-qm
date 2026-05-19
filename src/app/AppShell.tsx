@@ -24,7 +24,7 @@ import type { Tab } from '../shared/types';
 export function AppShell() {
   const [tab, setTab] = useLocalStorage<Tab>('kdq_tab', 'home');
   const [tweaks, setTweaks] = useLocalStorage('kdq_tweaks', DEFAULT_TWEAKS);
-  const { loading, userId, userEmail, profile, setProfile, fridge, addFridgeItem, removeFridgeItem, updateFridgeItem, recipes, addRecipe, removeRecipe, updateRecipe, products, setProducts, addProduct } = useAppData(tweaks.lang);
+  const { loading, userId, userEmail, profile, setProfile, fridge, addFridgeItem, removeFridgeItem, updateFridgeItem, recipes, addRecipe, removeRecipe, updateRecipe, products, setProducts, addProduct, removeProduct } = useAppData(tweaks.lang);
   const { publicRecipes } = usePublicRecipes();
   const { favoriteIds, favoriteRecipes, toggleFavorite } = useFavorites(tweaks.lang);
   const navigate = useNavigate();
@@ -95,7 +95,7 @@ export function AppShell() {
       communityFavoriteCounts={communityFavoriteCounts}
       onNavigateToUser={(userId) => navigate(`/user/${userId}`)}
     />,
-    fridge: <FridgeScreen fridge={fridge} addFridgeItem={addFridgeItem} removeFridgeItem={removeFridgeItem} addProduct={addProduct} addRecipe={addRecipe} removeRecipe={removeRecipe} profile={profile} recipes={recipes} products={products} lang={tweaks.lang} />,
+    fridge: <FridgeScreen fridge={fridge} addFridgeItem={addFridgeItem} removeFridgeItem={removeFridgeItem} removeProduct={removeProduct} addProduct={addProduct} addRecipe={addRecipe} removeRecipe={removeRecipe} profile={profile} recipes={recipes} products={products} lang={tweaks.lang} />,
     recipes: <RecipesScreen recipes={recipes} addRecipe={addRecipe} removeRecipe={removeRecipe} updateRecipe={updateRecipe} favoriteRecipes={favoriteRecipes} favoriteIds={favoriteIds} onToggleFavorite={toggleFavorite} products={products} profile={profile} lang={tweaks.lang} userEmail={userEmail} openRecipeId={pendingOpenRecipeId} onRecipeOpened={handleRecipeOpened} />,
     products: <ProductsScreen products={products} setProducts={setProducts} addProduct={addProduct} lang={tweaks.lang} />,
     profile: <ProfileScreen profile={profile} setProfile={setProfile} products={products} lang={tweaks.lang} onLogout={handleLogout} onTweaksToggle={() => setTweaksOpen((o) => !o)} onNavigateToProducts={() => setTab('products')} onViewPublicProfile={userId ? () => navigate(`/user/${userId}`) : undefined} />,
