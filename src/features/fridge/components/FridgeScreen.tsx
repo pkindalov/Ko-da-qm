@@ -77,6 +77,7 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, removePr
   const [pendingRemoveItemId, setPendingRemoveItemId] = useState<string | null>(null);
   const [pendingRemoveSuggestionId, setPendingRemoveSuggestionId] = useState<string | null>(null);
   const [saveTranslationFor, setSaveTranslationFor] = useState<MatchedRecipe | null>(null);
+  const [showTranslationHelp, setShowTranslationHelp] = useState(false);
 
   const handleTranslateCard = async (r: MatchedRecipe) => {
     const { clipboardUsed } = await openGoogleTranslate(r);
@@ -328,8 +329,20 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, removePr
 
       <div className="divider" />
       <div className="row-between" style={{ marginBottom: 12 }}>
-        <div className="section-title" style={{ marginBottom: 0 }}>
-          {geminiMode ? (L ? '✨ AI SUGGESTIONS' : '✨ ИИ ПРЕДЛОЖЕНИЯ') : (L ? 'RECIPE SUGGESTIONS' : 'ПРЕДЛОЖЕНИЯ ОТ БАЗАТА')}
+        <div className="row" style={{ gap: 8, alignItems: 'center' }}>
+          <div className="section-title" style={{ marginBottom: 0 }}>
+            {geminiMode ? (L ? '✨ AI SUGGESTIONS' : '✨ ИИ ПРЕДЛОЖЕНИЯ') : (L ? 'RECIPE SUGGESTIONS' : 'ПРЕДЛОЖЕНИЯ ОТ БАЗАТА')}
+          </div>
+          {!L && !geminiMode && (
+            <button
+              className="btn btn-ghost btn-sm"
+              style={{ padding: '2px 7px', fontSize: 13, lineHeight: 1 }}
+              onClick={() => setShowTranslationHelp(v => !v)}
+              title="Как да запазя превод?"
+            >
+              ℹ
+            </button>
+          )}
         </div>
         <div className="toggle-wrap">
           <span className={`toggle-label${geminiMode ? ' active' : ''}`}>Gemini AI</span>
@@ -344,6 +357,17 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, removePr
           ? (L ? 'Ask Gemini AI to suggest recipes from your fridge.' : 'Попитай Gemini ИИ за рецепти от хладилника.')
           : (L ? 'Find recipes that match what you have at home.' : 'Намери рецепти спрямо наличните продукти и твоите ограничения.')}
       </p>
+      {showTranslationHelp && !L && !geminiMode && (
+        <div style={{ marginBottom: 12, padding: '12px 14px', borderRadius: 10, background: 'var(--bg)', border: '1px solid var(--border)', fontSize: 13 }}>
+          <div style={{ fontWeight: 700, marginBottom: 8 }}>💡 Как да запазя превод на рецепта?</div>
+          <ol style={{ margin: 0, paddingLeft: 18, display: 'flex', flexDirection: 'column', gap: 6, color: 'var(--text2)', fontWeight: 600 }}>
+            <li>Натисни <strong style={{ color: 'var(--text)' }}>„Запази рецептата"</strong>, за да добавиш рецептата в своя списък.</li>
+            <li>Натисни <strong style={{ color: 'var(--text)' }}>„Преведи на български"</strong> — рецептата се копира автоматично в клипборда.</li>
+            <li>В новия таб на браузъра постави текста (Ctrl+V) в Google Translate и изчакай превода.</li>
+            <li>Върни се тук и натисни <strong style={{ color: 'var(--text)' }}>„Запази превод"</strong>, след което попълни преведените полета.</li>
+          </ol>
+        </div>
+      )}
       {selectedItemIds.size > 0 && (
         <p className="fridge-pin-hint">
           {L
