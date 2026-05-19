@@ -56,13 +56,13 @@ export const RecipeDetailView = ({
     }
   };
 
-  const displayName = showTranslated && recipe.nameTranslated
+  const displayName = lang === 'bg' && showTranslated && recipe.nameTranslated
     ? recipe.nameTranslated
     : (L && recipe.nameEn ? recipe.nameEn : recipe.name);
-  const displayIngredients = showTranslated && recipe.ingredientsTranslated
+  const displayIngredients = lang === 'bg' && showTranslated && recipe.ingredientsTranslated
     ? recipe.ingredientsTranslated
     : recipe.ingredients;
-  const displaySteps = showTranslated && recipe.stepsTranslated
+  const displaySteps = lang === 'bg' && showTranslated && recipe.stepsTranslated
     ? recipe.stepsTranslated
     : recipe.steps;
 

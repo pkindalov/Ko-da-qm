@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { toast } from 'sonner';
 import { InteractiveFridge } from './InteractiveFridge';
 import { Modal } from '../../../shared/components/Modal';
@@ -359,13 +359,22 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, removePr
       </p>
       {showTranslationHelp && !L && !geminiMode && (
         <div style={{ marginBottom: 12, padding: '12px 14px', borderRadius: 10, background: 'var(--bg)', border: '1px solid var(--border)', fontSize: 13 }}>
-          <div style={{ fontWeight: 700, marginBottom: 8 }}>💡 Как да запазя превод на рецепта?</div>
-          <ol style={{ margin: 0, paddingLeft: 18, display: 'flex', flexDirection: 'column', gap: 6, color: 'var(--text2)', fontWeight: 600 }}>
-            <li>Натисни <strong style={{ color: 'var(--text)' }}>„Запази рецептата"</strong>, за да добавиш рецептата в своя списък.</li>
-            <li>Натисни <strong style={{ color: 'var(--text)' }}>„Преведи на български"</strong> — рецептата се копира автоматично в клипборда.</li>
-            <li>В новия таб на браузъра постави текста (Ctrl+V) в Google Translate и изчакай превода.</li>
-            <li>Върни се тук и натисни <strong style={{ color: 'var(--text)' }}>„Запази превод"</strong>, след което попълни преведените полета.</li>
-          </ol>
+          <div style={{ fontWeight: 700, marginBottom: 10 }}>💡 Как да запазя превод на рецепта?</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {([
+              <>Натисни <strong style={{ color: 'var(--text)' }}>„Запази рецептата"</strong>, за да добавиш рецептата в своя списък.</>,
+              <>Натисни <strong style={{ color: 'var(--text)' }}>„Преведи на български"</strong> — рецептата се копира автоматично в клипборда.</>,
+              <>В новия таб на браузъра постави текста (Ctrl+V) в Google Translate, изчакай превода, и го копирай (най-отдолу има иконка с документи отляво до буквата „G").</>,
+              <>Върни се тук и натисни <strong style={{ color: 'var(--text)' }}>„Запази превод"</strong>, след което попълни преведените полета.</>,
+            ] as React.ReactNode[]).map((step, i) => (
+              <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+                <span style={{ fontFamily: 'var(--mono)', fontSize: 11, color: 'var(--ink-3)', width: 18, flexShrink: 0, paddingTop: 2 }}>
+                  {String(i + 1).padStart(2, '0')}
+                </span>
+                <span style={{ color: 'var(--text2)', fontWeight: 600, lineHeight: 1.5 }}>{step}</span>
+              </div>
+            ))}
+          </div>
         </div>
       )}
       {selectedItemIds.size > 0 && (

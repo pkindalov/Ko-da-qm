@@ -145,6 +145,17 @@ describe('RecipeDetailView – translation toggle', () => {
     await user.click(screen.getByRole('button', { name: 'Превод' }));
     expect(screen.getByText('Сварете водата')).toBeInTheDocument();
   });
+
+  it('falls back to original content when lang switches to en while translation was active', () => {
+    const { rerender } = render(
+      <RecipeDetailView {...defaultProps({ recipe: makeTranslatedRecipe(), lang: 'bg' })} />,
+    );
+    expect(screen.getByText('1 пиле')).toBeInTheDocument();
+
+    rerender(<RecipeDetailView {...defaultProps({ recipe: makeTranslatedRecipe(), lang: 'en' })} />);
+    expect(screen.queryByText('1 пиле')).not.toBeInTheDocument();
+    expect(screen.getByText('1 chicken')).toBeInTheDocument();
+  });
 });
 
 describe('RecipeDetailView – translate calls openGoogleTranslate', () => {
