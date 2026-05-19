@@ -121,7 +121,7 @@ describe('useUserProfile', () => {
     await act(async () => {});
 
     expect(mockRecipesSelect).toHaveBeenCalledWith(
-      'id, name, name_en, emoji, image_url, ingredients, steps, time, tags, required_ingredients, is_ai, is_public, user_id, author_name, author_email',
+      'id, name, name_en, name_translated, emoji, image_url, ingredients, steps, ingredients_translated, steps_translated, time, tags, required_ingredients, is_ai, is_public, user_id, author_name, author_email',
     );
   });
 

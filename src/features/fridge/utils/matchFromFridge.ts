@@ -78,7 +78,7 @@ export async function searchDatabase(query: string, blocked: string[]): Promise<
 
   const [dbResult, userResult] = await Promise.all([
     supabase.from('recipe_database').select('id, name, name_en, emoji, image_url, ingredients, steps, time, tags, required_ingredients, is_ai'),
-    supabase.from('recipes').select('id, name, name_en, emoji, image_url, ingredients, steps, time, tags, required_ingredients, is_ai').eq('is_public', true),
+    supabase.from('recipes').select('id, name, name_en, name_translated, emoji, image_url, ingredients, steps, ingredients_translated, steps_translated, time, tags, required_ingredients, is_ai').eq('is_public', true),
   ]);
 
   const isBlocked = (i: string) => blocked.some((b) => i.toLowerCase().includes(b.toLowerCase()));

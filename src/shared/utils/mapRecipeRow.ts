@@ -8,6 +8,13 @@ export const mapRecipeRow = (r: Record<string, unknown>): Recipe => ({
   imageUrl: (r.image_url as string | null) ?? undefined,
   ingredients: (r.ingredients as string[]) ?? [],
   steps: (r.steps as string[]) ?? [],
+  nameTranslated: (r.name_translated as string | null) ?? undefined,
+  ingredientsTranslated: ((r.ingredients_translated as string[] | null)?.length ?? 0) > 0
+    ? (r.ingredients_translated as string[])
+    : undefined,
+  stepsTranslated: ((r.steps_translated as string[] | null)?.length ?? 0) > 0
+    ? (r.steps_translated as string[])
+    : undefined,
   time: r.time as number,
   tags: (r.tags as string[]) ?? [],
   requiredIngredients: (r.required_ingredients as string[]) ?? [],

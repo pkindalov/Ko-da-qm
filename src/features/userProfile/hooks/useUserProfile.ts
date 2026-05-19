@@ -26,7 +26,7 @@ export const useUserProfile = (userId: string): UserProfile => {
     const [recipesResult, userResult] = await Promise.all([
       supabase
         .from('recipes')
-        .select('id, name, name_en, emoji, image_url, ingredients, steps, time, tags, required_ingredients, is_ai, is_public, user_id, author_name, author_email')
+        .select('id, name, name_en, name_translated, emoji, image_url, ingredients, steps, ingredients_translated, steps_translated, time, tags, required_ingredients, is_ai, is_public, user_id, author_name, author_email')
         .eq('user_id', userId)
         .eq('is_public', true)
         .order('created_at', { ascending: false }),
