@@ -7,6 +7,7 @@ import { EmptyState } from '../../../shared/components/EmptyState';
 import { RecipeDetailView } from '../../../shared/components/RecipeDetailView';
 import { searchDatabase } from '../../fridge/utils/matchFromFridge';
 import { isSafe, recipeRisk } from '../../../shared/utils/recipeUtils';
+import { recipeDisplayName } from '../../../shared/utils/recipeDisplayName';
 import { parseRecipeForm } from '../utils/recipeForm';
 import type { Recipe, Profile, Language, Product } from '../../../shared/types';
 
@@ -114,7 +115,7 @@ export function RecipesScreen({ recipes, addRecipe, removeRecipe, updateRecipe, 
 
     const matched = term
       ? recipes.filter(r => {
-          const name = (lang === 'en' && r.nameEn ? r.nameEn : r.name).toLowerCase();
+          const name = (recipeDisplayName(r, lang)).toLowerCase();
           return name.includes(term) || r.ingredients.some(i => i.toLowerCase().includes(term));
         })
       : [];
@@ -229,7 +230,7 @@ export function RecipesScreen({ recipes, addRecipe, removeRecipe, updateRecipe, 
                 <div className="grid-3" style={{ marginBottom: 24 }}>
                   {favoriteRecipes.map((r) => {
                     const risk = recipeRisk(r, allergies, dislikes);
-                    const name = lang === 'en' && r.nameEn ? r.nameEn : r.name;
+                    const name = recipeDisplayName(r, lang);
                     const tag = r.tags?.[0] ?? (lang === 'en' ? 'recipe' : 'рецепта');
                     return (
                       <div key={r.id} className={`recipe-card${risk === 'allergy' ? ' allergy' : ''}`} onClick={() => setFavoriteDetail(r)}>
@@ -275,7 +276,7 @@ export function RecipesScreen({ recipes, addRecipe, removeRecipe, updateRecipe, 
             <div className="grid-3">
               {filtered.map((r) => {
                 const risk = recipeRisk(r, allergies, dislikes);
-                const name = lang === 'en' && r.nameEn ? r.nameEn : r.name;
+                const name = recipeDisplayName(r, lang);
                 const tag = r.tags?.[0] ?? (lang === 'en' ? 'recipe' : 'рецепта');
                 return (
                   <div key={r.id} className={`recipe-card${risk === 'allergy' ? ' allergy' : ''}`} onClick={() => setDetail(r.id)}>
@@ -427,7 +428,7 @@ export function RecipesScreen({ recipes, addRecipe, removeRecipe, updateRecipe, 
                   <div className="row-between" style={{ marginBottom: 4 }}>
                     <div className="row" style={{ gap: 8 }}>
                       <span style={{ fontSize: 20 }}>{r.emoji}</span>
-                      <span style={{ fontWeight: 800, fontSize: 14 }}>{lang === 'en' && r.nameEn ? r.nameEn : r.name}</span>
+                      <span style={{ fontWeight: 800, fontSize: 14 }}>{recipeDisplayName(r, lang)}</span>
                     </div>
                     <span className="badge badge-neutral">⏱ {r.time} {lang === 'en' ? 'min' : 'мин'}</span>
                   </div>

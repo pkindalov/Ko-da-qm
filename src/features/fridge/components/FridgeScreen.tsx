@@ -10,6 +10,7 @@ import { searchByFridge, toEnglish } from '../utils/searchTheMealDB';
 import { searchWithGemini } from '../utils/searchWithGemini';
 import { useSaveGeminiRecipe } from '../hooks/useSaveGeminiRecipe';
 import { openGoogleTranslate } from '../../../shared/utils/openGoogleTranslate';
+import { recipeDisplayName } from '../../../shared/utils/recipeDisplayName';
 import { CATEGORIES } from '../../../shared/constants/categories';
 import type { FridgeItem, Profile, Recipe, Language, Product, ProductStatus } from '../../../shared/types';
 
@@ -307,11 +308,11 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, removePr
               {matchingRecipes.map((r) => (
                 <div key={r.id} className="card-sm row">
                   {r.imageUrl
-                    ? <img src={r.imageUrl} alt={L && r.nameEn ? r.nameEn : r.name} className="recipe-suggestion-img" />
+                    ? <img src={r.imageUrl} alt={recipeDisplayName(r, lang)} className="recipe-suggestion-img" />
                     : <span style={{ fontSize: 24 }}>{r.emoji}</span>
                   }
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontWeight: 700 }}>{L && r.nameEn ? r.nameEn : r.name}</div>
+                    <div style={{ fontWeight: 700 }}>{recipeDisplayName(r, lang)}</div>
                     <div style={{ fontSize: 12, color: 'var(--text2)', marginTop: 2 }}>⏱ {r.time} {L ? 'min' : 'мин'}</div>
                   </div>
                   <Badge type="safe">✓ {L ? 'Safe' : 'Безопасно'}</Badge>

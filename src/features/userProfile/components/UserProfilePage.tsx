@@ -6,6 +6,7 @@ import { EmptyState } from '../../../shared/components/EmptyState';
 import { Badge } from '../../../shared/components/Badge';
 import { useLocalStorage } from '../../../shared/hooks/useLocalStorage';
 import { useUserProfile } from '../hooks/useUserProfile';
+import { recipeDisplayName } from '../../../shared/utils/recipeDisplayName';
 import { useRecipeFavoriteCounts } from '../hooks/useRecipeFavoriteCounts';
 import { useFavorites } from '../../recipes/hooks/useFavorites';
 import { useFollows } from '../../feed/hooks/useFollows';
@@ -95,7 +96,7 @@ export const UserProfilePage = () => {
           ) : (
             <div className="grid-3">
               {recipes.map((r) => {
-                const name = L && r.nameEn ? r.nameEn : r.name;
+                const name = recipeDisplayName(r, tweaks.lang);
                 const tag = r.tags?.[0] ?? (L ? 'recipe' : 'рецепта');
                 const count = favoriteCounts[r.id] ?? 0;
                 return (

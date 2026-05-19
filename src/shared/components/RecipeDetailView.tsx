@@ -44,10 +44,10 @@ export const RecipeDetailView = ({
   const risk = recipeRisk(recipe, allergies, dislikes);
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const [saveTranslationOpen, setSaveTranslationOpen] = useState(false);
-  const [showTranslated, setShowTranslated] = useState(false);
+  const hasTranslation = recipe.ingredientsTranslated != null && recipe.ingredientsTranslated.length > 0;
+  const [showTranslated, setShowTranslated] = useState(lang === 'bg' && hasTranslation);
 
   const showTranslateButton = lang === 'bg' && !recipe.isAI && recipe.nameEn != null && recipe.nameEn !== '';
-  const hasTranslation = recipe.ingredientsTranslated != null && recipe.ingredientsTranslated.length > 0;
 
   const handleTranslate = async () => {
     const { clipboardUsed } = await openGoogleTranslate(recipe);

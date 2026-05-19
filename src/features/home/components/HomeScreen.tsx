@@ -5,6 +5,7 @@ import { EmptyState } from '../../../shared/components/EmptyState';
 import { Modal } from '../../../shared/components/Modal';
 import { RecipeDetailView } from '../../../shared/components/RecipeDetailView';
 import { isSafe, recipeRisk } from '../../../shared/utils/recipeUtils';
+import { recipeDisplayName } from '../../../shared/utils/recipeDisplayName';
 import { getGreeting } from '../../../shared/utils/greeting';
 import type { Profile, Recipe, FridgeItem, Language, Tab, Product, ProductStatus } from '../../../shared/types';
 
@@ -285,7 +286,7 @@ export function HomeScreen({ profile, recipes, fridge, publicRecipes, favoriteId
         <div className="grid-3">
           {recipes.slice(0, RECIPES_PREVIEW_SIZE).map((r) => {
             const risk = recipeRisk(r, allergies, dislikes);
-            const name = isEnglish && r.nameEn ? r.nameEn : r.name;
+            const name = recipeDisplayName(r, lang);
             const tag = r.tags?.[0] ?? (isEnglish ? 'recipe' : 'рецепта');
             return (
               <div key={r.id} className={`recipe-card${risk === 'allergy' ? ' allergy' : ''}`} onClick={() => setTab('recipes')}>
@@ -322,7 +323,7 @@ export function HomeScreen({ profile, recipes, fridge, publicRecipes, favoriteId
           <div className="grid-3">
             {publicRecipes.slice(0, communityPage * COMMUNITY_PAGE_SIZE).map((r) => {
               const risk = recipeRisk(r, allergies, dislikes);
-              const name = isEnglish && r.nameEn ? r.nameEn : r.name;
+              const name = recipeDisplayName(r, lang);
               const tag = r.tags?.[0] ?? (isEnglish ? 'recipe' : 'рецепта');
               return (
                 <div key={r.id} className={`recipe-card${risk === 'allergy' ? ' allergy' : ''}`} onClick={() => setSelectedRecipe(r)}>
@@ -390,7 +391,7 @@ export function HomeScreen({ profile, recipes, fridge, publicRecipes, favoriteId
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 320, overflowY: 'auto' }}>
             {safeRecipes.map(r => {
-              const recipeName = isEnglish && r.nameEn ? r.nameEn : r.name;
+              const recipeName = recipeDisplayName(r, lang);
               return (
                 <button
                   key={r.id}
