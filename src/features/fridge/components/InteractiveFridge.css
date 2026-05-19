@@ -308,6 +308,28 @@
 }
 .ifridge .product.selected .p-check { display: flex; }
 
+/* Status badge for disliked / allergic products */
+.ifridge .product .p-status {
+  position: absolute;
+  top: -7px; left: -7px;
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  color: #fff;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  font-weight: 900;
+  border: 2px solid #fff;
+  pointer-events: none;
+}
+.ifridge .product.status-allergic .p-status { display: flex; background: var(--danger); }
+.ifridge .product.status-disliked .p-status { display: flex; background: var(--warn); }
+.ifridge .product.selected .p-status { display: none; }
+
+.ifridge .product.status-allergic { border-color: rgba(220, 38, 38, 0.45); }
+.ifridge .product.status-disliked { border-color: rgba(217, 119, 6, 0.4); }
+
 /* Remove button (hover-revealed) */
 .ifridge .product .p-rm {
   position: absolute;

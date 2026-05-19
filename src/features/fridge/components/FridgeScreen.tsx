@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { toast } from 'sonner';
 import { InteractiveFridge } from './InteractiveFridge';
 import { Modal } from '../../../shared/components/Modal';
@@ -31,6 +31,17 @@ interface FridgeScreenProps {
 
 export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, removeProduct, addProduct, addRecipe, removeRecipe, profile, recipes, products, lang }: FridgeScreenProps) {
   const L = lang === 'en';
+
+  const productStatusByName = useMemo(() => {
+    const map = new Map<string, 'disliked' | 'allergic'>();
+    for (const p of products) {
+      if (p.status === 'disliked' || p.status === 'allergic') {
+        map.set(p.name.toLowerCase(), p.status);
+      }
+    }
+    return map;
+  }, [products]);
+
   const [newItem, setNewItem] = useState('');
   const [newEmoji, setNewEmoji] = useState('📦');
   const [newCategory, setNewCategory] = useState<FridgeItem['category']>('other');
@@ -281,6 +292,7 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, removePr
           lang={lang}
           selectedIds={selectedItemIds}
           onToggleSelect={toggleItemSelection}
+          productStatusByName={productStatusByName}
         />
       )}
 

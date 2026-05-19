@@ -28,26 +28,29 @@ interface InteractiveFridgeProps {
   lang: Language;
   selectedIds?: Set<string>;
   onToggleSelect?: (id: string) => void;
+  productStatusByName?: Map<string, 'disliked' | 'allergic'>;
 }
 
-const FridgeProduct = ({ item, onRemove, selected, onToggleSelect }: {
+const FridgeProduct = ({ item, onRemove, selected, onToggleSelect, status }: {
   item: FridgeItem;
   onRemove: (id: string) => void;
   selected?: boolean;
   onToggleSelect?: (id: string) => void;
+  status?: 'disliked' | 'allergic';
 }) => (
   <div
-    className={`product tint-${CATEGORY_TINT[item.category] ?? 'jar'}${selected ? ' selected' : ''}${onToggleSelect ? ' selectable' : ''}`}
+    className={`product tint-${CATEGORY_TINT[item.category] ?? 'jar'}${selected ? ' selected' : ''}${onToggleSelect ? ' selectable' : ''}${status ? ` status-${status}` : ''}`}
     onClick={() => onToggleSelect?.(item.id)}
   >
     <span className="p-check">✓</span>
+    {status && <span className="p-status">{status === 'allergic' ? '!' : '–'}</span>}
     <span className="p-emoji">{item.emoji}</span>
     <span className="p-lbl">{item.name}</span>
     <button className="p-rm" onClick={(e) => { e.stopPropagation(); onRemove(item.id); }}>✕</button>
   </div>
 );
 
-const FridgeShelf = ({ items, onRemove, onAddSlot, selectedIds, onToggleSelect, shelfLabel, max = 5 }: {
+const FridgeShelf = ({ items, onRemove, onAddSlot, selectedIds, onToggleSelect, shelfLabel, max = 5, productStatusByName }: {
   items: FridgeItem[];
   onRemove: (id: string) => void;
   onAddSlot: () => void;
@@ -55,6 +58,7 @@ const FridgeShelf = ({ items, onRemove, onAddSlot, selectedIds, onToggleSelect, 
   onToggleSelect?: (id: string) => void;
   shelfLabel?: string;
   max?: number;
+  productStatusByName?: Map<string, 'disliked' | 'allergic'>;
 }) => (
   <div className="shelf">
     {shelfLabel && <span className="shelf-label">{shelfLabel}</span>}
@@ -65,13 +69,14 @@ const FridgeShelf = ({ items, onRemove, onAddSlot, selectedIds, onToggleSelect, 
         onRemove={onRemove}
         selected={selectedIds?.has(it.id)}
         onToggleSelect={onToggleSelect}
+        status={productStatusByName?.get(it.name.toLowerCase())}
       />
     ))}
     {items.length < max && <button className="add-slot" onClick={onAddSlot}>+</button>}
   </div>
 );
 
-export function InteractiveFridge({ items, onRemove, onAddSlot, lang, selectedIds, onToggleSelect }: InteractiveFridgeProps) {
+export function InteractiveFridge({ items, onRemove, onAddSlot, lang, selectedIds, onToggleSelect, productStatusByName }: InteractiveFridgeProps) {
   const L = lang === 'en';
   const [open, setOpen] = useState(false);
 
@@ -120,6 +125,7 @@ export function InteractiveFridge({ items, onRemove, onAddSlot, lang, selectedId
                       onRemove={onRemove}
                       selected={selectedIds?.has(it.id)}
                       onToggleSelect={onToggleSelect}
+                      status={productStatusByName?.get(it.name.toLowerCase())}
                     />
                   ))}
                   <button className="add-slot" onClick={onAddSlot}>+</button>
@@ -139,10 +145,11 @@ export function InteractiveFridge({ items, onRemove, onAddSlot, lang, selectedId
                           selectedIds={selectedIds}
                           onToggleSelect={onToggleSelect}
                           shelfLabel={`${meta.emoji} ${L ? meta.labelEn : meta.label}`}
+                          productStatusByName={productStatusByName}
                         />
                       );
                     })
-                  : <FridgeShelf items={[]} onRemove={onRemove} onAddSlot={onAddSlot} selectedIds={selectedIds} onToggleSelect={onToggleSelect} />
+                  : <FridgeShelf items={[]} onRemove={onRemove} onAddSlot={onAddSlot} selectedIds={selectedIds} onToggleSelect={onToggleSelect} productStatusByName={productStatusByName} />
                 }
               </div>
             </div>
