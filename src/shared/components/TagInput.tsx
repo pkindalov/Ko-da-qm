@@ -19,8 +19,8 @@ export const TagInput = ({ value, onChange, placeholder, type = 'neutral' }: Tag
   const [input, setInput] = useState('');
 
   const add = () => {
-    const v = input.trim().toLowerCase();
-    if (v && !value.includes(v)) onChange([...value, v]);
+    const trimmedInput = input.trim().toLowerCase();
+    if (trimmedInput && !value.includes(trimmedInput)) onChange([...value, trimmedInput]);
     setInput('');
   };
 

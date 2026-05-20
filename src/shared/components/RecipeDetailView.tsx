@@ -40,7 +40,7 @@ export const RecipeDetailView = ({
   onDelete,
   onSaveTranslation,
 }: RecipeDetailViewProps) => {
-  const L = lang === 'en';
+  const isEnglish = lang === 'en';
   const risk = recipeRisk(recipe, allergies, dislikes);
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const [saveTranslationOpen, setSaveTranslationOpen] = useState(false);
@@ -58,7 +58,7 @@ export const RecipeDetailView = ({
 
   const displayName = lang === 'bg' && showTranslated && recipe.nameTranslated
     ? recipe.nameTranslated
-    : (L && recipe.nameEn ? recipe.nameEn : recipe.name);
+    : (isEnglish && recipe.nameEn ? recipe.nameEn : recipe.name);
   const displayIngredients = lang === 'bg' && showTranslated && recipe.ingredientsTranslated
     ? recipe.ingredientsTranslated
     : recipe.ingredients;
@@ -70,7 +70,7 @@ export const RecipeDetailView = ({
     <div className="fade-in">
       {showBackButton && (
         <button className="detail-back" onClick={onBack}>
-          ← {L ? 'Back to recipes' : 'Към рецептите'}
+          ← {isEnglish ? 'Back to recipes' : 'Към рецептите'}
         </button>
       )}
 
@@ -84,25 +84,25 @@ export const RecipeDetailView = ({
         </div>
         <div className="detail-head">
           <div className="eyebrow">
-            {recipe.tags?.[0] ?? (L ? 'recipe' : 'рецепта')} · {recipe.time} {L ? 'min' : 'мин'}
+            {recipe.tags?.[0] ?? (isEnglish ? 'recipe' : 'рецепта')} · {recipe.time} {isEnglish ? 'min' : 'мин'}
           </div>
           <h1 className="h-title italic">{displayName}</h1>
           <div className="detail-head-badges">
             <Badge type={risk === 'safe' ? 'safe' : risk === 'allergy' ? 'allergy' : 'dislike'}>
               <span className={`dot dot-${risk === 'safe' ? 'safe' : 'danger'}`} />
-              {risk === 'safe'    && (L ? 'Safe for you'          : 'Безопасно')}
-              {risk === 'dislike' && (L ? 'Contains restrictions' : 'Съдържа ограничения')}
-              {risk === 'allergy' && (L ? 'Contains allergens!'   : 'Съдържа алергени!')}
+              {risk === 'safe'    && (isEnglish ? 'Safe for you'          : 'Безопасно')}
+              {risk === 'dislike' && (isEnglish ? 'Contains restrictions' : 'Съдържа ограничения')}
+              {risk === 'allergy' && (isEnglish ? 'Contains allergens!'   : 'Съдържа алергени!')}
             </Badge>
-            <span className="badge badge-neutral">{recipe.time} {L ? 'minutes' : 'минути'}</span>
+            <span className="badge badge-neutral">{recipe.time} {isEnglish ? 'minutes' : 'минути'}</span>
             {recipe.isAI && <Badge type="primary">AI</Badge>}
             {recipe.isPublic && !isOwner && (
-              <span className="badge badge-neutral">{L ? 'Community' : 'Общност'}</span>
+              <span className="badge badge-neutral">{isEnglish ? 'Community' : 'Общност'}</span>
             )}
           </div>
           {recipe.authorName && !isOwner && (
             <div className="detail-head-author">
-              {L ? 'by' : 'от'}{' '}
+              {isEnglish ? 'by' : 'от'}{' '}
               {onAuthorClick
                 ? <button onClick={onAuthorClick} className="author-link">{recipe.authorName}</button>
                 : <strong>{recipe.authorName}</strong>
@@ -112,8 +112,8 @@ export const RecipeDetailView = ({
           {!isOwner && onToggleFavorite && (
             <button className="btn btn-secondary btn-sm" onClick={onToggleFavorite}>
               {isFavorite
-                ? (L ? '♥ Saved' : '♥ Запазена')
-                : (L ? '♡ Save to favorites' : '♡ Запази в любими')}
+                ? (isEnglish ? '♥ Saved' : '♥ Запазена')
+                : (isEnglish ? '♡ Save to favorites' : '♡ Запази в любими')}
               {favoriteCount != null && favoriteCount > 0 && (
                 <span className="favorite-count">({favoriteCount})</span>
               )}
@@ -152,12 +152,12 @@ export const RecipeDetailView = ({
             <div className="detail-actions">
               {onEdit && (
                 <button className="btn btn-secondary btn-sm" onClick={onEdit}>
-                  ✏ {L ? 'Edit' : 'Редактирай'}
+                  ✏ {isEnglish ? 'Edit' : 'Редактирай'}
                 </button>
               )}
               {onDelete && (
                 <button className="btn btn-danger btn-sm" onClick={() => setConfirmDeleteOpen(true)}>
-                  {L ? 'Delete' : 'Изтрий'}
+                  {isEnglish ? 'Delete' : 'Изтрий'}
                 </button>
               )}
             </div>
@@ -168,7 +168,7 @@ export const RecipeDetailView = ({
       <div className="grid-2 recipe-detail-grid">
         <div>
           <div className="section-eyebrow">
-            <span className="label">{L ? 'Ingredients' : 'Съставки'}</span>
+            <span className="label">{isEnglish ? 'Ingredients' : 'Съставки'}</span>
           </div>
           {displayIngredients.map((ing, i) => {
             const isAllergyIng = allergies.some((b) => ing.toLowerCase().includes(b.toLowerCase()));
@@ -179,7 +179,7 @@ export const RecipeDetailView = ({
                 <span className="ing-name">{ing}</span>
                 {isBlockedIng && (
                   <Badge type={isAllergyIng ? 'allergy' : 'dislike'}>
-                    {isAllergyIng ? (L ? 'allergy' : 'алергия') : (L ? 'dislike' : 'нелюб.')}
+                    {isAllergyIng ? (isEnglish ? 'allergy' : 'алергия') : (isEnglish ? 'dislike' : 'нелюб.')}
                   </Badge>
                 )}
               </div>
@@ -188,7 +188,7 @@ export const RecipeDetailView = ({
         </div>
         <div>
           <div className="section-eyebrow">
-            <span className="label">{L ? 'Method' : 'Метод'}</span>
+            <span className="label">{isEnglish ? 'Method' : 'Метод'}</span>
           </div>
           <div className="step-grid">
             {displaySteps.map((step, i) => (
@@ -204,7 +204,7 @@ export const RecipeDetailView = ({
       {onDelete && (
         <ConfirmDeleteModal
           open={confirmDeleteOpen}
-          itemName={L && recipe.nameEn ? recipe.nameEn : recipe.name}
+          itemName={isEnglish && recipe.nameEn ? recipe.nameEn : recipe.name}
           lang={lang}
           onConfirm={() => { setConfirmDeleteOpen(false); onDelete(); }}
           onCancel={() => setConfirmDeleteOpen(false)}

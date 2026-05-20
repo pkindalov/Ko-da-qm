@@ -14,30 +14,30 @@ const THEMES = [
 ];
 
 export const TweaksPanel = ({ open, tweaks, setTweaks, onClose }: TweaksPanelProps) => {
-  const L = tweaks.lang === 'en';
+  const isEnglish = tweaks.lang === 'en';
 
   return (
     <div className={`tweaks-panel${open ? ' open' : ''}`}>
       <div className="tweaks-title">
-        <span>{L ? 'Settings' : 'Настройки'}</span>
+        <span>{isEnglish ? 'Settings' : 'Настройки'}</span>
         <button className="tweaks-close" onClick={onClose} aria-label="Close settings">✕</button>
       </div>
 
       <div className="tweak-row">
-        <span className="tweak-label">{L ? 'Theme' : 'Тема'}</span>
+        <span className="tweak-label">{isEnglish ? 'Theme' : 'Тема'}</span>
         {THEMES.map((t) => (
           <button
             key={t.id}
             className={`theme-btn${tweaks.theme === t.id ? ' active' : ''}`}
             onClick={() => setTweaks({ ...tweaks, theme: t.id })}
           >
-            {L ? t.labelEn : t.label}
+            {isEnglish ? t.labelEn : t.label}
           </button>
         ))}
       </div>
 
       <div className="tweak-row">
-        <span className="tweak-label">{L ? 'Language' : 'Език'}</span>
+        <span className="tweak-label">{isEnglish ? 'Language' : 'Език'}</span>
         <button
           className={`theme-btn${tweaks.lang === 'bg' ? ' active' : ''}`}
           onClick={() => setTweaks({ ...tweaks, lang: 'bg' })}

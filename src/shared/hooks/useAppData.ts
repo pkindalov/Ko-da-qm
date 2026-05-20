@@ -8,7 +8,7 @@ export function useAppData(lang: Language = 'bg') {
   const langRef = useRef(lang);
   useEffect(() => { langRef.current = lang; }, [lang]);
 
-  const t = (bg: string, en: string) => langRef.current === 'en' ? en : bg;
+  const translate = (bg: string, en: string) => langRef.current === 'en' ? en : bg;
 
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState('');
@@ -121,7 +121,7 @@ export function useAppData(lang: Language = 'bg') {
     });
     if (error) {
       console.error('setProfile error:', error);
-      toast.error(t('Грешка при запазване на профила', 'Failed to save profile'));
+      toast.error(translate('Грешка при запазване на профила', 'Failed to save profile'));
     }
   }, []);
 
@@ -136,11 +136,11 @@ export function useAppData(lang: Language = 'bg') {
     }).select('id').single();
     if (error) {
       console.error('addFridgeItem error:', error);
-      toast.error(t('Грешка при добавяне в хладилника', 'Failed to add item'));
+      toast.error(translate('Грешка при добавяне в хладилника', 'Failed to add item'));
       return;
     }
     setFridgeState(prev => [...prev, { ...newItem, id: data.id }]);
-    toast.success(t('Добавен в хладилника', 'Added to fridge'));
+    toast.success(translate('Добавен в хладилника', 'Added to fridge'));
   }, []);
 
   const removeFridgeItem = useCallback(async (id: string) => {
@@ -160,7 +160,7 @@ export function useAppData(lang: Language = 'bg') {
       .eq('user_id', user.id);
     if (error) {
       console.error('updateFridgeItem error:', error);
-      toast.error(t('Грешка при обновяване', 'Failed to update item'));
+      toast.error(translate('Грешка при обновяване', 'Failed to update item'));
     }
   }, []);
 
@@ -190,7 +190,7 @@ export function useAppData(lang: Language = 'bg') {
     });
     if (error) {
       console.error('addRecipe error:', error);
-      toast.error(t('Грешка при запазване на рецептата', 'Failed to save recipe'));
+      toast.error(translate('Грешка при запазване на рецептата', 'Failed to save recipe'));
     }
   }, []);
 
@@ -228,7 +228,7 @@ export function useAppData(lang: Language = 'bg') {
       .eq('user_id', user.id);
     if (error) {
       console.error('updateRecipe error:', error);
-      toast.error(t('Грешка при обновяване на рецептата', 'Failed to update recipe'));
+      toast.error(translate('Грешка при обновяване на рецептата', 'Failed to update recipe'));
     }
   }, []);
 
@@ -280,11 +280,11 @@ export function useAppData(lang: Language = 'bg') {
     }).select('id').single();
     if (error) {
       console.error('addProduct error:', error);
-      toast.error(t('Грешка при добавяне на продукт', 'Failed to add product'));
+      toast.error(translate('Грешка при добавяне на продукт', 'Failed to add product'));
       return;
     }
     setProductsState(prev => [...prev, { ...newProduct, id: data.id }]);
-    toast.success(t('Продуктът е добавен', 'Product added'));
+    toast.success(translate('Продуктът е добавен', 'Product added'));
   }, []);
 
   const removeProduct = useCallback((id: string) => {

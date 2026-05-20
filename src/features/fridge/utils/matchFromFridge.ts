@@ -73,8 +73,8 @@ export async function matchFromFridge(fridgeItems: FridgeItem[], blocked: string
 }
 
 export async function searchDatabase(query: string, blocked: string[]): Promise<MatchedRecipe[]> {
-  const q = query.toLowerCase().trim();
-  if (!q) return [];
+  const normalizedQuery = query.toLowerCase().trim();
+  if (!normalizedQuery) return [];
 
   const [dbResult, userResult] = await Promise.all([
     supabase.from('recipe_database').select('id, name, name_en, emoji, image_url, ingredients, steps, time, tags, required_ingredients, is_ai'),
@@ -83,10 +83,10 @@ export async function searchDatabase(query: string, blocked: string[]): Promise<
 
   const isBlocked = (i: string) => blocked.some((b) => i.toLowerCase().includes(b.toLowerCase()));
   const matchesQuery = (r: DbRow) =>
-    r.name.toLowerCase().includes(q) ||
-    r.ingredients.some((i) => i.toLowerCase().includes(q)) ||
-    r.tags.some((t) => t.toLowerCase().includes(q)) ||
-    r.required_ingredients.some((i) => i.toLowerCase().includes(q));
+    r.name.toLowerCase().includes(normalizedQuery) ||
+    r.ingredients.some((i) => i.toLowerCase().includes(normalizedQuery)) ||
+    r.tags.some((tag) => tag.toLowerCase().includes(normalizedQuery)) ||
+    r.required_ingredients.some((i) => i.toLowerCase().includes(normalizedQuery));
 
   const filterAndMap = (rows: DbRow[], isPublic: boolean): MatchedRecipe[] =>
     rows

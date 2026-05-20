@@ -11,7 +11,7 @@ interface SaveTranslationModalProps {
 }
 
 export const SaveTranslationModal = ({ open, lang, onConfirm, onCancel }: SaveTranslationModalProps) => {
-  const L = lang === 'en';
+  const isEnglish = lang === 'en';
   const [text, setText] = useState('');
   const [saving, setSaving] = useState(false);
 
@@ -41,10 +41,10 @@ export const SaveTranslationModal = ({ open, lang, onConfirm, onCancel }: SaveTr
     <Modal
       open={open}
       onClose={handleCancel}
-      title={L ? 'Save translated version' : 'Запази превода'}
+      title={isEnglish ? 'Save translated version' : 'Запази превода'}
     >
       <p className="modal-hint">
-        {L
+        {isEnglish
           ? 'Paste the full translated text copied from Google Translate.'
           : 'Постави целия преведен текст, копиран от Google Translate.'}
       </p>
@@ -54,13 +54,13 @@ export const SaveTranslationModal = ({ open, lang, onConfirm, onCancel }: SaveTr
         rows={8}
         value={text}
         onChange={(e) => setText(e.target.value)}
-        placeholder={L ? 'Paste translated text here…' : 'Постави преведения текст тук…'}
+        placeholder={isEnglish ? 'Paste translated text here…' : 'Постави преведения текст тук…'}
         autoFocus
       />
 
       {showParseError && (
         <p className="modal-error">
-          {L
+          {isEnglish
             ? 'Could not read the text. Make sure you copied the full translated recipe.'
             : 'Текстът не може да бъде разчетен. Увери се, че си копирал цялата преведена рецепта.'}
         </p>
@@ -70,7 +70,7 @@ export const SaveTranslationModal = ({ open, lang, onConfirm, onCancel }: SaveTr
         <div className="parse-preview">
           <div className="parse-preview-name">{parsed.name}</div>
           <div className="parse-preview-info">
-            {L
+            {isEnglish
               ? `${parsed.ingredients.length} ingredients · ${parsed.steps.length} steps`
               : `${parsed.ingredients.length} съставки · ${parsed.steps.length} стъпки`}
           </div>
@@ -87,11 +87,11 @@ export const SaveTranslationModal = ({ open, lang, onConfirm, onCancel }: SaveTr
           disabled={!parsed || saving}
         >
           {saving
-            ? (L ? 'Saving…' : 'Запазва…')
-            : (L ? 'Save translation' : 'Запази превода')}
+            ? (isEnglish ? 'Saving…' : 'Запазва…')
+            : (isEnglish ? 'Save translation' : 'Запази превода')}
         </button>
         <button className="btn btn-ghost" onClick={handleCancel}>
-          {L ? 'Cancel' : 'Отказ'}
+          {isEnglish ? 'Cancel' : 'Отказ'}
         </button>
       </div>
     </Modal>

@@ -54,11 +54,11 @@ const FridgeProduct = ({ item, onRemove, selected, onToggleSelect, status, onSta
   onStatusBadgeClick?: (e: React.MouseEvent, item: FridgeItem, status: 'disliked' | 'allergic') => void;
   lang: Language;
 }) => {
-  const L = lang === 'en';
+  const isEnglish = lang === 'en';
   const statusLabel = status === 'allergic'
-    ? (L ? 'Allergic ⚠' : 'Алергичен ⚠')
+    ? (isEnglish ? 'Allergic ⚠' : 'Алергичен ⚠')
     : status === 'disliked'
-    ? (L ? 'Disliked' : 'Нехаресван')
+    ? (isEnglish ? 'Disliked' : 'Нехаресван')
     : undefined;
   return (
     <div
@@ -118,7 +118,7 @@ const FridgeShelf = ({ items, onRemove, onAddSlot, selectedIds, onToggleSelect, 
 );
 
 export const InteractiveFridge = ({ items, onRemove, onAddSlot, lang, selectedIds, onToggleSelect, productStatusByName }: InteractiveFridgeProps) => {
-  const L = lang === 'en';
+  const isEnglish = lang === 'en';
   const [open, setOpen] = useState(false);
   const [activePopover, setActivePopover] = useState<PopoverState | null>(null);
 
@@ -162,20 +162,20 @@ export const InteractiveFridge = ({ items, onRemove, onAddSlot, lang, selectedId
 
   const popover = (() => {
     if (!activePopover) return null;
-    const vw = window.innerWidth || 800;
-    const vh = window.innerHeight || 600;
+    const viewportWidth = window.innerWidth || 800;
+    const viewportHeight = window.innerHeight || 600;
     const midX = activePopover.badgeLeft + activePopover.badgeWidth / 2;
-    const showAbove = vh - activePopover.badgeBottom < POPOVER_H_EST + 12;
+    const showAbove = viewportHeight - activePopover.badgeBottom < POPOVER_H_EST + 12;
     const top = showAbove
       ? activePopover.badgeTop - POPOVER_H_EST - 8
       : activePopover.badgeBottom + 8;
-    const left = Math.max(8, Math.min(midX - POPOVER_W / 2, vw - POPOVER_W - 8));
+    const left = Math.max(8, Math.min(midX - POPOVER_W / 2, viewportWidth - POPOVER_W - 8));
     const statusLabel = activePopover.status === 'allergic'
-      ? (L ? 'Allergic' : 'Алергичен')
-      : (L ? 'Disliked' : 'Нехаресван');
+      ? (isEnglish ? 'Allergic' : 'Алергичен')
+      : (isEnglish ? 'Disliked' : 'Нехаресван');
     const statusDesc = activePopover.status === 'allergic'
-      ? (L ? 'You marked this as an allergen.' : 'Маркиран като алерген.')
-      : (L ? 'You marked this as disliked.' : 'Маркиран като нехаресван.');
+      ? (isEnglish ? 'You marked this as an allergen.' : 'Маркиран като алерген.')
+      : (isEnglish ? 'You marked this as disliked.' : 'Маркиран като нехаресван.');
     return (
       <>
         {/* Backdrop: covers the viewport so any tap outside the popover closes it.
@@ -205,10 +205,10 @@ export const InteractiveFridge = ({ items, onRemove, onAddSlot, lang, selectedId
         <div className="scene-toolbar">
           <span className="chip-status">
             <span className="dot" />
-            {open ? (L ? 'Door open' : 'Вратата е отворена') : (L ? 'Door closed' : 'Вратата е затворена')} · 4°C
+            {open ? (isEnglish ? 'Door open' : 'Вратата е отворена') : (isEnglish ? 'Door closed' : 'Вратата е затворена')} · 4°C
           </span>
           <button className="btn-door" onClick={toggleDoor}>
-            {open ? (L ? '⤬ Close door' : '⤬ Затвори') : (L ? '⇲ Open fridge' : '⇲ Отвори хладилника')}
+            {open ? (isEnglish ? '⤬ Close door' : '⤬ Затвори') : (isEnglish ? '⇲ Open fridge' : '⇲ Отвори хладилника')}
           </button>
         </div>
 
@@ -235,7 +235,7 @@ export const InteractiveFridge = ({ items, onRemove, onAddSlot, lang, selectedId
                   ))}
                   <button className="add-slot" onClick={onAddSlot}>+</button>
                   <div className="frost" />
-                  <span className="shelf-label">🧊 {L ? 'Frozen' : 'Замразено'}</span>
+                  <span className="shelf-label">🧊 {isEnglish ? 'Frozen' : 'Замразено'}</span>
                 </div>
 
                 {populatedCategories.length > 0
@@ -249,7 +249,7 @@ export const InteractiveFridge = ({ items, onRemove, onAddSlot, lang, selectedId
                           onAddSlot={onAddSlot}
                           selectedIds={selectedIds}
                           onToggleSelect={onToggleSelect}
-                          shelfLabel={`${meta.emoji} ${L ? meta.labelEn : meta.label}`}
+                          shelfLabel={`${meta.emoji} ${isEnglish ?meta.labelEn : meta.label}`}
                           productStatusByName={productStatusByName}
                           onStatusBadgeClick={handleStatusBadgeClick}
                           lang={lang}
@@ -264,7 +264,7 @@ export const InteractiveFridge = ({ items, onRemove, onAddSlot, lang, selectedId
             <div className="door-wrap">
               <div className="door" onClick={toggleDoor}>
                 <div className="door-display">
-                  <span>{L ? 'FRESH' : 'СВЕЖО'}</span>
+                  <span>{isEnglish ? 'FRESH' : 'СВЕЖО'}</span>
                   <span className="d-time">4°C</span>
                   <span>❄</span>
                 </div>
@@ -299,7 +299,7 @@ export const InteractiveFridge = ({ items, onRemove, onAddSlot, lang, selectedId
 
             {!open && (
               <div className="tap-hint">
-                <span className="pill">👆 {L ? 'Tap to open' : 'Натисни за отваряне'}</span>
+                <span className="pill">👆 {isEnglish ? 'Tap to open' : 'Натисни за отваряне'}</span>
               </div>
             )}
           </div>

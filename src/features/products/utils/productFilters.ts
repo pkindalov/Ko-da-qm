@@ -6,9 +6,9 @@ export function filterProducts(
   catFilter: string,
   lang: Language,
 ): Product[] {
-  const L = lang === 'en';
+  const isEnglish = lang === 'en';
   return products.filter((p) => {
-    const name = L && p.nameEn ? p.nameEn : p.name;
+    const name = isEnglish && p.nameEn ? p.nameEn : p.name;
     const matchSearch = name.toLowerCase().includes(search.toLowerCase());
     const matchCat = catFilter === 'all' || p.category === catFilter || catFilter === p.status;
     return matchSearch && matchCat;

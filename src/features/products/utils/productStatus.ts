@@ -7,8 +7,8 @@ export function statusBadge(status: ProductStatus): 'safe' | 'dislike' | 'allerg
 }
 
 export function statusLabel(status: ProductStatus, lang: Language): string {
-  const L = lang === 'en';
-  if (status === 'liked') return L ? '✓ Safe' : '✓ Харесвам';
-  if (status === 'disliked') return L ? '✗ Dislike' : '✗ Не харесвам';
-  return L ? '⚠ Allergy' : '⚠ Алергия';
+  const isEnglish = lang === 'en';
+  if (status === 'liked') return isEnglish ? '✓ Safe' : '✓ Харесвам';
+  if (status === 'disliked') return isEnglish ? '✗ Dislike' : '✗ Не харесвам';
+  return isEnglish ? '⚠ Allergy' : '⚠ Алергия';
 }

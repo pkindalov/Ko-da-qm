@@ -33,7 +33,7 @@ interface FridgeScreenProps {
 }
 
 export const FridgeScreen = ({ fridge, addFridgeItem, removeFridgeItem, removeProduct, addProduct, addRecipe, removeRecipe, updateRecipe, profile, recipes, products, lang }: FridgeScreenProps) => {
-  const L = lang === 'en';
+  const isEnglish = lang === 'en';
 
   const productStatusByName = useMemo(() => {
     const map = new Map<string, 'disliked' | 'allergic'>();
@@ -88,7 +88,7 @@ export const FridgeScreen = ({ fridge, addFridgeItem, removeFridgeItem, removePr
 
   const removeItem = (id: string) => {
     removeFridgeItem(id);
-    toast.success(L ? 'Item removed' : 'Продуктът е премахнат');
+    toast.success(isEnglish ? 'Item removed' : 'Продуктът е премахнат');
   };
 
   const openAddModal = () => {
@@ -182,18 +182,18 @@ export const FridgeScreen = ({ fridge, addFridgeItem, removeFridgeItem, removePr
         setSuggestions(results);
         setSeenGeminiNames(results.map((r) => r.name));
         setSuggestionSource('gemini');
-        if (results.length > 0) toast.success(L ? `Found ${results.length} recipe${results.length === 1 ? '' : 's'}` : `Намерени ${results.length} рецепти`);
+        if (results.length > 0) toast.success(isEnglish ? `Found ${results.length} recipe${results.length === 1 ? '' : 's'}` : `Намерени ${results.length} рецепти`);
       } else {
         const online = filterSafe(await searchByFridge(searchFridge, blocked));
         if (online.length > 0) {
           setSuggestions(online);
           setSeenApiIds(online.map((r) => r.id));
-          toast.success(L ? `Found ${online.length} recipe${online.length === 1 ? '' : 's'}` : `Намерени ${online.length} рецепти`);
+          toast.success(isEnglish ? `Found ${online.length} recipe${online.length === 1 ? '' : 's'}` : `Намерени ${online.length} рецепти`);
         } else {
           const local = filterSafe(await matchFromFridge(searchFridge, blocked));
           setSuggestions(local);
           setSeenApiIds(local.map((r) => r.id));
-          if (local.length > 0) toast.success(L ? `Found ${local.length} recipe${local.length === 1 ? '' : 's'}` : `Намерени ${local.length} рецепти`);
+          if (local.length > 0) toast.success(isEnglish ? `Found ${local.length} recipe${local.length === 1 ? '' : 's'}` : `Намерени ${local.length} рецепти`);
         }
         setSuggestionSource('api');
       }
@@ -209,12 +209,12 @@ export const FridgeScreen = ({ fridge, addFridgeItem, removeFridgeItem, removePr
       if (online.length > 0) {
         setSuggestions(online);
         setSeenApiIds((prev) => [...prev, ...online.map((r) => r.id)]);
-        toast.success(L ? `Found ${online.length} recipe${online.length === 1 ? '' : 's'}` : `Намерени ${online.length} рецепти`);
+        toast.success(isEnglish ? `Found ${online.length} recipe${online.length === 1 ? '' : 's'}` : `Намерени ${online.length} рецепти`);
       } else {
         const local = filterSafe(await matchFromFridge(searchFridge, blocked, seenApiIds));
         setSuggestions(local);
         setSeenApiIds((prev) => [...prev, ...local.map((r) => r.id)]);
-        if (local.length > 0) toast.success(L ? `Found ${local.length} recipe${local.length === 1 ? '' : 's'}` : `Намерени ${local.length} рецепти`);
+        if (local.length > 0) toast.success(isEnglish ? `Found ${local.length} recipe${local.length === 1 ? '' : 's'}` : `Намерени ${local.length} рецепти`);
       }
     } finally {
       setLoadingMoreSuggestions(false);
@@ -228,7 +228,7 @@ export const FridgeScreen = ({ fridge, addFridgeItem, removeFridgeItem, removePr
       const newResults = results.filter((r) => !seenGeminiNames.includes(r.name));
       setSuggestions(newResults);
       setSeenGeminiNames((prev) => [...prev, ...newResults.map((r) => r.name)]);
-      if (newResults.length > 0) toast.success(L ? `Found ${newResults.length} recipe${newResults.length === 1 ? '' : 's'}` : `Намерени ${newResults.length} рецепти`);
+      if (newResults.length > 0) toast.success(isEnglish ? `Found ${newResults.length} recipe${newResults.length === 1 ? '' : 's'}` : `Намерени ${newResults.length} рецепти`);
     } finally {
       setLoadingMoreSuggestions(false);
     }
@@ -259,24 +259,24 @@ export const FridgeScreen = ({ fridge, addFridgeItem, removeFridgeItem, removePr
     <div className="fade-in">
       <div className="topbar">
         <div className="breadcrumb">
-          {L ? 'Kitchen' : 'Кухня'} <span>/ {L ? 'Fridge' : 'Хладилник'}</span>
+          {isEnglish ? 'Kitchen' : 'Кухня'} <span>/ {isEnglish ? 'Fridge' : 'Хладилник'}</span>
         </div>
         <div className="topbar-actions">
           <button className="btn btn-secondary btn-sm" onClick={openAddModal}>
-            + {L ? 'Add item' : 'Добави'}
+            + {isEnglish ? 'Add item' : 'Добави'}
           </button>
         </div>
       </div>
 
       <div className="page-head">
         <div>
-          <div className="eyebrow eyebrow-mb">{L ? "What's inside" : 'Какво е вътре'}</div>
-          <h1 className="h-title italic">{L ? 'Fridge' : 'Хладилник'}</h1>
+          <div className="eyebrow eyebrow-mb">{isEnglish ?"What's inside" : 'Какво е вътре'}</div>
+          <h1 className="h-title italic">{isEnglish ? 'Fridge' : 'Хладилник'}</h1>
           <div className="page-head-sub mt-2">
-            {L ? 'Add what you have, remove what you used.' : 'Добави какво имаш, премахни използваното.'}
+            {isEnglish ? 'Add what you have, remove what you used.' : 'Добави какво имаш, премахни използваното.'}
             {fridge.length > 0 && (
               <button className="fridge-toggle ml-3" onClick={() => setFridgeExpanded((v) => !v)}>
-                {fridge.length} {L ? 'items' : 'продукта'} {fridgeExpanded ? '▲' : '▼'}
+                {fridge.length} {isEnglish ? 'items' : 'продукта'} {fridgeExpanded ? '▲' : '▼'}
               </button>
             )}
           </div>
@@ -286,8 +286,8 @@ export const FridgeScreen = ({ fridge, addFridgeItem, removeFridgeItem, removePr
       {fridge.length === 0 ? (
         <EmptyState
           icon="🧊"
-          title={L ? 'Empty fridge' : 'Празен хладилник'}
-          subtitle={L ? 'Add what you have at home' : 'Добави какво имаш у дома'}
+          title={isEnglish ? 'Empty fridge' : 'Празен хладилник'}
+          subtitle={isEnglish ? 'Add what you have at home' : 'Добави какво имаш у дома'}
         />
       ) : fridgeExpanded && (
         <InteractiveFridge
@@ -304,7 +304,7 @@ export const FridgeScreen = ({ fridge, addFridgeItem, removeFridgeItem, removePr
       {matchingRecipes.length > 0 && (
         <>
           <button className="section-title-toggle" onClick={() => setMatchingExpanded((v) => !v)}>
-            {L ? 'RECIPES FROM WHAT YOU HAVE' : 'РЕЦЕПТИ ОТ НАЛИЧНИ ПРОДУКТИ'}
+            {isEnglish ? 'RECIPES FROM WHAT YOU HAVE' : 'РЕЦЕПТИ ОТ НАЛИЧНИ ПРОДУКТИ'}
             <span className="section-title-chevron">{matchingExpanded ? '▲' : '▼'}</span>
           </button>
           {matchingExpanded && (
@@ -317,9 +317,9 @@ export const FridgeScreen = ({ fridge, addFridgeItem, removeFridgeItem, removePr
                   }
                   <div className="flex-1">
                     <div className="recipe-card-name">{recipeDisplayName(r, lang)}</div>
-                    <div className="recipe-card-meta mt-1">⏱ {r.time} {L ? 'min' : 'мин'}</div>
+                    <div className="recipe-card-meta mt-1">⏱ {r.time} {isEnglish ? 'min' : 'мин'}</div>
                   </div>
-                  <Badge type="safe">✓ {L ? 'Safe' : 'Безопасно'}</Badge>
+                  <Badge type="safe">✓ {isEnglish ? 'Safe' : 'Безопасно'}</Badge>
                 </div>
               ))}
             </div>
@@ -331,9 +331,9 @@ export const FridgeScreen = ({ fridge, addFridgeItem, removeFridgeItem, removePr
       <div className="row-between mb-3">
         <div className="row-sm">
           <div className="section-title mb-0">
-            {geminiMode ? (L ? '✨ AI SUGGESTIONS' : '✨ ИИ ПРЕДЛОЖЕНИЯ') : (L ? 'RECIPE SUGGESTIONS' : 'ПРЕДЛОЖЕНИЯ ОТ БАЗАТА')}
+            {geminiMode ? (isEnglish ? '✨ AI SUGGESTIONS' : '✨ ИИ ПРЕДЛОЖЕНИЯ') : (isEnglish ? 'RECIPE SUGGESTIONS' : 'ПРЕДЛОЖЕНИЯ ОТ БАЗАТА')}
           </div>
-          {!L && !geminiMode && (
+          {!isEnglish && !geminiMode && (
             <button
               className="btn btn-ghost btn-sm btn-compact"
               onClick={() => setShowTranslationHelp(v => !v)}
@@ -353,10 +353,10 @@ export const FridgeScreen = ({ fridge, addFridgeItem, removeFridgeItem, removePr
       </div>
       <p className={`fridge-search-desc${selectedItemIds.size > 0 ? ' fridge-search-desc--compact' : ''}`}>
         {geminiMode
-          ? (L ? 'Ask Gemini AI to suggest recipes from your fridge.' : 'Попитай Gemini ИИ за рецепти от хладилника.')
-          : (L ? 'Find recipes that match what you have at home.' : 'Намери рецепти спрямо наличните продукти и твоите ограничения.')}
+          ? (isEnglish ? 'Ask Gemini AI to suggest recipes from your fridge.' : 'Попитай Gemini ИИ за рецепти от хладилника.')
+          : (isEnglish ? 'Find recipes that match what you have at home.' : 'Намери рецепти спрямо наличните продукти и твоите ограничения.')}
       </p>
-      {showTranslationHelp && !L && !geminiMode && (
+      {showTranslationHelp && !isEnglish && !geminiMode && (
         <div className="tip-box">
           <div className="tip-box-title">💡 Как да запазя превод на рецепта?</div>
           <div className="tip-list">
@@ -376,7 +376,7 @@ export const FridgeScreen = ({ fridge, addFridgeItem, removeFridgeItem, removePr
       )}
       {selectedItemIds.size > 0 && (
         <p className="fridge-pin-hint">
-          {L
+          {isEnglish
             ? `Searching with ${selectedItemIds.size} selected item${selectedItemIds.size !== 1 ? 's' : ''} only.`
             : selectedItemIds.size === 1
               ? 'Търсене само по 1 избран продукт.'
@@ -387,7 +387,7 @@ export const FridgeScreen = ({ fridge, addFridgeItem, removeFridgeItem, removePr
             className="fridge-pin-clear-btn"
             onClick={() => setSelectedItemIds(new Set())}
           >
-            {L ? 'Clear selection' : 'Изчисти избора'}
+            {isEnglish ? 'Clear selection' : 'Изчисти избора'}
           </button>
         </p>
       )}
@@ -397,10 +397,10 @@ export const FridgeScreen = ({ fridge, addFridgeItem, removeFridgeItem, removePr
         disabled={fridge.length === 0 || loadingSuggestions}
       >
         {loadingSuggestions
-          ? (<><span className="spinner" />{L ? 'Searching...' : 'Търси...'}</>)
+          ? (<><span className="spinner" />{isEnglish ? 'Searching...' : 'Търси...'}</>)
           : geminiMode
-            ? `✨ ${L ? 'Ask Gemini' : 'Попитай Gemini'}`
-            : `🔍 ${L ? 'What can I cook?' : 'Какво мога да готвя?'}`}
+            ? `✨ ${isEnglish ? 'Ask Gemini' : 'Попитай Gemini'}`
+            : `🔍 ${isEnglish ? 'What can I cook?' : 'Какво мога да готвя?'}`}
       </button>
 
       {suggestions !== null && (
@@ -408,14 +408,14 @@ export const FridgeScreen = ({ fridge, addFridgeItem, removeFridgeItem, removePr
           {blockedFridgeItems.length > 0 && (
             <div className="blocked-box">
               <span className="blocked-label">
-                🚫 {L ? 'Excluded from search:' : 'Изключено от търсенето:'}
+                🚫 {isEnglish ? 'Excluded from search:' : 'Изключено от търсенето:'}
               </span>
               {blockedFridgeItems.map((item) => (
                 <span
                   key={item.id}
                   className={`badge ${item.reason === 'allergic' ? 'badge-allergic-item' : 'badge-dislike-item'}`}
                 >
-                  {item.emoji} {item.name} · {item.reason === 'allergic' ? (L ? 'allergic' : 'алергия') : (L ? 'disliked' : 'нелюбимо')}
+                  {item.emoji} {item.name} · {item.reason === 'allergic' ? (isEnglish ? 'allergic' : 'алергия') : (isEnglish ? 'disliked' : 'нелюбимо')}
                 </span>
               ))}
             </div>
@@ -423,8 +423,8 @@ export const FridgeScreen = ({ fridge, addFridgeItem, removeFridgeItem, removePr
           {suggestions.length === 0 ? (
             <EmptyState
               icon="😔"
-              title={L ? 'No matches found' : 'Няма съвпадения'}
-              subtitle={L ? 'Try adding more items to your fridge' : 'Добави повече продукти в хладилника'}
+              title={isEnglish ? 'No matches found' : 'Няма съвпадения'}
+              subtitle={isEnglish ? 'Try adding more items to your fridge' : 'Добави повече продукти в хладилника'}
             />
           ) : (
             <div className="stack">
@@ -447,11 +447,11 @@ export const FridgeScreen = ({ fridge, addFridgeItem, removeFridgeItem, removePr
                       {r.isAI && <span className="badge badge-neutral suggestion-badge-ai">✨ AI</span>}
                     </div>
                     <span className="badge badge-safe">
-                      {r.matchedCount}/{r.requiredIngredients.length} {L ? 'match' : 'съвп.'}
+                      {r.matchedCount}/{r.requiredIngredients.length} {isEnglish ? 'match' : 'съвп.'}
                     </span>
                   </div>
                   <div className="suggestion-meta">
-                    ⏱ {r.time} {L ? 'min' : 'мин'} · {displayIngredients.slice(0, 3).join(', ')}{displayIngredients.length > 3 ? '...' : ''}
+                    ⏱ {r.time} {isEnglish ? 'min' : 'мин'} · {displayIngredients.slice(0, 3).join(', ')}{displayIngredients.length > 3 ? '...' : ''}
                   </div>
                   <div className="suggestion-ings">
                     {r.requiredIngredients.map((ing) => {
@@ -474,7 +474,7 @@ export const FridgeScreen = ({ fridge, addFridgeItem, removeFridgeItem, removePr
                   </div>
                   <div className="step-section">
                     <div className="step-section-label">
-                      {L ? 'Steps:' : 'Стъпки:'}
+                      {isEnglish ? 'Steps:' : 'Стъпки:'}
                     </div>
                     {displaySteps.map((s, i) => (
                       <div key={i} className="step-item">
@@ -499,7 +499,7 @@ export const FridgeScreen = ({ fridge, addFridgeItem, removeFridgeItem, removePr
                           className="btn btn-danger btn-sm"
                           onClick={() => setPendingRemoveSuggestionId(r.id)}
                         >
-                          🗑 {L ? 'Remove' : 'Премахни'}
+                          🗑 {isEnglish ? 'Remove' : 'Премахни'}
                         </button>
                         {updateRecipe != null && lang === 'bg' && !r.isAI && r.nameEn != null && r.nameEn !== '' && (
                           <button
@@ -521,8 +521,8 @@ export const FridgeScreen = ({ fridge, addFridgeItem, removeFridgeItem, removePr
                         onClick={() => handleOpenSaveModal(r)}
                       >
                         {savingId === r.id
-                          ? (L ? 'Saving...' : 'Запазване...')
-                          : `💾 ${L ? 'Save recipe' : 'Запази рецептата'}`}
+                          ? (isEnglish ? 'Saving...' : 'Запазване...')
+                          : `💾 ${isEnglish ? 'Save recipe' : 'Запази рецептата'}`}
                       </button>
                     )}
                   </div>
@@ -539,8 +539,8 @@ export const FridgeScreen = ({ fridge, addFridgeItem, removeFridgeItem, removePr
                 disabled={loadingMoreSuggestions || loadingSuggestions}
               >
                 {loadingMoreSuggestions
-                  ? (<><span className="spinner" />{L ? 'Searching...' : 'Търси...'}</>)
-                  : `🔄 ${L ? 'Try different' : 'Опитай различни'}`}
+                  ? (<><span className="spinner" />{isEnglish ? 'Searching...' : 'Търси...'}</>)
+                  : `🔄 ${isEnglish ? 'Try different' : 'Опитай различни'}`}
               </button>
             )}
             {suggestionSource === 'api' && !geminiMode && suggestions.length > 0 && (
@@ -550,12 +550,12 @@ export const FridgeScreen = ({ fridge, addFridgeItem, removeFridgeItem, removePr
                 disabled={loadingMoreSuggestions || loadingSuggestions}
               >
                 {loadingMoreSuggestions
-                  ? (<><span className="spinner" />{L ? 'Searching...' : 'Търси...'}</>)
-                  : `🔄 ${L ? 'Try different' : 'Опитай различни'}`}
+                  ? (<><span className="spinner" />{isEnglish ? 'Searching...' : 'Търси...'}</>)
+                  : `🔄 ${isEnglish ? 'Try different' : 'Опитай различни'}`}
               </button>
             )}
             <button className="btn btn-ghost btn-sm" onClick={() => { setSuggestions(null); setSuggestionSource(null); }}>
-              {L ? 'Clear' : 'Изчисти'}
+              {isEnglish ? 'Clear' : 'Изчисти'}
             </button>
           </div>
         </div>
@@ -567,17 +567,17 @@ export const FridgeScreen = ({ fridge, addFridgeItem, removeFridgeItem, removePr
           ? products.find(p => p.name.toLowerCase() === pendingItem.name.toLowerCase())
           : undefined;
         return (
-          <Modal open={pendingRemoveItemId !== null} onClose={() => setPendingRemoveItemId(null)} title={L ? 'Remove item?' : 'Премахване на продукт?'}>
+          <Modal open={pendingRemoveItemId !== null} onClose={() => setPendingRemoveItemId(null)} title={isEnglish ? 'Remove item?' : 'Премахване на продукт?'}>
             <p className="modal-confirm-text">
-              {L ? `Remove "${pendingItem?.name}" from fridge?` : `Премахни "${pendingItem?.name}" от хладилника?`}
+              {isEnglish ? `Remove "${pendingItem?.name}" from fridge?` : `Премахни "${pendingItem?.name}" от хладилника?`}
             </p>
             <div className="stack">
               <div className="row">
                 <button className="btn btn-ghost flex-1" onClick={() => setPendingRemoveItemId(null)}>
-                  {L ? 'Cancel' : 'Отказ'}
+                  {isEnglish ? 'Cancel' : 'Отказ'}
                 </button>
                 <button className="btn btn-danger flex-1" onClick={() => { if (pendingRemoveItemId) removeItem(pendingRemoveItemId); setPendingRemoveItemId(null); }}>
-                  {L ? 'Remove from fridge' : 'Само от хладилника'}
+                  {isEnglish ? 'Remove from fridge' : 'Само от хладилника'}
                 </button>
               </div>
               {matchingProduct && removeProduct && (
@@ -585,9 +585,9 @@ export const FridgeScreen = ({ fridge, addFridgeItem, removeFridgeItem, removePr
                   if (pendingRemoveItemId) removeFridgeItem(pendingRemoveItemId);
                   removeProduct(matchingProduct.id);
                   setPendingRemoveItemId(null);
-                  toast.success(L ? 'Removed from fridge and products' : 'Премахнат от хладилника и продуктите');
+                  toast.success(isEnglish ? 'Removed from fridge and products' : 'Премахнат от хладилника и продуктите');
                 }}>
-                  {L ? 'Remove from fridge & products' : 'Премахни и от продуктите'}
+                  {isEnglish ? 'Remove from fridge & products' : 'Премахни и от продуктите'}
                 </button>
               )}
             </div>
@@ -619,14 +619,14 @@ export const FridgeScreen = ({ fridge, addFridgeItem, removeFridgeItem, removePr
       <Modal
         open={pendingSaveRecipe !== null}
         onClose={() => setPendingSaveRecipe(null)}
-        title={L ? 'Save recipe' : 'Запази рецепта'}
+        title={isEnglish ? 'Save recipe' : 'Запази рецепта'}
       >
         <p className="modal-confirm-text">
-          {L ? 'Who can see this recipe?' : 'Кой може да види тази рецепта?'}
+          {isEnglish ? 'Who can see this recipe?' : 'Кой може да види тази рецепта?'}
         </p>
         {saveError && (
           <p className="modal-error">
-            {L ? 'Failed to save. Please try again.' : 'Неуспешно запазване. Опитай отново.'}
+            {isEnglish ? 'Failed to save. Please try again.' : 'Неуспешно запазване. Опитай отново.'}
           </p>
         )}
         <div className="row">
@@ -635,31 +635,31 @@ export const FridgeScreen = ({ fridge, addFridgeItem, removeFridgeItem, removePr
             disabled={savingId !== null}
             onClick={() => handleSaveWithVisibility(false)}
           >
-            🔒 {L ? 'Only me' : 'Само аз'}
+            🔒 {isEnglish ? 'Only me' : 'Само аз'}
           </button>
           <button
             className="btn btn-primary flex-1"
             disabled={savingId !== null}
             onClick={() => handleSaveWithVisibility(true)}
           >
-            🌍 {L ? 'Everyone' : 'Всички'}
+            🌍 {isEnglish ? 'Everyone' : 'Всички'}
           </button>
         </div>
       </Modal>
 
-      <Modal open={addOpen} onClose={closeAddModal} title={L ? 'Add to Fridge' : 'Добави в хладилника'}>
+      <Modal open={addOpen} onClose={closeAddModal} title={isEnglish ? 'Add to Fridge' : 'Добави в хладилника'}>
         <div className="chip-group mb-4">
           <span
             className={`chip${addMode === 'select' ? ' selected' : ''}`}
             onClick={() => setAddMode('select')}
           >
-            {L ? 'My products' : 'Моите продукти'}
+            {isEnglish ? 'My products' : 'Моите продукти'}
           </span>
           <span
             className={`chip${addMode === 'manual' ? ' selected' : ''}`}
             onClick={() => setAddMode('manual')}
           >
-            {L ? 'Manual' : 'Ръчно'}
+            {isEnglish ? 'Manual' : 'Ръчно'}
           </span>
         </div>
 
@@ -670,15 +670,15 @@ export const FridgeScreen = ({ fridge, addFridgeItem, removeFridgeItem, removePr
                 className="input-field"
                 value={productSearch}
                 onChange={(e) => setProductSearch(e.target.value)}
-                placeholder={L ? 'Search products…' : 'Търси продукти…'}
+                placeholder={isEnglish ? 'Search products…' : 'Търси продукти…'}
                 autoFocus
               />
             </div>
             {filteredProducts.length === 0 ? (
               <div className="modal-select-empty">
                 {availableProducts.length === 0
-                  ? (L ? 'All your products are already in the fridge' : 'Всички продукти вече са в хладилника')
-                  : (L ? 'No matching products' : 'Няма съвпадащи продукти')}
+                  ? (isEnglish ? 'All your products are already in the fridge' : 'Всички продукти вече са в хладилника')
+                  : (isEnglish ? 'No matching products' : 'Няма съвпадащи продукти')}
               </div>
             ) : (
               <div className="modal-select-list">
@@ -694,23 +694,23 @@ export const FridgeScreen = ({ fridge, addFridgeItem, removeFridgeItem, removePr
                 ))}
               </div>
             )}
-            <button className="btn btn-ghost" onClick={closeAddModal}>{L ? 'Cancel' : 'Отказ'}</button>
+            <button className="btn btn-ghost" onClick={closeAddModal}>{isEnglish ? 'Cancel' : 'Отказ'}</button>
           </>
         ) : (
           <>
             <div className="product-edit-mb">
-              <label className="input-label">{L ? 'Product name' : 'Продукт'}</label>
+              <label className="input-label">{isEnglish ? 'Product name' : 'Продукт'}</label>
               <input
                 className="input-field"
                 value={newItem}
                 onChange={(e) => setNewItem(e.target.value)}
-                placeholder={L ? 'e.g. Tomatoes' : 'напр. Домати'}
+                placeholder={isEnglish ? 'e.g. Tomatoes' : 'напр. Домати'}
                 onKeyDown={(e) => e.key === 'Enter' && addItemManually()}
                 autoFocus
               />
             </div>
             <div className="product-edit-mb">
-              <label className="input-label">{L ? 'Pick an emoji' : 'Избери емоджи'}</label>
+              <label className="input-label">{isEnglish ? 'Pick an emoji' : 'Избери емоджи'}</label>
               <div className="chip-group">
                 {FRIDGE_EMOJIS.map((e) => (
                   <span
@@ -724,24 +724,24 @@ export const FridgeScreen = ({ fridge, addFridgeItem, removeFridgeItem, removePr
               </div>
             </div>
             <div className="product-edit-mb">
-              <label className="input-label">{L ? 'Category' : 'Категория'}</label>
+              <label className="input-label">{isEnglish ? 'Category' : 'Категория'}</label>
               <select className="input-field" value={newCategory} onChange={(e) => setNewCategory(e.target.value as FridgeItem['category'])}>
                 {CATEGORIES.map((c) => (
-                  <option key={c.id} value={c.id}>{c.emoji} {L ? c.labelEn : c.label}</option>
+                  <option key={c.id} value={c.id}>{c.emoji} {isEnglish ?c.labelEn : c.label}</option>
                 ))}
               </select>
             </div>
             <div className="product-edit-mb-lg">
-              <label className="input-label">{L ? 'My relationship with this food' : 'Моето отношение'}</label>
+              <label className="input-label">{isEnglish ? 'My relationship with this food' : 'Моето отношение'}</label>
               <div className="chip-group">
-                <span className={`chip${newStatus === 'liked' ? ' selected' : ''}`} onClick={() => setNewStatus('liked')}>✓ {L ? 'I like it' : 'Харесвам'}</span>
-                <span className={`chip${newStatus === 'disliked' ? ' sel-warn' : ''}`} onClick={() => setNewStatus('disliked')}>✗ {L ? 'I dislike it' : 'Не харесвам'}</span>
-                <span className={`chip${newStatus === 'allergic' ? ' sel-danger' : ''}`} onClick={() => setNewStatus('allergic')}>⚠ {L ? 'Allergic' : 'Алергия'}</span>
+                <span className={`chip${newStatus === 'liked' ? ' selected' : ''}`} onClick={() => setNewStatus('liked')}>✓ {isEnglish ? 'I like it' : 'Харесвам'}</span>
+                <span className={`chip${newStatus === 'disliked' ? ' sel-warn' : ''}`} onClick={() => setNewStatus('disliked')}>✗ {isEnglish ? 'I dislike it' : 'Не харесвам'}</span>
+                <span className={`chip${newStatus === 'allergic' ? ' sel-danger' : ''}`} onClick={() => setNewStatus('allergic')}>⚠ {isEnglish ? 'Allergic' : 'Алергия'}</span>
               </div>
             </div>
             <div className="row">
-              <button className="btn btn-primary flex-1" onClick={addItemManually}>{L ? 'Add' : 'Добави'}</button>
-              <button className="btn btn-ghost" onClick={closeAddModal}>{L ? 'Cancel' : 'Отказ'}</button>
+              <button className="btn btn-primary flex-1" onClick={addItemManually}>{isEnglish ? 'Add' : 'Добави'}</button>
+              <button className="btn btn-ghost" onClick={closeAddModal}>{isEnglish ? 'Cancel' : 'Отказ'}</button>
             </div>
           </>
         )}
@@ -757,7 +757,7 @@ export const FridgeScreen = ({ fridge, addFridgeItem, removeFridgeItem, removePr
             const savedRecipe = savedId ? recipes.find(r => r.id === savedId) : null;
             if (!savedRecipe) return;
             updateRecipe({ ...savedRecipe, nameTranslated: name, ingredientsTranslated: ingredients, stepsTranslated: steps });
-            toast.success(L ? 'Translation saved!' : 'Преводът е запазен!');
+            toast.success(isEnglish ? 'Translation saved!' : 'Преводът е запазен!');
           }}
           onCancel={() => setSaveTranslationFor(null)}
         />

@@ -24,7 +24,7 @@ const STATUS_FILTERS = [
 ];
 
 export const ProductsScreen = ({ products, setProducts, addProduct, lang }: ProductsScreenProps) => {
-  const L = lang === 'en';
+  const isEnglish = lang === 'en';
   const [search, setSearch] = useState('');
   const [catFilter, setCatFilter] = useState('all');
   const [addOpen, setAddOpen] = useState(false);
@@ -41,14 +41,14 @@ export const ProductsScreen = ({ products, setProducts, addProduct, lang }: Prod
 
   const deleteProduct = (id: string) => {
     setProducts(products.filter((p) => p.id !== id));
-    toast.success(L ? 'Product deleted' : 'Продуктът е изтрит');
+    toast.success(isEnglish ? 'Product deleted' : 'Продуктът е изтрит');
   };
 
   const saveEdit = () => {
     if (!editP || !editP.name.trim()) return;
     setProducts(products.map((p) => (p.id === editP.id ? editP : p)));
     setEditP(null);
-    toast.success(L ? 'Changes saved' : 'Промените са запазени');
+    toast.success(isEnglish ? 'Changes saved' : 'Промените са запазени');
   };
 
   const handleAddClose = () => {
@@ -68,32 +68,32 @@ export const ProductsScreen = ({ products, setProducts, addProduct, lang }: Prod
     <div className="fade-in">
       <div className="topbar">
         <div className="breadcrumb">
-          {L ? 'Kitchen' : 'Кухня'} <span>/ {L ? 'Products' : 'Продукти'}</span>
+          {isEnglish ? 'Kitchen' : 'Кухня'} <span>/ {isEnglish ? 'Products' : 'Продукти'}</span>
         </div>
         <div className="topbar-actions">
           <button className="btn btn-secondary btn-sm" onClick={() => setAddOpen(true)}>
-            + {L ? 'Add product' : 'Добави'}
+            + {isEnglish ? 'Add product' : 'Добави'}
           </button>
         </div>
       </div>
 
       <div className="page-head">
         <div>
-          <div className="eyebrow eyebrow-mb">{L ? "What I eat & what I don't" : 'Какво ям и какво не'}</div>
-          <h1 className="h-title italic">{L ? 'Products' : 'Продукти'}</h1>
+          <div className="eyebrow eyebrow-mb">{isEnglish ?"What I eat & what I don't" : 'Какво ям и какво не'}</div>
+          <h1 className="h-title italic">{isEnglish ? 'Products' : 'Продукти'}</h1>
           <div className="page-head-sub mt-2">
-            {L ? 'Tap a status to toggle safe / dislike / allergy.' : 'Натисни статуса, за да превключиш безопасно / нелюбимо / алергия.'}
+            {isEnglish ? 'Tap a status to toggle safe / dislike / allergy.' : 'Натисни статуса, за да превключиш безопасно / нелюбимо / алергия.'}
           </div>
         </div>
         <div className="stack">
           <div className="search-wrap">
             <span className="search-icon">🔍</span>
-            <input className="input-field" value={search} onChange={(e) => setSearch(e.target.value)} placeholder={L ? 'Search products…' : 'Търси…'} />
+            <input className="input-field" value={search} onChange={(e) => setSearch(e.target.value)} placeholder={isEnglish ? 'Search products…' : 'Търси…'} />
           </div>
           <div className="chip-group">
             {STATUS_FILTERS.map((f) => (
               <button key={f.id} className={`chip${catFilter === f.id ? ' selected' : ''}`} onClick={() => setCatFilter(f.id)}>
-                {L ? f.labelEn : f.label}
+                {isEnglish ?f.labelEn : f.label}
               </button>
             ))}
           </div>
@@ -104,10 +104,10 @@ export const ProductsScreen = ({ products, setProducts, addProduct, lang }: Prod
         {filtered.map((p) => (
           <div key={p.id} className="product-row">
             <span className="emoji-md">{p.emoji}</span>
-            <span className="product-name">{L && p.nameEn ? p.nameEn : p.name}</span>
+            <span className="product-name">{isEnglish && p.nameEn ? p.nameEn : p.name}</span>
             <div className="product-row-actions">
-              <button className="btn btn-ghost btn-sm" onClick={() => setEditP(p)} title={L ? 'Edit' : 'Редактирай'}>✏</button>
-              <button className="btn btn-ghost btn-sm btn-danger-text" onClick={() => setPendingDeleteId(p.id)} title={L ? 'Delete' : 'Изтрий'}>✕</button>
+              <button className="btn btn-ghost btn-sm" onClick={() => setEditP(p)} title={isEnglish ? 'Edit' : 'Редактирай'}>✏</button>
+              <button className="btn btn-ghost btn-sm btn-danger-text" onClick={() => setPendingDeleteId(p.id)} title={isEnglish ? 'Delete' : 'Изтрий'}>✕</button>
             </div>
             <div className="product-row-tags">
               <div className="product-status-row">
@@ -116,7 +116,7 @@ export const ProductsScreen = ({ products, setProducts, addProduct, lang }: Prod
                     key={s}
                     className={`btn btn-sm ${p.status === s ? (s === 'liked' ? 'btn-secondary' : s === 'disliked' ? 'btn-warn' : 'btn-danger') : 'btn-ghost'}`}
                     onClick={() => toggleStatus(p.id, s)}
-                    title={s === 'liked' ? (L ? 'I like this' : 'Харесвам') : s === 'disliked' ? (L ? 'I dislike this' : 'Не харесвам') : (L ? 'I am allergic' : 'Алергия')}
+                    title={s === 'liked' ? (isEnglish ? 'I like this' : 'Харесвам') : s === 'disliked' ? (isEnglish ? 'I dislike this' : 'Не харесвам') : (isEnglish ? 'I am allergic' : 'Алергия')}
                   >
                     {s === 'liked' ? '✓' : s === 'disliked' ? '✗' : '⚠'}
                   </button>
@@ -129,18 +129,18 @@ export const ProductsScreen = ({ products, setProducts, addProduct, lang }: Prod
         {filtered.length === 0 && (
           <EmptyState
             icon="🥕"
-            title={L ? 'No products found' : 'Няма намерени продукти'}
-            subtitle={L ? 'Add a product to get started' : 'Добави продукт'}
+            title={isEnglish ? 'No products found' : 'Няма намерени продукти'}
+            subtitle={isEnglish ? 'Add a product to get started' : 'Добави продукт'}
           />
         )}
       </div>
 
-      <Modal open={editP != null} onClose={() => setEditP(null)} title={L ? 'Edit Product' : 'Редактирай продукт'}>
+      <Modal open={editP != null} onClose={() => setEditP(null)} title={isEnglish ? 'Edit Product' : 'Редактирай продукт'}>
         {editP && (
           <>
             <div className="product-edit-row">
               <div className="flex-1">
-                <label className="input-label">{L ? 'Product name' : 'Продукт'}</label>
+                <label className="input-label">{isEnglish ? 'Product name' : 'Продукт'}</label>
                 <input className="input-field" value={editP.name} onChange={(e) => setEditP({ ...editP, name: e.target.value })} autoFocus />
               </div>
               <div className="product-edit-emoji-wrap">
@@ -149,24 +149,24 @@ export const ProductsScreen = ({ products, setProducts, addProduct, lang }: Prod
               </div>
             </div>
             <div className="product-edit-mb">
-              <label className="input-label">{L ? 'Category' : 'Категория'}</label>
+              <label className="input-label">{isEnglish ? 'Category' : 'Категория'}</label>
               <select className="input-field" value={editP.category} onChange={(e) => setEditP({ ...editP, category: e.target.value as Product['category'] })}>
                 {CATEGORIES.map((c) => (
-                  <option key={c.id} value={c.id}>{c.emoji} {L ? c.labelEn : c.label}</option>
+                  <option key={c.id} value={c.id}>{c.emoji} {isEnglish ?c.labelEn : c.label}</option>
                 ))}
               </select>
             </div>
             <div className="product-edit-mb-lg">
-              <label className="input-label">{L ? 'My relationship with this food' : 'Моето отношение'}</label>
+              <label className="input-label">{isEnglish ? 'My relationship with this food' : 'Моето отношение'}</label>
               <div className="chip-group">
-                <span className={`chip${editP.status === 'liked' ? ' selected' : ''}`} onClick={() => setEditP({ ...editP, status: 'liked' })}>✓ {L ? 'I like it' : 'Харесвам'}</span>
-                <span className={`chip${editP.status === 'disliked' ? ' sel-warn' : ''}`} onClick={() => setEditP({ ...editP, status: 'disliked' })}>✗ {L ? 'I dislike it' : 'Не харесвам'}</span>
-                <span className={`chip${editP.status === 'allergic' ? ' sel-danger' : ''}`} onClick={() => setEditP({ ...editP, status: 'allergic' })}>⚠ {L ? 'Allergic' : 'Алергия'}</span>
+                <span className={`chip${editP.status === 'liked' ? ' selected' : ''}`} onClick={() => setEditP({ ...editP, status: 'liked' })}>✓ {isEnglish ? 'I like it' : 'Харесвам'}</span>
+                <span className={`chip${editP.status === 'disliked' ? ' sel-warn' : ''}`} onClick={() => setEditP({ ...editP, status: 'disliked' })}>✗ {isEnglish ? 'I dislike it' : 'Не харесвам'}</span>
+                <span className={`chip${editP.status === 'allergic' ? ' sel-danger' : ''}`} onClick={() => setEditP({ ...editP, status: 'allergic' })}>⚠ {isEnglish ? 'Allergic' : 'Алергия'}</span>
               </div>
             </div>
             <div className="product-edit-actions">
-              <button className="btn btn-primary flex-1" onClick={saveEdit}>{L ? 'Save' : 'Запази'}</button>
-              <button className="btn btn-ghost" onClick={() => setEditP(null)}>{L ? 'Cancel' : 'Отказ'}</button>
+              <button className="btn btn-primary flex-1" onClick={saveEdit}>{isEnglish ? 'Save' : 'Запази'}</button>
+              <button className="btn btn-ghost" onClick={() => setEditP(null)}>{isEnglish ? 'Cancel' : 'Отказ'}</button>
             </div>
           </>
         )}
@@ -174,18 +174,18 @@ export const ProductsScreen = ({ products, setProducts, addProduct, lang }: Prod
 
       <ConfirmDeleteModal
         open={pendingDeleteId !== null}
-        itemName={pendingDeleteProduct ? (L && pendingDeleteProduct.nameEn ? pendingDeleteProduct.nameEn : pendingDeleteProduct.name) : ''}
+        itemName={pendingDeleteProduct ? (isEnglish && pendingDeleteProduct.nameEn ? pendingDeleteProduct.nameEn : pendingDeleteProduct.name) : ''}
         lang={lang}
         onConfirm={() => { if (pendingDeleteId) deleteProduct(pendingDeleteId); setPendingDeleteId(null); }}
         onCancel={() => setPendingDeleteId(null)}
       />
 
-      <Modal open={addOpen} onClose={handleAddClose} title={L ? 'Add Product' : 'Добави продукт'}>
+      <Modal open={addOpen} onClose={handleAddClose} title={isEnglish ? 'Add Product' : 'Добави продукт'}>
         <div className="product-edit-row">
           <div className="flex-1">
-            <label className="input-label">{L ? 'Product name' : 'Продукт'}</label>
+            <label className="input-label">{isEnglish ? 'Product name' : 'Продукт'}</label>
             <input className="input-field" value={newP.name} onChange={(e) => setNewP({ ...newP, name: e.target.value })}
-              placeholder={L ? 'e.g. Tomatoes' : 'напр. Домати'} autoFocus />
+              placeholder={isEnglish ? 'e.g. Tomatoes' : 'напр. Домати'} autoFocus />
           </div>
           <div className="product-edit-emoji-wrap">
             <label className="input-label">Emoji</label>
@@ -193,24 +193,24 @@ export const ProductsScreen = ({ products, setProducts, addProduct, lang }: Prod
           </div>
         </div>
         <div className="product-edit-mb">
-          <label className="input-label">{L ? 'Category' : 'Категория'}</label>
+          <label className="input-label">{isEnglish ? 'Category' : 'Категория'}</label>
           <select className="input-field" value={newP.category} onChange={(e) => setNewP({ ...newP, category: e.target.value as Product['category'] })}>
             {CATEGORIES.map((c) => (
-              <option key={c.id} value={c.id}>{c.emoji} {L ? c.labelEn : c.label}</option>
+              <option key={c.id} value={c.id}>{c.emoji} {isEnglish ?c.labelEn : c.label}</option>
             ))}
           </select>
         </div>
         <div className="product-edit-mb-lg">
-          <label className="input-label">{L ? 'My relationship with this food' : 'Моето отношение'}</label>
+          <label className="input-label">{isEnglish ? 'My relationship with this food' : 'Моето отношение'}</label>
           <div className="chip-group">
-            <span className={`chip${newP.status === 'liked' ? ' selected' : ''}`} onClick={() => setNewP({ ...newP, status: 'liked' })}>✓ {L ? 'I like it' : 'Харесвам'}</span>
-            <span className={`chip${newP.status === 'disliked' ? ' sel-warn' : ''}`} onClick={() => setNewP({ ...newP, status: 'disliked' })}>✗ {L ? 'I dislike it' : 'Не харесвам'}</span>
-            <span className={`chip${newP.status === 'allergic' ? ' sel-danger' : ''}`} onClick={() => setNewP({ ...newP, status: 'allergic' })}>⚠ {L ? 'Allergic' : 'Алергия'}</span>
+            <span className={`chip${newP.status === 'liked' ? ' selected' : ''}`} onClick={() => setNewP({ ...newP, status: 'liked' })}>✓ {isEnglish ? 'I like it' : 'Харесвам'}</span>
+            <span className={`chip${newP.status === 'disliked' ? ' sel-warn' : ''}`} onClick={() => setNewP({ ...newP, status: 'disliked' })}>✗ {isEnglish ? 'I dislike it' : 'Не харесвам'}</span>
+            <span className={`chip${newP.status === 'allergic' ? ' sel-danger' : ''}`} onClick={() => setNewP({ ...newP, status: 'allergic' })}>⚠ {isEnglish ? 'Allergic' : 'Алергия'}</span>
           </div>
         </div>
         <div className="product-edit-actions">
-          <button className="btn btn-primary flex-1" onClick={handleAdd}>{L ? 'Save' : 'Запази'}</button>
-          <button className="btn btn-ghost" onClick={handleAddClose}>{L ? 'Cancel' : 'Отказ'}</button>
+          <button className="btn btn-primary flex-1" onClick={handleAdd}>{isEnglish ? 'Save' : 'Запази'}</button>
+          <button className="btn btn-ghost" onClick={handleAddClose}>{isEnglish ? 'Cancel' : 'Отказ'}</button>
         </div>
       </Modal>
     </div>

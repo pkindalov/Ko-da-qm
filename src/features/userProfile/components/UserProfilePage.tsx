@@ -18,7 +18,7 @@ export const UserProfilePage = () => {
   const { id: userId = '' } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [tweaks] = useLocalStorage('kdq_tweaks', DEFAULT_TWEAKS);
-  const L = tweaks.lang === 'en';
+  const isEnglish = tweaks.lang === 'en';
 
   const { userName, recipes, loading } = useUserProfile(userId);
   const { favoriteIds, toggleFavorite } = useFavorites();
@@ -33,12 +33,12 @@ export const UserProfilePage = () => {
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
 
   const themeClass = tweaks.theme === 'cool' ? 'theme-cool' : tweaks.theme === 'dark' ? 'theme-dark' : '';
-  const displayName = userName || (L ? 'Anonymous User' : 'Анонимен потребител');
+  const displayName = userName || (isEnglish ? 'Anonymous User' : 'Анонимен потребител');
 
   if (loading) {
     return (
       <div className={`${themeClass} user-profile-loading`}>
-        <span className="eyebrow">{L ? 'Loading…' : 'Зареждане…'}</span>
+        <span className="eyebrow">{isEnglish ? 'Loading…' : 'Зареждане…'}</span>
       </div>
     );
   }
@@ -48,23 +48,23 @@ export const UserProfilePage = () => {
       <div className="main-content">
         <div className="fade-in user-profile-content">
           <button className="detail-back" onClick={() => navigate(-1)}>
-            ← {L ? 'Back' : 'Назад'}
+            ← {isEnglish ? 'Back' : 'Назад'}
           </button>
 
           <div className="page-head">
             <div>
               <div className="eyebrow eyebrow-mb">
-                {L ? 'Profile' : 'Профил'}
+                {isEnglish ? 'Profile' : 'Профил'}
               </div>
               <h1 className="h-title italic">{displayName}</h1>
               <div className="page-head-sub">
                 {recipes.length}{' '}
-                {L
+                {isEnglish
                   ? `public recipe${recipes.length !== 1 ? 's' : ''}`
                   : `публична${recipes.length !== 1 ? ' рецепти' : ' рецепта'}`}
                 {' · '}
                 {followerCount}{' '}
-                {L
+                {isEnglish
                   ? `follower${followerCount !== 1 ? 's' : ''}`
                   : `последовател${followerCount !== 1 ? 'и' : ''}`}
               </div>
@@ -75,7 +75,7 @@ export const UserProfilePage = () => {
                   className={`btn ${isFollowing ? 'btn-secondary' : 'btn-primary'}`}
                   onClick={() => toggleFollow(userId)}
                 >
-                  {isFollowing ? (L ? 'Unfollow' : 'Отписване') : (L ? 'Follow' : 'Следвай')}
+                  {isFollowing ? (isEnglish ? 'Unfollow' : 'Отписване') : (isEnglish ? 'Follow' : 'Следвай')}
                 </button>
               </div>
             )}
@@ -83,21 +83,21 @@ export const UserProfilePage = () => {
 
           {recipes.length > 0 && (
             <div className="section-eyebrow">
-              <span className="label">{L ? 'Public recipes' : 'Публични рецепти'}</span>
+              <span className="label">{isEnglish ? 'Public recipes' : 'Публични рецепти'}</span>
             </div>
           )}
 
           {recipes.length === 0 ? (
             <EmptyState
               icon="🍽"
-              title={L ? 'No public recipes yet' : 'Все още няма публични рецепти'}
-              subtitle={L ? 'This user has not shared any recipes' : 'Този потребител не е споделил рецепти'}
+              title={isEnglish ? 'No public recipes yet' : 'Все още няма публични рецепти'}
+              subtitle={isEnglish ? 'This user has not shared any recipes' : 'Този потребител не е споделил рецепти'}
             />
           ) : (
             <div className="grid-3">
               {recipes.map((r) => {
                 const name = recipeDisplayName(r, tweaks.lang);
-                const tag = r.tags?.[0] ?? (L ? 'recipe' : 'рецепта');
+                const tag = r.tags?.[0] ?? (isEnglish ? 'recipe' : 'рецепта');
                 const count = favoriteCounts[r.id] ?? 0;
                 return (
                   <div key={r.id} className="recipe-card" onClick={() => setSelectedRecipe(r)}>
@@ -118,7 +118,7 @@ export const UserProfilePage = () => {
                     </div>
                     <div className="recipe-body">
                       <div className="recipe-name italic">{name}</div>
-                      <div className="recipe-meta">{r.time} {L ? 'min' : 'мин'}</div>
+                      <div className="recipe-meta">{r.time} {isEnglish ? 'min' : 'мин'}</div>
                       <div className="recipe-tags">
                         {r.isAI && <Badge type="primary">AI</Badge>}
                         {count > 0 && <span className="badge badge-neutral">♥ {count}</span>}
