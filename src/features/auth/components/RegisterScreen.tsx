@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { supabase } from "../../../lib/supabase";
 
-export function RegisterScreen() {
+export const RegisterScreen = () => {
   const navigate = useNavigate();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -35,7 +35,7 @@ export function RegisterScreen() {
     }
   };
 
-  async function handleSubmit(e: React.FormEvent) {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg("");
     if (password !== confirm) {
@@ -67,11 +67,11 @@ export function RegisterScreen() {
         <div className="auth-card">
           <div className="auth-logo">Ко-да-ям</div>
           <p className="auth-sub">Провери имейла си</p>
-          <p style={{ textAlign: "center", marginTop: 16 }}>
+          <p className="auth-confirm-text">
             Изпратихме линк за потвърждение на <strong>{email}</strong>.
             Кликни върху него, за да активираш акаунта си.
           </p>
-          <p className="auth-switch" style={{ marginTop: 24 }}>
+          <p className="auth-switch auth-confirm-link">
             <Link to="/login">Обратно към вход</Link>
           </p>
         </div>
@@ -86,8 +86,7 @@ export function RegisterScreen() {
         <p className="auth-sub">Създай акаунт</p>
         <form
           onSubmit={handleSubmit}
-          className="stack"
-          style={{ marginTop: 24 }}
+          className="stack auth-form"
         >
           <div>
             <label className="input-label">Име</label>

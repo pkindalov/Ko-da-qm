@@ -37,23 +37,23 @@ export const UserProfilePage = () => {
 
   if (loading) {
     return (
-      <div className={themeClass} style={{ minHeight: '100dvh', background: 'var(--paper)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div className={`${themeClass} user-profile-loading`}>
         <span className="eyebrow">{L ? 'Loading…' : 'Зареждане…'}</span>
       </div>
     );
   }
 
   return (
-    <div className={themeClass} style={{ minHeight: '100dvh', background: 'var(--paper)' }}>
+    <div className={`${themeClass} user-profile-page`}>
       <div className="main-content">
-        <div className="fade-in" style={{ maxWidth: 900, margin: '0 auto' }}>
+        <div className="fade-in user-profile-content">
           <button className="detail-back" onClick={() => navigate(-1)}>
             ← {L ? 'Back' : 'Назад'}
           </button>
 
           <div className="page-head">
             <div>
-              <div className="eyebrow" style={{ marginBottom: 12 }}>
+              <div className="eyebrow eyebrow-mb">
                 {L ? 'Profile' : 'Профил'}
               </div>
               <h1 className="h-title italic">{displayName}</h1>
@@ -110,7 +110,6 @@ export const UserProfilePage = () => {
                       <div className="recipe-image-label">{tag} · {r.time}min</div>
                       <button
                         className="btn-favorite"
-                        style={{ position: 'absolute', top: 10, right: 10, zIndex: 1 }}
                         onClick={(e) => { e.stopPropagation(); toggleFavorite(r); }}
                         aria-label={favoriteIds.includes(r.id) ? 'Remove from favorites' : 'Add to favorites'}
                       >

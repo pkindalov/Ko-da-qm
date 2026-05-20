@@ -21,7 +21,7 @@ import { DEFAULT_TWEAKS } from '../shared/constants/defaults';
 import { supabase } from '../lib/supabase';
 import type { Tab } from '../shared/types';
 
-export function AppShell() {
+export const AppShell = () => {
   const [tab, setTab] = useLocalStorage<Tab>('kdq_tab', 'home');
   const [tweaks, setTweaks] = useLocalStorage('kdq_tweaks', DEFAULT_TWEAKS);
   const { loading, userId, userEmail, profile, setProfile, fridge, addFridgeItem, removeFridgeItem, updateFridgeItem, recipes, addRecipe, removeRecipe, updateRecipe, products, setProducts, addProduct, removeProduct } = useAppData(tweaks.lang);
@@ -59,7 +59,7 @@ export function AppShell() {
 
   if (loading) {
     return (
-      <div className={`app-shell ${themeClass}`} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div className={`app-shell app-shell-loading ${themeClass}`}>
         <span>{tweaks.lang === 'en' ? 'Loading…' : 'Зареждане…'}</span>
       </div>
     );

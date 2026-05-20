@@ -32,7 +32,7 @@ interface FridgeScreenProps {
   lang: Language;
 }
 
-export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, removeProduct, addProduct, addRecipe, removeRecipe, updateRecipe, profile, recipes, products, lang }: FridgeScreenProps) {
+export const FridgeScreen = ({ fridge, addFridgeItem, removeFridgeItem, removeProduct, addProduct, addRecipe, removeRecipe, updateRecipe, profile, recipes, products, lang }: FridgeScreenProps) => {
   const L = lang === 'en';
 
   const productStatusByName = useMemo(() => {
@@ -270,12 +270,12 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, removePr
 
       <div className="page-head">
         <div>
-          <div className="eyebrow" style={{ marginBottom: 12 }}>{L ? "What's inside" : 'Какво е вътре'}</div>
+          <div className="eyebrow eyebrow-mb">{L ? "What's inside" : 'Какво е вътре'}</div>
           <h1 className="h-title italic">{L ? 'Fridge' : 'Хладилник'}</h1>
-          <div className="page-head-sub" style={{ marginTop: 8 }}>
+          <div className="page-head-sub mt-2">
             {L ? 'Add what you have, remove what you used.' : 'Добави какво имаш, премахни използваното.'}
             {fridge.length > 0 && (
-              <button className="fridge-toggle" style={{ marginLeft: 12 }} onClick={() => setFridgeExpanded((v) => !v)}>
+              <button className="fridge-toggle ml-3" onClick={() => setFridgeExpanded((v) => !v)}>
                 {fridge.length} {L ? 'items' : 'продукта'} {fridgeExpanded ? '▲' : '▼'}
               </button>
             )}
@@ -308,16 +308,16 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, removePr
             <span className="section-title-chevron">{matchingExpanded ? '▲' : '▼'}</span>
           </button>
           {matchingExpanded && (
-            <div className="stack" style={{ marginBottom: 20 }}>
+            <div className="stack mb-5">
               {matchingRecipes.map((r) => (
                 <div key={r.id} className="card-sm row">
                   {r.imageUrl
                     ? <img src={r.imageUrl} alt={recipeDisplayName(r, lang)} className="recipe-suggestion-img" />
-                    : <span style={{ fontSize: 24 }}>{r.emoji}</span>
+                    : <span className="emoji-lg">{r.emoji}</span>
                   }
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontWeight: 700 }}>{recipeDisplayName(r, lang)}</div>
-                    <div style={{ fontSize: 12, color: 'var(--text2)', marginTop: 2 }}>⏱ {r.time} {L ? 'min' : 'мин'}</div>
+                  <div className="flex-1">
+                    <div className="recipe-card-name">{recipeDisplayName(r, lang)}</div>
+                    <div className="recipe-card-meta mt-1">⏱ {r.time} {L ? 'min' : 'мин'}</div>
                   </div>
                   <Badge type="safe">✓ {L ? 'Safe' : 'Безопасно'}</Badge>
                 </div>
@@ -328,15 +328,14 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, removePr
       )}
 
       <div className="divider" />
-      <div className="row-between" style={{ marginBottom: 12 }}>
-        <div className="row" style={{ gap: 8, alignItems: 'center' }}>
-          <div className="section-title" style={{ marginBottom: 0 }}>
+      <div className="row-between mb-3">
+        <div className="row-sm">
+          <div className="section-title mb-0">
             {geminiMode ? (L ? '✨ AI SUGGESTIONS' : '✨ ИИ ПРЕДЛОЖЕНИЯ') : (L ? 'RECIPE SUGGESTIONS' : 'ПРЕДЛОЖЕНИЯ ОТ БАЗАТА')}
           </div>
           {!L && !geminiMode && (
             <button
-              className="btn btn-ghost btn-sm"
-              style={{ padding: '2px 7px', fontSize: 13, lineHeight: 1 }}
+              className="btn btn-ghost btn-sm btn-compact"
               onClick={() => setShowTranslationHelp(v => !v)}
               title="Как да запазя превод?"
             >
@@ -358,20 +357,18 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, removePr
           : (L ? 'Find recipes that match what you have at home.' : 'Намери рецепти спрямо наличните продукти и твоите ограничения.')}
       </p>
       {showTranslationHelp && !L && !geminiMode && (
-        <div style={{ marginBottom: 12, padding: '12px 14px', borderRadius: 10, background: 'var(--bg)', border: '1px solid var(--border)', fontSize: 13 }}>
-          <div style={{ fontWeight: 700, marginBottom: 10 }}>💡 Как да запазя превод на рецепта?</div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <div className="tip-box">
+          <div className="tip-box-title">💡 Как да запазя превод на рецепта?</div>
+          <div className="tip-list">
             {([
-              <>Натисни <strong style={{ color: 'var(--text)' }}>„Запази рецептата"</strong>, за да добавиш рецептата в своя списък.</>,
-              <>Натисни <strong style={{ color: 'var(--text)' }}>„Преведи на български"</strong> — рецептата се копира автоматично в клипборда.</>,
+              <>Натисни <strong>„Запази рецептата"</strong>, за да добавиш рецептата в своя списък.</>,
+              <>Натисни <strong>„Преведи на български"</strong> — рецептата се копира автоматично в клипборда.</>,
               <>В новия таб на браузъра постави текста (Ctrl+V) в Google Translate, изчакай превода, и го копирай (най-отдолу има иконка с документи отляво до буквата „G").</>,
-              <>Върни се тук и натисни <strong style={{ color: 'var(--text)' }}>„Запази превод"</strong>, след което попълни преведените полета.</>,
+              <>Върни се тук и натисни <strong>„Запази превод"</strong>, след което попълни преведените полета.</>,
             ] as React.ReactNode[]).map((step, i) => (
-              <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
-                <span style={{ fontFamily: 'var(--mono)', fontSize: 11, color: 'var(--ink-3)', width: 18, flexShrink: 0, paddingTop: 2 }}>
-                  {String(i + 1).padStart(2, '0')}
-                </span>
-                <span style={{ color: 'var(--text2)', fontWeight: 600, lineHeight: 1.5 }}>{step}</span>
+              <div key={i} className="tip-row">
+                <span className="tip-num">{String(i + 1).padStart(2, '0')}</span>
+                <span className="tip-text">{step}</span>
               </div>
             ))}
           </div>
@@ -407,22 +404,16 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, removePr
       </button>
 
       {suggestions !== null && (
-        <div style={{ marginTop: 16 }}>
+        <div className="mt-4">
           {blockedFridgeItems.length > 0 && (
-            <div style={{ marginBottom: 12, padding: '8px 12px', borderRadius: 8, background: 'var(--bg)', border: '1px solid var(--border)', fontSize: 13, fontWeight: 600 }}>
-              <span style={{ color: 'var(--text2)', marginRight: 6 }}>
+            <div className="blocked-box">
+              <span className="blocked-label">
                 🚫 {L ? 'Excluded from search:' : 'Изключено от търсенето:'}
               </span>
               {blockedFridgeItems.map((item) => (
                 <span
                   key={item.id}
-                  className="badge"
-                  style={{
-                    marginRight: 4,
-                    background: item.reason === 'allergic' ? 'var(--danger-light, #fdecea)' : 'var(--warn-light, #fff8e1)',
-                    color: item.reason === 'allergic' ? 'var(--danger)' : 'var(--warn)',
-                    border: `1px solid ${item.reason === 'allergic' ? 'var(--danger)' : 'var(--warn)'}`,
-                  }}
+                  className={`badge ${item.reason === 'allergic' ? 'badge-allergic-item' : 'badge-dislike-item'}`}
                 >
                   {item.emoji} {item.name} · {item.reason === 'allergic' ? (L ? 'allergic' : 'алергия') : (L ? 'disliked' : 'нелюбимо')}
                 </span>
@@ -445,24 +436,24 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, removePr
                 const displayIngredients = hasTranslation ? savedRecipe!.ingredientsTranslated! : r.ingredients;
                 const displaySteps = hasTranslation && savedRecipe?.stepsTranslated?.length ? savedRecipe.stepsTranslated : r.steps;
                 return (
-                <div key={r.id} className="card-sm" style={{ borderLeft: `3px solid ${r.isAI ? 'var(--secondary)' : 'var(--primary)'}` }}>
-                  <div className="row-between" style={{ marginBottom: 6 }}>
-                    <div className="row" style={{ gap: 8 }}>
+                <div key={r.id} className={`card-sm ${r.isAI ? 'suggestion-card-ai' : 'suggestion-card'}`}>
+                  <div className="row-between mb-2">
+                    <div className="row-sm">
                       {r.imageUrl
                         ? <img src={r.imageUrl} alt={displayName} className="recipe-suggestion-img" />
-                        : <span style={{ fontSize: 22 }}>{r.emoji}</span>
+                        : <span className="emoji-md">{r.emoji}</span>
                       }
-                      <span style={{ fontWeight: 800, fontSize: 15 }}>{displayName}</span>
-                      {r.isAI && <span className="badge badge-neutral" style={{ fontSize: 11 }}>✨ AI</span>}
+                      <span className="suggestion-name">{displayName}</span>
+                      {r.isAI && <span className="badge badge-neutral suggestion-badge-ai">✨ AI</span>}
                     </div>
                     <span className="badge badge-safe">
                       {r.matchedCount}/{r.requiredIngredients.length} {L ? 'match' : 'съвп.'}
                     </span>
                   </div>
-                  <div style={{ fontSize: 13, color: 'var(--text2)', fontWeight: 600 }}>
+                  <div className="suggestion-meta">
                     ⏱ {r.time} {L ? 'min' : 'мин'} · {displayIngredients.slice(0, 3).join(', ')}{displayIngredients.length > 3 ? '...' : ''}
                   </div>
-                  <div style={{ marginTop: 8, display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                  <div className="suggestion-ings">
                     {r.requiredIngredients.map((ing) => {
                       const ingLow = ing.toLowerCase();
                       const inFridge = safeFridge.some((f) => {
@@ -474,24 +465,19 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, removePr
                       return (
                         <span
                           key={ing}
-                          className="badge"
-                          style={{
-                            background: inFridge ? 'var(--secondary-light)' : 'var(--bg)',
-                            color: inFridge ? 'var(--secondary)' : 'var(--text2)',
-                            border: `1px solid ${inFridge ? 'var(--secondary-light)' : 'var(--border)'}`,
-                          }}
+                          className={`badge ${inFridge ? 'badge-in-fridge' : 'badge-missing'}`}
                         >
                           {inFridge ? '✓' : '+'} {ing}
                         </span>
                       );
                     })}
                   </div>
-                  <div style={{ marginTop: 10 }}>
-                    <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text2)', marginBottom: 4 }}>
+                  <div className="step-section">
+                    <div className="step-section-label">
                       {L ? 'Steps:' : 'Стъпки:'}
                     </div>
                     {displaySteps.map((s, i) => (
-                      <div key={i} style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', paddingLeft: 4, marginBottom: 2 }}>
+                      <div key={i} className="step-item">
                         {i + 1}. {s}
                       </div>
                     ))}
@@ -506,9 +492,9 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, removePr
                       </button>
                     </div>
                   )}
-                  <div style={{ marginTop: 10 }}>
+                  <div className="suggestion-wrap">
                     {(savedIdMap.has(r.id) || savedRecipeByName.has(r.name)) ? (
-                      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                      <div className="suggestion-actions suggestion-action-row">
                         <button
                           className="btn btn-danger btn-sm"
                           onClick={() => setPendingRemoveSuggestionId(r.id)}
@@ -545,7 +531,7 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, removePr
               })}
             </div>
           )}
-          <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>
+          <div className="suggestions-footer">
             {suggestionSource === 'gemini' && geminiMode && suggestions.length > 0 && (
               <button
                 className="btn btn-ghost btn-sm"
@@ -582,15 +568,15 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, removePr
           : undefined;
         return (
           <Modal open={pendingRemoveItemId !== null} onClose={() => setPendingRemoveItemId(null)} title={L ? 'Remove item?' : 'Премахване на продукт?'}>
-            <p style={{ marginBottom: 16, fontWeight: 600, fontSize: 14 }}>
+            <p className="modal-confirm-text">
               {L ? `Remove "${pendingItem?.name}" from fridge?` : `Премахни "${pendingItem?.name}" от хладилника?`}
             </p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              <div style={{ display: 'flex', gap: 10 }}>
-                <button className="btn btn-ghost" style={{ flex: 1 }} onClick={() => setPendingRemoveItemId(null)}>
+            <div className="stack">
+              <div className="row">
+                <button className="btn btn-ghost flex-1" onClick={() => setPendingRemoveItemId(null)}>
                   {L ? 'Cancel' : 'Отказ'}
                 </button>
-                <button className="btn btn-danger" style={{ flex: 1 }} onClick={() => { if (pendingRemoveItemId) removeItem(pendingRemoveItemId); setPendingRemoveItemId(null); }}>
+                <button className="btn btn-danger flex-1" onClick={() => { if (pendingRemoveItemId) removeItem(pendingRemoveItemId); setPendingRemoveItemId(null); }}>
                   {L ? 'Remove from fridge' : 'Само от хладилника'}
                 </button>
               </div>
@@ -635,26 +621,24 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, removePr
         onClose={() => setPendingSaveRecipe(null)}
         title={L ? 'Save recipe' : 'Запази рецепта'}
       >
-        <p style={{ marginBottom: 16, fontWeight: 600, fontSize: 14 }}>
+        <p className="modal-confirm-text">
           {L ? 'Who can see this recipe?' : 'Кой може да види тази рецепта?'}
         </p>
         {saveError && (
-          <p style={{ color: 'var(--danger)', fontSize: 13, marginBottom: 12 }}>
+          <p className="modal-error">
             {L ? 'Failed to save. Please try again.' : 'Неуспешно запазване. Опитай отново.'}
           </p>
         )}
-        <div style={{ display: 'flex', gap: 10 }}>
+        <div className="row">
           <button
-            className="btn btn-ghost"
-            style={{ flex: 1 }}
+            className="btn btn-ghost flex-1"
             disabled={savingId !== null}
             onClick={() => handleSaveWithVisibility(false)}
           >
             🔒 {L ? 'Only me' : 'Само аз'}
           </button>
           <button
-            className="btn btn-primary"
-            style={{ flex: 1 }}
+            className="btn btn-primary flex-1"
             disabled={savingId !== null}
             onClick={() => handleSaveWithVisibility(true)}
           >
@@ -664,7 +648,7 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, removePr
       </Modal>
 
       <Modal open={addOpen} onClose={closeAddModal} title={L ? 'Add to Fridge' : 'Добави в хладилника'}>
-        <div className="chip-group" style={{ marginBottom: 16 }}>
+        <div className="chip-group mb-4">
           <span
             className={`chip${addMode === 'select' ? ' selected' : ''}`}
             onClick={() => setAddMode('select')}
@@ -681,7 +665,7 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, removePr
 
         {addMode === 'select' ? (
           <>
-            <div style={{ marginBottom: 10 }}>
+            <div className="modal-section-hd">
               <input
                 className="input-field"
                 value={productSearch}
@@ -691,22 +675,21 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, removePr
               />
             </div>
             {filteredProducts.length === 0 ? (
-              <div style={{ textAlign: 'center', color: 'var(--text2)', fontSize: 14, padding: '16px 0', marginBottom: 14 }}>
+              <div className="modal-select-empty">
                 {availableProducts.length === 0
                   ? (L ? 'All your products are already in the fridge' : 'Всички продукти вече са в хладилника')
                   : (L ? 'No matching products' : 'Няма съвпадащи продукти')}
               </div>
             ) : (
-              <div style={{ maxHeight: 240, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 4, marginBottom: 14 }}>
+              <div className="modal-select-list">
                 {filteredProducts.map((p) => (
                   <button
                     key={p.id}
-                    className="btn btn-ghost"
-                    style={{ display: 'flex', alignItems: 'center', gap: 10, justifyContent: 'flex-start', textAlign: 'left' }}
+                    className="btn btn-ghost modal-select-btn"
                     onClick={() => addFromProduct(p)}
                   >
-                    <span style={{ fontSize: 20 }}>{p.emoji}</span>
-                    <span style={{ fontWeight: 600 }}>{p.name}</span>
+                    <span className="emoji-sm">{p.emoji}</span>
+                    <span className="item-name">{p.name}</span>
                   </button>
                 ))}
               </div>
@@ -715,7 +698,7 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, removePr
           </>
         ) : (
           <>
-            <div style={{ marginBottom: 14 }}>
+            <div className="product-edit-mb">
               <label className="input-label">{L ? 'Product name' : 'Продукт'}</label>
               <input
                 className="input-field"
@@ -726,14 +709,13 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, removePr
                 autoFocus
               />
             </div>
-            <div style={{ marginBottom: 14 }}>
+            <div className="product-edit-mb">
               <label className="input-label">{L ? 'Pick an emoji' : 'Избери емоджи'}</label>
               <div className="chip-group">
                 {FRIDGE_EMOJIS.map((e) => (
                   <span
                     key={e}
-                    className={`chip${newEmoji === e ? ' selected' : ''}`}
-                    style={{ fontSize: 20, padding: '4px 8px' }}
+                    className={`chip chip-emoji${newEmoji === e ? ' selected' : ''}`}
                     onClick={() => setNewEmoji(e)}
                   >
                     {e}
@@ -741,7 +723,7 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, removePr
                 ))}
               </div>
             </div>
-            <div style={{ marginBottom: 14 }}>
+            <div className="product-edit-mb">
               <label className="input-label">{L ? 'Category' : 'Категория'}</label>
               <select className="input-field" value={newCategory} onChange={(e) => setNewCategory(e.target.value as FridgeItem['category'])}>
                 {CATEGORIES.map((c) => (
@@ -749,7 +731,7 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, removePr
                 ))}
               </select>
             </div>
-            <div style={{ marginBottom: 20 }}>
+            <div className="product-edit-mb-lg">
               <label className="input-label">{L ? 'My relationship with this food' : 'Моето отношение'}</label>
               <div className="chip-group">
                 <span className={`chip${newStatus === 'liked' ? ' selected' : ''}`} onClick={() => setNewStatus('liked')}>✓ {L ? 'I like it' : 'Харесвам'}</span>
@@ -757,8 +739,8 @@ export function FridgeScreen({ fridge, addFridgeItem, removeFridgeItem, removePr
                 <span className={`chip${newStatus === 'allergic' ? ' sel-danger' : ''}`} onClick={() => setNewStatus('allergic')}>⚠ {L ? 'Allergic' : 'Алергия'}</span>
               </div>
             </div>
-            <div style={{ display: 'flex', gap: 10 }}>
-              <button className="btn btn-primary" style={{ flex: 1 }} onClick={addItemManually}>{L ? 'Add' : 'Добави'}</button>
+            <div className="row">
+              <button className="btn btn-primary flex-1" onClick={addItemManually}>{L ? 'Add' : 'Добави'}</button>
               <button className="btn btn-ghost" onClick={closeAddModal}>{L ? 'Cancel' : 'Отказ'}</button>
             </div>
           </>

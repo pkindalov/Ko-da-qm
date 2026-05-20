@@ -71,7 +71,7 @@ interface BottomNavProps {
   lang: Language;
 }
 
-export function BottomNav({ tab, setTab, lang }: BottomNavProps) {
+export const BottomNav = ({ tab, setTab, lang }: BottomNavProps) => {
   const isEn = lang === 'en';
 
   return (

@@ -7,7 +7,7 @@ interface ModalProps {
   contentClassName?: string;
 }
 
-export function Modal({ open, onClose, title, children, contentStyle, contentClassName }: ModalProps) {
+export const Modal = ({ open, onClose, title, children, contentStyle, contentClassName }: ModalProps) => {
   if (!open) return null;
 
   return (

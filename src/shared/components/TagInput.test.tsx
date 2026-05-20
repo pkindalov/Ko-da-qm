@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
 import { TagInput } from './TagInput';
 
-function Wrapper({ initial = [] }: { initial?: string[] }) {
+const Wrapper = ({ initial = [] }: { initial?: string[] }) => {
   const [tags, setTags] = useState(initial);
   return <TagInput value={tags} onChange={setTags} placeholder="Добави" />;
 }

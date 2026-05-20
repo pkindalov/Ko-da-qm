@@ -8,7 +8,7 @@ interface ProtectedRouteProps {
   children?: React.ReactNode;
 }
 
-export function ProtectedRoute({ children }: ProtectedRouteProps) {
+export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   const [session, setSession] = useState<Session | null | undefined>(undefined);
 
   useEffect(() => {

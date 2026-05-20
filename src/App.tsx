@@ -7,7 +7,7 @@ import { LandingPage } from './features/landing/components/LandingPage';
 import { UserProfilePage } from './features/userProfile/components/UserProfilePage';
 import './shared/styles/globals.css';
 
-export function App() {
+export const App = () => {
   return (
     <BrowserRouter>
       <Toaster position="top-center" richColors closeButton duration={3000} />

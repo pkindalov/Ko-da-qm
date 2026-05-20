@@ -181,8 +181,8 @@ describe('ProfileScreen allergies and dislikes from products', () => {
 
   it('does not show liked product in allergies or dislikes sections', () => {
     renderProfile({ products: [tomatoProduct] });
-    const allergiesCard = screen.getByText((_, el) => el?.className === 'section-title' && !!el.textContent?.includes('ALLERGIES')).closest('.card');
-    const dislikesCard = screen.getByText((_, el) => el?.className === 'section-title' && !!el.textContent?.includes('DISLIKES')).closest('.card');
+    const allergiesCard = screen.getByText((_, el) => el?.classList?.contains('section-title') === true && el.textContent?.includes('ALLERGIES') === true).closest('.card');
+    const dislikesCard = screen.getByText((_, el) => el?.classList?.contains('section-title') === true && el.textContent?.includes('DISLIKES') === true).closest('.card');
     expect(allergiesCard).not.toHaveTextContent('Tomato');
     expect(dislikesCard).not.toHaveTextContent('Tomato');
   });

@@ -38,7 +38,7 @@ interface SidebarProps {
   onEntityClick?: (entityType: string, entityId: string) => void;
 }
 
-export function Sidebar({ tab, setTab, lang, profile, tweaksOpen, onTweaksToggle, onLangToggle, onLogout, onUserClick, notifications, unreadCount, onMarkAsRead, onMarkAllAsRead, onMarkAsUnread, onMarkAllAsUnread, onDeleteNotification, onDeleteAll, onEntityClick }: SidebarProps) {
+export const Sidebar = ({ tab, setTab, lang, profile, tweaksOpen, onTweaksToggle, onLangToggle, onLogout, onUserClick, notifications, unreadCount, onMarkAsRead, onMarkAllAsRead, onMarkAsUnread, onMarkAllAsUnread, onDeleteNotification, onDeleteAll, onEntityClick }: SidebarProps) => {
   const userInitial = (profile.name || 'К').trim().charAt(0).toUpperCase();
   const filterCount = profile.allergies.length + profile.dislikes.length;
 
@@ -84,7 +84,7 @@ export function Sidebar({ tab, setTab, lang, profile, tweaksOpen, onTweaksToggle
         <div className="sidebar-utility">
           <button className={tweaksOpen ? 'on' : ''} onClick={onTweaksToggle}>Tweaks</button>
           <button onClick={onLangToggle}>{lang === 'bg' ? 'EN' : 'BG'}</button>
-          <button onClick={onLogout} style={{ color: 'var(--danger)' }}>{lang === 'en' ? 'Log out' : 'Изход'}</button>
+          <button className="logout" onClick={onLogout}>{lang === 'en' ? 'Log out' : 'Изход'}</button>
         </div>
       </div>
     </aside>

@@ -4,7 +4,7 @@ interface EmptyStateProps {
   subtitle?: string;
 }
 
-export function EmptyState({ icon, title, subtitle }: EmptyStateProps) {
+export const EmptyState = ({ icon, title, subtitle }: EmptyStateProps) => {
   return (
     <div className="empty">
       <div className="empty-icon">{icon}</div>

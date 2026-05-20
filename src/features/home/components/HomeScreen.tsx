@@ -38,7 +38,7 @@ interface HomeScreenProps {
 const RECIPES_PREVIEW_SIZE = 4;
 const COMMUNITY_PAGE_SIZE = 4;
 
-export function HomeScreen({ profile, recipes, fridge, publicRecipes, favoriteIds, onToggleFavorite, products, setTab, lang, onDeleteFridgeItem, onAddFridgeItem, onEditFridgeItem, onRemoveAllergy, onAddAllergy, onEditAllergy, onRemoveDislike, onAddDislike, onEditDislike, onUpdateProductStatus, communityFavoriteCounts = {}, onNavigateToUser }: HomeScreenProps) {
+export const HomeScreen = ({ profile, recipes, fridge, publicRecipes, favoriteIds, onToggleFavorite, products, setTab, lang, onDeleteFridgeItem, onAddFridgeItem, onEditFridgeItem, onRemoveAllergy, onAddAllergy, onEditAllergy, onRemoveDislike, onAddDislike, onEditDislike, onUpdateProductStatus, communityFavoriteCounts = {}, onNavigateToUser }: HomeScreenProps) => {
   const isEnglish = lang === 'en';
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
   const [selectedSafeRecipe, setSelectedSafeRecipe] = useState<Recipe | null>(null);
@@ -214,7 +214,7 @@ export function HomeScreen({ profile, recipes, fridge, publicRecipes, favoriteId
       {/* Hero */}
       <section className="hero-grid">
         <div>
-          <div className="eyebrow" style={{ marginBottom: 18 }}>
+          <div className="eyebrow">
             {greeting}{profile.name ? `, ${profile.name}` : ''}
           </div>
           <h1 className="h-display">
@@ -222,14 +222,14 @@ export function HomeScreen({ profile, recipes, fridge, publicRecipes, favoriteId
             <span className="it">{isEnglish ? 'cook' : 'сготвим'}</span>
             <br />{isEnglish ? 'today?' : 'днес?'}
           </h1>
-          <p className="h-sub" style={{ marginTop: 22 }}>
+          <p className="h-sub">
             {isEnglish
               ? 'A quiet cookbook that already knows what you cannot eat. Pick something safe, or stretch a little.'
               : 'Тиха готварска книга, която вече знае какво не можеш да ядеш. Избери нещо безопасно — или излез от зоната.'}
           </p>
-          <div style={{ display: 'flex', gap: 10, marginTop: 28, flexWrap: 'wrap' }}>
+          <div className="hero-cta">
             <button className="btn btn-primary" onClick={() => setTab('recipes')}>
-              {isEnglish ? 'Browse recipes' : 'Към рецептите'} <span style={{ opacity: .6 }}>→</span>
+              {isEnglish ? 'Browse recipes' : 'Към рецептите'} <span className="dim">→</span>
             </button>
             <button className="btn btn-secondary" onClick={() => setTab('profile')}>
               {isEnglish ? 'Edit restrictions' : 'Промени ограниченията'}
@@ -335,7 +335,6 @@ export function HomeScreen({ profile, recipes, fridge, publicRecipes, favoriteId
                     <div className="recipe-image-label">{tag} · {r.time}min</div>
                     <button
                       className="btn-favorite"
-                      style={{ position: 'absolute', top: 10, right: 10, zIndex: 1 }}
                       onClick={(e) => { e.stopPropagation(); onToggleFavorite(r); }}
                       aria-label={favoriteIds.includes(r.id) ? 'Remove from favorites' : 'Add to favorites'}
                     >
@@ -350,9 +349,8 @@ export function HomeScreen({ profile, recipes, fridge, publicRecipes, favoriteId
                     )}
                     {r.authorName && r.authorId && onNavigateToUser && (
                       <button
-                        className="recipe-meta"
+                        className="recipe-author-btn"
                         onClick={(e) => { e.stopPropagation(); onNavigateToUser(r.authorId!); }}
-                        style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: 'var(--clay-deep)', fontWeight: 600, textAlign: 'left', fontFamily: 'var(--mono)', fontSize: 11, letterSpacing: '.4px', textTransform: 'uppercase' }}
                       >
                         👤 {r.authorName}
                       </button>
@@ -371,7 +369,7 @@ export function HomeScreen({ profile, recipes, fridge, publicRecipes, favoriteId
             })}
           </div>
           {publicRecipes.length > communityPage * COMMUNITY_PAGE_SIZE && (
-            <button className="btn btn-ghost btn-full" style={{ marginTop: 16 }} onClick={() => setCommunityPage(p => p + 1)}>
+            <button className="btn btn-ghost btn-full mt-4" onClick={() => setCommunityPage(p => p + 1)}>
               {isEnglish ? `Show more (${publicRecipes.length - communityPage * COMMUNITY_PAGE_SIZE} left)` : `Покажи още (${publicRecipes.length - communityPage * COMMUNITY_PAGE_SIZE} остават)`}
             </button>
           )}
@@ -382,33 +380,33 @@ export function HomeScreen({ profile, recipes, fridge, publicRecipes, favoriteId
         open={openStatModal === 'safeRecipes'}
         onClose={() => setOpenStatModal(null)}
         title={isEnglish ? `Safe Recipes (${safeRecipes.length})` : `Безопасни рецепти (${safeRecipes.length})`}
-        contentStyle={{ maxWidth: 360 }}
+        contentClassName="modal-sm"
       >
         {safeRecipes.length === 0 ? (
-          <p style={{ color: 'var(--text2)', fontSize: 14 }}>
+          <p className="modal-hint">
             {isEnglish ? 'No safe recipes yet.' : 'Все още няма безопасни рецепти.'}
           </p>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 320, overflowY: 'auto' }}>
+          <div className="modal-list">
             {safeRecipes.map(r => {
               const recipeName = recipeDisplayName(r, lang);
               return (
                 <button
                   key={r.id}
                   type="button"
-                  style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 14, background: 'none', border: 'none', cursor: 'pointer', padding: '4px 0', width: '100%', textAlign: 'left', color: 'inherit' }}
+                  className="modal-list-btn"
                   onClick={() => { setOpenStatModal(null); setSelectedSafeRecipe(r); }}
                   aria-label={recipeName}
                 >
-                  <span style={{ fontSize: 20 }}>{r.emoji}</span>
-                  <span style={{ fontWeight: 600, flex: 1 }}>{recipeName}</span>
-                  <span style={{ color: 'var(--text2)', whiteSpace: 'nowrap' }}>⏱ {r.time} {isEnglish ? 'min' : 'мин'}</span>
+                  <span className="emoji-sm">{r.emoji}</span>
+                  <span className="item-name">{recipeName}</span>
+                  <span className="item-time">⏱ {r.time} {isEnglish ? 'min' : 'мин'}</span>
                 </button>
               );
             })}
           </div>
         )}
-        <div style={{ marginTop: 16 }}>
+        <div className="modal-footer">
           <button
             type="button"
             className="btn btn-ghost btn-full btn-sm"
@@ -423,9 +421,9 @@ export function HomeScreen({ profile, recipes, fridge, publicRecipes, favoriteId
         open={openStatModal === 'fridge'}
         onClose={() => { setOpenStatModal(null); closeFridgeForm(); }}
         title={isEnglish ? `Fridge (${fridge.length})` : `Хладилник (${fridge.length})`}
-        contentStyle={{ maxWidth: 360 }}
+        contentClassName="modal-sm"
       >
-        <div style={{ marginBottom: 12 }}>
+        <div className="modal-mb">
           <button
             type="button"
             className="btn btn-sm btn-primary"
@@ -435,15 +433,15 @@ export function HomeScreen({ profile, recipes, fridge, publicRecipes, favoriteId
           </button>
         </div>
         {fridge.length === 0 ? (
-          <p style={{ color: 'var(--text2)', fontSize: 14 }}>
+          <p className="modal-hint">
             {isEnglish ? 'Your fridge is empty.' : 'Хладилникът е празен.'}
           </p>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 280, overflowY: 'auto' }}>
+          <div className="modal-list-fridge">
             {fridge.map(item => (
-              <div key={item.id} style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 14 }}>
-                <span style={{ fontSize: 20 }}>{item.emoji}</span>
-                <span style={{ fontWeight: 600, flex: 1 }}>{item.name}</span>
+              <div key={item.id} className="modal-list-row">
+                <span className="emoji-sm">{item.emoji}</span>
+                <span className="item-name">{item.name}</span>
                 <button
                   type="button"
                   className="btn btn-sm btn-ghost"
@@ -465,8 +463,8 @@ export function HomeScreen({ profile, recipes, fridge, publicRecipes, favoriteId
           </div>
         )}
         {fridgeFormMode !== null && (
-          <div style={{ marginTop: 12, borderTop: '1px solid var(--border)', paddingTop: 12 }}>
-            <div style={{ marginBottom: 10 }}>
+          <div className="modal-section">
+            <div className="modal-section-hd">
               <label className="input-label">{isEnglish ? 'Product name' : 'Продукт'}</label>
               <input
                 className="input-field"
@@ -477,38 +475,35 @@ export function HomeScreen({ profile, recipes, fridge, publicRecipes, favoriteId
                 autoFocus
               />
             </div>
-            <div style={{ marginBottom: 14 }}>
+            <div className="mb-4">
               <label className="input-label">{isEnglish ? 'Pick an emoji' : 'Избери емоджи'}</label>
               <div className="chip-group">
                 {FRIDGE_MODAL_EMOJIS.map((emoji) => (
                   <span
                     key={emoji}
-                    className={`chip${fridgeFormEmoji === emoji ? ' selected' : ''}`}
-                    style={{ fontSize: 20, padding: '4px 8px' }}
+                    className={`chip chip-emoji${fridgeFormEmoji === emoji ? ' selected' : ''}`}
                     onClick={() => setFridgeFormEmoji(emoji)}
                   >
                     {emoji}
                   </span>
                 ))}
               </div>
-              <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span style={{ fontSize: 13, color: 'var(--text2)', whiteSpace: 'nowrap' }}>
+              <div className="emoji-row">
+                <span className="emoji-row-label">
                   {isEnglish ? 'or type your own:' : 'или въведи свое:'}
                 </span>
                 <input
-                  className="input-field"
+                  className="input-field input-emoji"
                   value={fridgeFormEmoji}
                   onChange={(e) => setFridgeFormEmoji(e.target.value)}
                   aria-label={isEnglish ? 'Custom emoji' : 'Персонален емоджи'}
-                  style={{ width: 64, textAlign: 'center', fontSize: 20, padding: '4px 8px' }}
                 />
               </div>
             </div>
-            <div style={{ display: 'flex', gap: 8 }}>
+            <div className="row-sm">
               <button
                 type="button"
-                className="btn btn-primary btn-sm"
-                style={{ flex: 1 }}
+                className="btn btn-primary btn-sm flex-1"
                 onClick={submitFridgeForm}
               >
                 {isEnglish ? 'Save' : 'Запази'}
@@ -523,7 +518,7 @@ export function HomeScreen({ profile, recipes, fridge, publicRecipes, favoriteId
             </div>
           </div>
         )}
-        <div style={{ marginTop: 16 }}>
+        <div className="modal-footer">
           <button
             type="button"
             className="btn btn-ghost btn-full btn-sm"
@@ -538,9 +533,9 @@ export function HomeScreen({ profile, recipes, fridge, publicRecipes, favoriteId
         open={openStatModal === 'allergies'}
         onClose={() => { setOpenStatModal(null); closeAllergyForm(); }}
         title={isEnglish ? `Allergies (${allergies.length})` : `Алергии (${allergies.length})`}
-        contentStyle={{ maxWidth: 360 }}
+        contentClassName="modal-sm"
       >
-        <div style={{ marginBottom: 12 }}>
+        <div className="modal-mb">
           <button
             type="button"
             className="btn btn-sm btn-primary"
@@ -550,7 +545,7 @@ export function HomeScreen({ profile, recipes, fridge, publicRecipes, favoriteId
           </button>
         </div>
         {allergies.length === 0 ? (
-          <p style={{ color: 'var(--text2)', fontSize: 14 }}>
+          <p className="modal-hint">
             {isEnglish ? 'No allergies set.' : 'Няма зададени алергии.'}
           </p>
         ) : (
@@ -560,7 +555,7 @@ export function HomeScreen({ profile, recipes, fridge, publicRecipes, favoriteId
                 {a}
                 <button
                   type="button"
-                  style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, opacity: 0.6, fontSize: 11, lineHeight: 1, color: 'inherit' }}
+                  className="badge-btn"
                   onClick={() => openEditAllergyForm(a)}
                   aria-label={`${isEnglish ? 'Edit allergy' : 'Редактирай алергия'} ${a}`}
                 >
@@ -568,7 +563,7 @@ export function HomeScreen({ profile, recipes, fridge, publicRecipes, favoriteId
                 </button>
                 <button
                   type="button"
-                  style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, opacity: 0.6, fontSize: 11, lineHeight: 1, color: 'inherit' }}
+                  className="badge-btn"
                   onClick={() => setPendingDeleteAllergyName(a)}
                   aria-label={`${isEnglish ? 'Remove allergy' : 'Премахни алергия'} ${a}`}
                 >
@@ -579,8 +574,8 @@ export function HomeScreen({ profile, recipes, fridge, publicRecipes, favoriteId
           </div>
         )}
         {allergyFormMode !== null && (
-          <div style={{ marginTop: 12, borderTop: '1px solid var(--border)', paddingTop: 12 }}>
-            <div style={{ marginBottom: 10 }}>
+          <div className="modal-section">
+            <div className="modal-section-hd">
               <label className="input-label">{isEnglish ? 'Allergy name' : 'Алергия'}</label>
               <input
                 className="input-field"
@@ -591,11 +586,10 @@ export function HomeScreen({ profile, recipes, fridge, publicRecipes, favoriteId
                 autoFocus
               />
             </div>
-            <div style={{ display: 'flex', gap: 8 }}>
+            <div className="row-sm">
               <button
                 type="button"
-                className="btn btn-primary btn-sm"
-                style={{ flex: 1 }}
+                className="btn btn-primary btn-sm flex-1"
                 onClick={submitAllergyForm}
               >
                 {isEnglish ? 'Save' : 'Запази'}
@@ -610,7 +604,7 @@ export function HomeScreen({ profile, recipes, fridge, publicRecipes, favoriteId
             </div>
           </div>
         )}
-        <div style={{ marginTop: 16 }}>
+        <div className="modal-footer">
           <button
             type="button"
             className="btn btn-ghost btn-full btn-sm"
@@ -625,9 +619,9 @@ export function HomeScreen({ profile, recipes, fridge, publicRecipes, favoriteId
         open={openStatModal === 'dislikes'}
         onClose={() => { setOpenStatModal(null); closeDislikeForm(); }}
         title={isEnglish ? `Dislikes (${dislikes.length})` : `Нелюбими (${dislikes.length})`}
-        contentStyle={{ maxWidth: 360 }}
+        contentClassName="modal-sm"
       >
-        <div style={{ marginBottom: 12 }}>
+        <div className="modal-mb">
           <button
             type="button"
             className="btn btn-sm btn-primary"
@@ -637,7 +631,7 @@ export function HomeScreen({ profile, recipes, fridge, publicRecipes, favoriteId
           </button>
         </div>
         {dislikes.length === 0 ? (
-          <p style={{ color: 'var(--text2)', fontSize: 14 }}>
+          <p className="modal-hint">
             {isEnglish ? 'No dislikes set.' : 'Няма зададени нелюбими.'}
           </p>
         ) : (
@@ -647,7 +641,7 @@ export function HomeScreen({ profile, recipes, fridge, publicRecipes, favoriteId
                 {d}
                 <button
                   type="button"
-                  style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, opacity: 0.6, fontSize: 11, lineHeight: 1, color: 'inherit' }}
+                  className="badge-btn"
                   onClick={() => openEditDislikeForm(d)}
                   aria-label={`${isEnglish ? 'Edit dislike' : 'Редактирай нелюбима'} ${d}`}
                 >
@@ -655,7 +649,7 @@ export function HomeScreen({ profile, recipes, fridge, publicRecipes, favoriteId
                 </button>
                 <button
                   type="button"
-                  style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, opacity: 0.6, fontSize: 11, lineHeight: 1, color: 'inherit' }}
+                  className="badge-btn"
                   onClick={() => setPendingDeleteDislikeName(d)}
                   aria-label={`${isEnglish ? 'Remove dislike' : 'Премахни нелюбима'} ${d}`}
                 >
@@ -666,8 +660,8 @@ export function HomeScreen({ profile, recipes, fridge, publicRecipes, favoriteId
           </div>
         )}
         {dislikeFormMode !== null && (
-          <div style={{ marginTop: 12, borderTop: '1px solid var(--border)', paddingTop: 12 }}>
-            <div style={{ marginBottom: 10 }}>
+          <div className="modal-section">
+            <div className="modal-section-hd">
               <label className="input-label">{isEnglish ? 'Dislike name' : 'Нелюбима'}</label>
               <input
                 className="input-field"
@@ -678,11 +672,10 @@ export function HomeScreen({ profile, recipes, fridge, publicRecipes, favoriteId
                 autoFocus
               />
             </div>
-            <div style={{ display: 'flex', gap: 8 }}>
+            <div className="row-sm">
               <button
                 type="button"
-                className="btn btn-primary btn-sm"
-                style={{ flex: 1 }}
+                className="btn btn-primary btn-sm flex-1"
                 onClick={submitDislikeForm}
               >
                 {isEnglish ? 'Save' : 'Запази'}
@@ -697,7 +690,7 @@ export function HomeScreen({ profile, recipes, fridge, publicRecipes, favoriteId
             </div>
           </div>
         )}
-        <div style={{ marginTop: 16 }}>
+        <div className="modal-footer">
           <button
             type="button"
             className="btn btn-ghost btn-full btn-sm"

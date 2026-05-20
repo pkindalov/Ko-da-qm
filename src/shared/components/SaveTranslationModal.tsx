@@ -43,24 +43,23 @@ export const SaveTranslationModal = ({ open, lang, onConfirm, onCancel }: SaveTr
       onClose={handleCancel}
       title={L ? 'Save translated version' : 'Запази превода'}
     >
-      <p style={{ fontSize: 13, color: 'var(--ink-2)', marginBottom: 12, lineHeight: 1.5 }}>
+      <p className="modal-hint">
         {L
           ? 'Paste the full translated text copied from Google Translate.'
           : 'Постави целия преведен текст, копиран от Google Translate.'}
       </p>
 
       <textarea
-        className="input-field"
+        className="input-field textarea-mono"
         rows={8}
         value={text}
         onChange={(e) => setText(e.target.value)}
         placeholder={L ? 'Paste translated text here…' : 'Постави преведения текст тук…'}
-        style={{ fontFamily: 'var(--mono)', fontSize: 12, resize: 'vertical' }}
         autoFocus
       />
 
       {showParseError && (
-        <p style={{ color: 'var(--rust)', fontSize: 13, marginTop: 8, fontWeight: 600 }}>
+        <p className="modal-error">
           {L
             ? 'Could not read the text. Make sure you copied the full translated recipe.'
             : 'Текстът не може да бъде разчетен. Увери се, че си копирал цялата преведена рецепта.'}
@@ -68,30 +67,22 @@ export const SaveTranslationModal = ({ open, lang, onConfirm, onCancel }: SaveTr
       )}
 
       {parsed && (
-        <div style={{
-          marginTop: 12,
-          padding: '10px 14px',
-          background: 'var(--paper-2)',
-          border: '1px solid var(--line)',
-          borderRadius: 8,
-          fontSize: 13,
-        }}>
-          <div style={{ fontWeight: 700, marginBottom: 4 }}>{parsed.name}</div>
-          <div style={{ color: 'var(--ink-2)', marginBottom: 2 }}>
+        <div className="parse-preview">
+          <div className="parse-preview-name">{parsed.name}</div>
+          <div className="parse-preview-info">
             {L
               ? `${parsed.ingredients.length} ingredients · ${parsed.steps.length} steps`
               : `${parsed.ingredients.length} съставки · ${parsed.steps.length} стъпки`}
           </div>
-          <div style={{ color: 'var(--ink-3)', fontSize: 12 }}>
+          <div className="parse-preview-ingredients">
             {parsed.ingredients.slice(0, 3).join(' · ')}{parsed.ingredients.length > 3 ? ' · …' : ''}
           </div>
         </div>
       )}
 
-      <div style={{ display: 'flex', gap: 10, marginTop: 16 }}>
+      <div className="modal-actions">
         <button
-          className="btn btn-primary"
-          style={{ flex: 1 }}
+          className="btn btn-primary flex-1"
           onClick={handleConfirm}
           disabled={!parsed || saving}
         >

@@ -756,7 +756,10 @@ a{color:inherit;text-decoration:none}
 .h-display .it{font-style:italic;color:var(--clay-deep)}
 .h-title{font-family:var(--serif);font-weight:400;font-size:48px;letter-spacing:-1.2px;line-height:1.02;color:var(--ink)}
 .h-title.italic{font-style:italic}
-.h-sub{font-size:17px;line-height:1.55;color:var(--ink-2);font-weight:400;max-width:48ch}
+.h-sub{font-size:17px;line-height:1.55;color:var(--ink-2);font-weight:400;max-width:48ch;margin-top:22px}
+.hero-cta{display:flex;gap:10px;margin-top:28px;flex-wrap:wrap}
+.dim{opacity:0.6}
+.hero-grid .eyebrow{margin-bottom:18px}
 .label{font-family:var(--mono);font-size:11px;letter-spacing:1px;color:var(--ink-3);text-transform:uppercase}
 
 /* ── Section eyebrow with line ───────────────────────────── */
@@ -875,3 +878,172 @@ a{color:inherit;text-decoration:none}
 @media(max-width:400px){
   .grid-2{grid-template-columns:1fr}
 }
+
+/* ── Utility ─────────────────────────────────────────────── */
+.flex-1{flex:1}
+.flex-center{display:flex;align-items:center;justify-content:center}
+.row-sm{display:flex;align-items:center;gap:8px}
+.mt-1{margin-top:4px}
+.mt-2{margin-top:8px}
+.mt-3{margin-top:12px}
+.mt-4{margin-top:16px}
+.mb-0{margin-bottom:0}
+.mb-1{margin-bottom:4px}
+.mb-2{margin-bottom:8px}
+.mb-3{margin-bottom:12px}
+.mb-4{margin-bottom:16px}
+.mb-5{margin-bottom:20px}
+.mb-6{margin-bottom:24px}
+.ml-3{margin-left:12px}
+.btn-compact{padding:2px 7px;font-size:13px;line-height:1}
+.label-btn{background:none;border:none;cursor:pointer;padding:0}
+.clickable{cursor:pointer}
+
+/* ── Recipe card: favorite overlay ──────────────────────── */
+.recipe-image .btn-favorite{position:absolute;top:10px;right:10px;z-index:1}
+.recipe-image .ai-badge{position:absolute;top:10px;left:10px;z-index:1}
+.grid-2.recipe-detail-grid{align-items:start;gap:48px}
+
+/* ── Auth form ───────────────────────────────────────────── */
+.auth-form{margin-top:24px}
+.auth-confirm-text{text-align:center;margin-top:16px}
+.auth-confirm-link{margin-top:24px}
+
+/* ── App shell loading ───────────────────────────────────── */
+.app-shell-loading{display:flex;align-items:center;justify-content:center}
+
+/* ── User profile page ───────────────────────────────────── */
+.user-profile-page{min-height:100dvh;background:var(--paper)}
+.user-profile-loading{min-height:100dvh;background:var(--paper);display:flex;align-items:center;justify-content:center}
+.user-profile-content{max-width:900px;margin:0 auto}
+.eyebrow-mb{margin-bottom:12px}
+
+/* ── Sidebar ─────────────────────────────────────────────── */
+.sidebar-utility button.logout{color:var(--danger)}
+
+/* ── Tag input ───────────────────────────────────────────── */
+.tag-input-row{display:flex;gap:8px}
+
+/* ── Modal patterns ──────────────────────────────────────── */
+.modal-sm{max-width:360px}
+.modal-hint{font-size:13px;color:var(--ink-2);margin-bottom:12px;line-height:1.5}
+.modal-actions{display:flex;gap:10px;margin-top:16px}
+.modal-error{color:var(--rust);font-size:13px;margin-top:8px;font-weight:600}
+.modal-confirm-text{margin-bottom:16px;font-weight:600;font-size:14px}
+.modal-list{display:flex;flex-direction:column;gap:8px;max-height:320px;overflow-y:auto}
+.modal-list-btn{display:flex;align-items:center;gap:10px;font-size:14px;background:none;border:none;cursor:pointer;padding:4px 0;width:100%;text-align:left;color:inherit}
+.modal-section{margin-top:12px;border-top:1px solid var(--line);padding-top:12px}
+.modal-section-hd{margin-bottom:10px}
+.modal-footer{margin-top:16px}
+.modal-mb{margin-bottom:12px}
+.modal-select-list{max-height:240px;overflow-y:auto;display:flex;flex-direction:column;gap:4px;margin-bottom:14px}
+.modal-select-empty{text-align:center;color:var(--ink-2);font-size:14px;padding:16px 0;margin-bottom:14px}
+.modal-select-btn{display:flex;align-items:center;gap:10px;justify-content:flex-start;text-align:left}
+.modal-list-fridge{max-height:280px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
+.modal-list-row{display:flex;align-items:center;gap:10px;font-size:14px}
+.modal-remove-actions{display:flex;flex-direction:column;gap:10px}
+
+/* ── Buttons / badges ────────────────────────────────────── */
+.btn-warn{background:var(--amber-soft);color:var(--amber)}
+.btn-danger-text{color:var(--danger)}
+.badge-btn{background:none;border:none;cursor:pointer;padding:0;opacity:0.6;font-size:11px;line-height:1;color:inherit}
+
+/* ── Chip colour variants (selected state) ───────────────── */
+.chip.selected.chip-allergy{background:transparent;color:var(--rust);border-color:var(--rust)}
+.chip.selected.chip-warn{background:transparent;color:var(--amber);border-color:var(--amber)}
+
+/* ── Recipe detail ───────────────────────────────────────── */
+.author-link{background:none;border:none;cursor:pointer;font-weight:700;color:var(--clay-deep);padding:0;font-family:inherit;font-size:inherit}
+.favorite-count{margin-left:6px;color:var(--ink-3);font-weight:600}
+.lang-toggle{display:flex;gap:4px;margin-top:8px}
+
+/* ── Save translation modal ──────────────────────────────── */
+.textarea-mono{font-family:var(--mono);font-size:12px;resize:vertical}
+.parse-preview{margin-top:12px;padding:10px 14px;background:var(--paper-2);border:1px solid var(--line);border-radius:8px;font-size:13px}
+.parse-preview-name{font-weight:700;margin-bottom:4px}
+.parse-preview-info{color:var(--ink-2);margin-bottom:2px}
+.parse-preview-ingredients{color:var(--ink-3);font-size:12px}
+
+/* ── Emoji & item layout ─────────────────────────────────── */
+.emoji-sm{font-size:20px}
+.emoji-md{font-size:22px}
+.emoji-lg{font-size:24px}
+.item-name{font-weight:600;flex:1}
+.item-time{color:var(--ink-2);white-space:nowrap}
+.recipe-card-name{font-weight:800;font-size:14px}
+.recipe-card-name-lg{font-weight:800;font-size:15px}
+.recipe-card-meta{font-size:12px;color:var(--ink-2);font-weight:600}
+
+/* ── Emoji picker ────────────────────────────────────────── */
+.chip-emoji{font-size:20px;padding:4px 8px}
+.emoji-row{margin-top:8px;display:flex;align-items:center;gap:8px}
+.emoji-row-label{font-size:13px;color:var(--ink-2);white-space:nowrap}
+.input-emoji{width:64px;text-align:center;font-size:20px;padding:4px 8px}
+
+/* ── Recipe author button (community cards) ──────────────── */
+.recipe-author-btn{background:none;border:none;cursor:pointer;padding:0;font-weight:600;color:var(--clay-deep);text-align:left;font-family:var(--mono);font-size:11px;letter-spacing:.4px;text-transform:uppercase}
+
+/* ── Translation tip box ─────────────────────────────────── */
+.tip-box{margin-bottom:12px;padding:12px 14px;border-radius:10px;background:var(--paper);border:1px solid var(--line);font-size:13px}
+.tip-box-title{font-weight:700;margin-bottom:10px}
+.tip-list{display:flex;flex-direction:column;gap:8px}
+.tip-row{display:flex;gap:10px;align-items:flex-start}
+.tip-num{font-family:var(--mono);font-size:11px;color:var(--ink-3);width:18px;flex-shrink:0;padding-top:2px}
+.tip-text{color:var(--ink-2);font-weight:600;line-height:1.5}
+.tip-text strong{color:var(--ink)}
+
+/* ── Fridge suggestions ──────────────────────────────────── */
+.suggestion-card{border-left:3px solid var(--primary)}
+.suggestion-card-ai{border-left:3px solid var(--secondary)}
+.suggestion-meta{font-size:13px;color:var(--ink-2);font-weight:600}
+.suggestion-name{font-weight:800;font-size:15px}
+.suggestion-badge-ai{font-size:11px}
+.suggestion-ings{margin-top:8px;display:flex;flex-wrap:wrap;gap:4px}
+.badge-in-fridge{background:var(--moss-soft);color:var(--moss);border:1px solid var(--moss-soft)}
+.badge-missing{background:var(--paper);color:var(--ink-2);border:1px solid var(--line)}
+.blocked-box{margin-bottom:12px;padding:8px 12px;border-radius:8px;background:var(--paper);border:1px solid var(--line);font-size:13px;font-weight:600}
+.blocked-label{color:var(--ink-2);margin-right:6px}
+.badge-allergic-item{background:var(--rust-soft);color:var(--rust);border:1px solid var(--rust);margin-right:4px}
+.badge-dislike-item{background:var(--amber-soft);color:var(--amber);border:1px solid var(--amber);margin-right:4px}
+.step-section{margin-top:10px}
+.step-section-label{font-size:12px;font-weight:700;color:var(--ink-2);margin-bottom:4px}
+.step-item{font-size:13px;font-weight:600;color:var(--ink);padding-left:4px;margin-bottom:2px}
+.suggestion-wrap{margin-top:16px}
+.suggestion-actions{margin-top:10px}
+.suggestion-action-row{display:flex;gap:6px;flex-wrap:wrap}
+.suggestions-footer{margin-top:8px;display:flex;gap:8px}
+
+/* ── Recipe form ─────────────────────────────────────────── */
+.recipe-form-row{display:flex;gap:12px;margin-bottom:14px}
+.recipe-form-name{flex:1}
+.recipe-form-emoji-wrap{width:80px}
+.input-center{text-align:center;font-size:20px}
+.recipe-form-mb{margin-bottom:12px}
+.recipe-form-mb-lg{margin-bottom:20px}
+.product-picker-hd{font-size:12px;color:var(--ink-2);font-weight:600;margin-bottom:6px;display:flex;justify-content:space-between}
+.product-picker-count{font-weight:400}
+.product-filter-input{margin-bottom:6px;font-size:13px}
+.recipe-form-actions{display:flex;gap:10px}
+.recipe-form-toggle{margin-bottom:20px}
+
+/* ── Products screen ─────────────────────────────────────── */
+.product-status-row{display:flex;gap:6px;flex-wrap:wrap}
+.product-edit-row{display:flex;gap:10px;margin-bottom:12px}
+.product-edit-emoji-wrap{width:70px}
+.product-edit-mb{margin-bottom:14px}
+.product-edit-mb-lg{margin-bottom:20px}
+.product-edit-actions{display:flex;gap:10px}
+
+/* ── Profile screen ──────────────────────────────────────── */
+.card-allergy{margin-bottom:16px;border-color:var(--rust);border-width:2px}
+.card-warn{margin-bottom:16px;border-color:var(--amber);border-width:2px}
+.card-mb{margin-bottom:16px}
+.section-title-allergy{color:var(--rust)}
+.section-title-warn{color:var(--amber)}
+.card-hint{font-size:13px;color:var(--ink-2);margin-bottom:12px;font-weight:600}
+.card-note{font-size:13px;color:var(--ink-2);font-style:italic}
+.card-summary{background:var(--paper);border-style:dashed}
+.card-summary-title{font-weight:700;font-size:14px;margin-bottom:8px}
+.card-summary-text{font-size:14px;color:var(--ink-2);font-weight:600;line-height:2}
+.count-allergy{color:var(--rust)}
+.count-warn{color:var(--amber)}

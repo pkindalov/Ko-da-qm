@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { supabase } from '../../../lib/supabase';
 
-export function LoginScreen() {
+export const LoginScreen = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -32,7 +32,7 @@ export function LoginScreen() {
     }
   };
 
-  async function handleSubmit(e: React.FormEvent) {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
@@ -52,7 +52,7 @@ export function LoginScreen() {
       <div className="auth-card">
         <div className="auth-logo">Ко-да-ям</div>
         <p className="auth-sub">за капризни хора</p>
-        <form onSubmit={handleSubmit} className="stack" style={{ marginTop: 24 }}>
+        <form onSubmit={handleSubmit} className="stack auth-form">
           <div>
             <label className="input-label">Email</label>
             <input

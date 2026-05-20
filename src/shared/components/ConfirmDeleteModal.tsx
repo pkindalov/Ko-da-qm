@@ -9,18 +9,18 @@ interface ConfirmDeleteModalProps {
   onCancel: () => void;
 }
 
-export function ConfirmDeleteModal({ open, itemName, lang, onConfirm, onCancel }: ConfirmDeleteModalProps) {
+export const ConfirmDeleteModal = ({ open, itemName, lang, onConfirm, onCancel }: ConfirmDeleteModalProps) => {
   const L = lang === 'en';
   return (
     <Modal open={open} onClose={onCancel} title={L ? 'Confirm Delete' : 'Потвърди изтриване'}>
-      <p style={{ marginBottom: 16, fontWeight: 600, fontSize: 14 }}>
+      <p className="modal-confirm-text">
         {L ? `Delete "${itemName}"?` : `Изтрий "${itemName}"?`}
       </p>
-      <div style={{ display: 'flex', gap: 10 }}>
-        <button className="btn btn-ghost" style={{ flex: 1 }} onClick={onCancel}>
+      <div className="row">
+        <button className="btn btn-ghost flex-1" onClick={onCancel}>
           {L ? 'Cancel' : 'Отказ'}
         </button>
-        <button className="btn btn-danger" style={{ flex: 1 }} onClick={onConfirm}>
+        <button className="btn btn-danger flex-1" onClick={onConfirm}>
           {L ? 'Confirm' : 'Потвърди'}
         </button>
       </div>

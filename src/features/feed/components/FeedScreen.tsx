@@ -116,7 +116,6 @@ export const FeedScreen = ({ lang, allergies, dislikes }: FeedScreenProps) => {
                 <div className="recipe-image-label">{tag} · {recipe.time}min</div>
                 <button
                   className="btn-favorite"
-                  style={{ position: 'absolute', top: 10, right: 10, zIndex: 1 }}
                   onClick={(e) => { e.stopPropagation(); toggleFavorite(recipe); }}
                   aria-label={isFavorited ? 'Remove from favorites' : 'Add to favorites'}
                 >

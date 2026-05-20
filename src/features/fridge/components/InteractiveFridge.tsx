@@ -117,7 +117,7 @@ const FridgeShelf = ({ items, onRemove, onAddSlot, selectedIds, onToggleSelect, 
   </div>
 );
 
-export function InteractiveFridge({ items, onRemove, onAddSlot, lang, selectedIds, onToggleSelect, productStatusByName }: InteractiveFridgeProps) {
+export const InteractiveFridge = ({ items, onRemove, onAddSlot, lang, selectedIds, onToggleSelect, productStatusByName }: InteractiveFridgeProps) => {
   const L = lang === 'en';
   const [open, setOpen] = useState(false);
   const [activePopover, setActivePopover] = useState<PopoverState | null>(null);

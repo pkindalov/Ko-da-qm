@@ -13,6 +13,6 @@ const classMap: Record<BadgeType, string> = {
   neutral: 'badge badge-neutral',
 };
 
-export function Badge({ type = 'neutral', children }: BadgeProps) {
+export const Badge = ({ type = 'neutral', children }: BadgeProps) => {
   return <span className={classMap[type]}>{children}</span>;
 }

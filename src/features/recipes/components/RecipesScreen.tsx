@@ -39,7 +39,7 @@ interface RecipeFormState {
 const EMPTY_FORM: RecipeFormState = { name: '', emoji: '🍽', time: '', ingredients: '', steps: '', isPublic: false };
 const PAGE_SIZE = 5;
 
-export function RecipesScreen({ recipes, addRecipe, removeRecipe, updateRecipe, favoriteRecipes, favoriteIds, onToggleFavorite, products, profile, lang, userEmail, openRecipeId, onRecipeOpened }: RecipesScreenProps) {
+export const RecipesScreen = ({ recipes, addRecipe, removeRecipe, updateRecipe, favoriteRecipes, favoriteIds, onToggleFavorite, products, profile, lang, userEmail, openRecipeId, onRecipeOpened }: RecipesScreenProps) => {
   const [detail, setDetail] = useState<string | null>(null);
 
   useEffect(() => {
@@ -205,14 +205,14 @@ export function RecipesScreen({ recipes, addRecipe, removeRecipe, updateRecipe, 
 
           <div className="page-head">
             <div>
-              <div className="eyebrow" style={{ marginBottom: 12 }}>{lang === 'en' ? 'Your cookbook' : 'Твоята книга'}</div>
+              <div className="eyebrow eyebrow-mb">{lang === 'en' ? 'Your cookbook' : 'Твоята книга'}</div>
               <h1 className="h-title italic">{lang === 'en' ? 'Recipes' : 'Рецепти'}</h1>
-              <div className="page-head-sub" style={{ marginTop: 8 }}>
+              <div className="page-head-sub mt-2">
                 {recipes.length} {lang === 'en' ? 'recipes saved · filtered against' : 'рецепти · филтрирани спрямо'}{' '}
                 {blocked.length} {lang === 'en' ? 'restrictions' : 'ограничения'}
               </div>
             </div>
-            <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+            <div className="row-sm">
               <button className={`chip${filterSafe ? ' selected' : ''}`} onClick={() => setFilterSafe(!filterSafe)}>
                 ✓ {lang === 'en' ? 'Safe only' : 'Само безопасни'}
               </button>
@@ -222,12 +222,12 @@ export function RecipesScreen({ recipes, addRecipe, removeRecipe, updateRecipe, 
           {favoriteRecipes.length > 0 && (
             <>
               <div className="section-eyebrow">
-                <button className="label" style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }} onClick={() => setFavoritesOpen(o => !o)}>
+                <button className="label label-btn" onClick={() => setFavoritesOpen(o => !o)}>
                   ♥ {lang === 'en' ? 'Favorites' : 'Любими'} {favoritesOpen ? '▲' : '▼'}
                 </button>
               </div>
               {favoritesOpen && (
-                <div className="grid-3" style={{ marginBottom: 24 }}>
+                <div className="grid-3 mb-6">
                   {favoriteRecipes.map((r) => {
                     const risk = recipeRisk(r, allergies, dislikes);
                     const name = recipeDisplayName(r, lang);
@@ -242,7 +242,6 @@ export function RecipesScreen({ recipes, addRecipe, removeRecipe, updateRecipe, 
                           <div className="recipe-image-label">{tag} · {r.time}min</div>
                           <button
                             className="btn-favorite"
-                            style={{ position: 'absolute', top: 10, right: 10, zIndex: 1 }}
                             onClick={(e) => { e.stopPropagation(); onToggleFavorite(r); }}
                             aria-label="Remove from favorites"
                           >♥</button>
@@ -286,7 +285,7 @@ export function RecipesScreen({ recipes, addRecipe, removeRecipe, updateRecipe, 
                         ? <img src={r.imageUrl} alt={name} className="recipe-card-img" />
                         : <div className="recipe-image-emoji">{r.emoji}</div>}
                       <div className="recipe-image-label">{tag} · {r.time}min</div>
-                      {r.isAI && <span style={{ position: 'absolute', top: 10, left: 10, zIndex: 1 }}><Badge type="primary">✨ AI</Badge></span>}
+                      {r.isAI && <span className="ai-badge"><Badge type="primary">✨ AI</Badge></span>}
                     </div>
                     <div className="recipe-body">
                       <div className="recipe-name italic">{name}</div>
@@ -297,8 +296,7 @@ export function RecipesScreen({ recipes, addRecipe, removeRecipe, updateRecipe, 
                         {risk === 'allergy' && <Badge type="allergy"><span className="dot dot-danger" /> {lang === 'en' ? 'allergy' : 'алергия'}</Badge>}
                       </div>
                       <button
-                        className="btn btn-danger btn-sm"
-                        style={{ marginTop: 8, width: '100%' }}
+                        className="btn btn-danger btn-sm mt-2 btn-full"
                         onClick={(e) => { e.stopPropagation(); setPendingDeleteId(r.id); }}
                       >
                         🗑 {lang === 'en' ? 'Delete' : 'Изтрий'}
@@ -321,43 +319,41 @@ export function RecipesScreen({ recipes, addRecipe, removeRecipe, updateRecipe, 
       />
 
       <Modal open={addOpen} onClose={closeModal} title={editingId ? (lang === 'en' ? 'Edit Recipe' : 'Редактирай рецепта') : (lang === 'en' ? 'New Recipe' : 'Нова рецепта')}>
-        <div style={{ display: 'flex', gap: 10, marginBottom: 12 }}>
-          <div style={{ flex: 1 }}>
+        <div className="recipe-form-row">
+          <div className="recipe-form-name">
             <label className="input-label">{lang === 'en' ? 'Name' : 'Название'}</label>
             <input className="input-field" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })}
               placeholder={lang === 'en' ? 'Recipe name' : 'Название на рецептата'} />
           </div>
-          <div style={{ width: 80 }}>
+          <div className="recipe-form-emoji-wrap">
             <label className="input-label">Emoji</label>
-            <input className="input-field" value={form.emoji} onChange={(e) => setForm({ ...form, emoji: e.target.value })}
-              style={{ textAlign: 'center', fontSize: 20 }} />
+            <input className="input-field input-center" value={form.emoji} onChange={(e) => setForm({ ...form, emoji: e.target.value })} />
           </div>
         </div>
-        <div style={{ marginBottom: 12 }}>
+        <div className="recipe-form-mb">
           <label className="input-label">{lang === 'en' ? 'Time (min)' : 'Време (мин)'}</label>
           <input className="input-field" type="number" value={form.time} onChange={(e) => setForm({ ...form, time: e.target.value })} placeholder="15" />
         </div>
-        <div style={{ marginBottom: 12 }}>
+        <div className="recipe-form-mb">
           <label className="input-label">{lang === 'en' ? 'Ingredients (one per line)' : 'Съставки (по един ред)'}</label>
           <textarea className="input-field" rows={4} value={form.ingredients} onChange={(e) => setForm({ ...form, ingredients: e.target.value })}
             placeholder={lang === 'en' ? '3 eggs\n50g cheese' : '3 яйца\n50г кашкавал'} />
           {products.length > 0 && (
-            <div style={{ marginTop: 6 }}>
-              <div style={{ fontSize: 12, color: 'var(--text2)', fontWeight: 600, marginBottom: 6, display: 'flex', justifyContent: 'space-between' }}>
+            <div className="mt-1">
+              <div className="product-picker-hd">
                 <span>{lang === 'en' ? 'Pick from your products:' : 'Избери от продуктите:'}</span>
                 {products.length >= 10 && (
-                  <span style={{ fontWeight: 400 }}>
+                  <span className="product-picker-count">
                     {filteredProducts.length} / {products.length}
                   </span>
                 )}
               </div>
               {products.length >= 10 && (
                 <input
-                  className="input-field"
+                  className="input-field product-filter-input"
                   value={productFilter}
                   onChange={(e) => setProductFilter(e.target.value)}
                   placeholder={lang === 'en' ? 'Filter products...' : 'Филтрирай продукти...'}
-                  style={{ marginBottom: 6, fontSize: 13 }}
                 />
               )}
               <div className="tag-list">
@@ -370,12 +366,12 @@ export function RecipesScreen({ recipes, addRecipe, removeRecipe, updateRecipe, 
             </div>
           )}
         </div>
-        <div style={{ marginBottom: 20 }}>
+        <div className="recipe-form-mb-lg">
           <label className="input-label">{lang === 'en' ? 'Steps (one per line)' : 'Стъпки (по един ред)'}</label>
           <textarea className="input-field" rows={4} value={form.steps} onChange={(e) => setForm({ ...form, steps: e.target.value })}
             placeholder={lang === 'en' ? 'Beat the eggs\nHeat the pan' : 'Разбий яйцата\nЗагрей тигана'} />
         </div>
-        <div className="toggle-wrap" style={{ marginBottom: 20 }}>
+        <div className="toggle-wrap recipe-form-toggle">
           <label className="toggle">
             <input type="checkbox" checked={form.isPublic} onChange={(e) => setForm({ ...form, isPublic: e.target.checked })} />
             <span className="toggle-slider" />
@@ -386,14 +382,14 @@ export function RecipesScreen({ recipes, addRecipe, removeRecipe, updateRecipe, 
               : (lang === 'en' ? '🔒 Private — only you can see it' : '🔒 Лична — само ти я виждаш')}
           </span>
         </div>
-        <div style={{ display: 'flex', gap: 10 }}>
-          <button className="btn btn-primary" style={{ flex: 1 }} onClick={saveRecipe}>{lang === 'en' ? 'Save' : 'Запази'}</button>
+        <div className="recipe-form-actions">
+          <button className="btn btn-primary flex-1" onClick={saveRecipe}>{lang === 'en' ? 'Save' : 'Запази'}</button>
           <button className="btn btn-ghost" onClick={closeModal}>{lang === 'en' ? 'Cancel' : 'Отказ'}</button>
         </div>
       </Modal>
 
       <Modal open={dbOpen} onClose={closeDbModal} title={lang === 'en' ? 'Search Recipes' : 'Търси рецепти'} contentClassName="modal-recipe">
-        <div style={{ marginBottom: 12 }}>
+        <div className="recipe-form-mb">
           <label className="input-label">{lang === 'en' ? 'Ingredient or recipe name' : 'Съставка или название'}</label>
           <input
             className="input-field"
@@ -404,7 +400,7 @@ export function RecipesScreen({ recipes, addRecipe, removeRecipe, updateRecipe, 
             autoFocus
           />
           {blocked.length > 0 && (
-            <div style={{ marginTop: 8, fontSize: 13, color: 'var(--danger)', fontWeight: 600 }}>
+            <div className="modal-error">
               ⚠ {lang === 'en' ? 'Will exclude:' : 'Ще изключи:'} {blocked.join(', ')}
             </div>
           )}
@@ -418,21 +414,21 @@ export function RecipesScreen({ recipes, addRecipe, removeRecipe, updateRecipe, 
         )}
 
         {myRecipeResults.length > 0 && (
-          <div style={{ marginTop: 16 }}>
-            <div className="section-title" style={{ marginBottom: 10 }}>
+          <div className="mt-4">
+            <div className="section-title mb-3">
               📖 {lang === 'en' ? 'My Recipes' : 'Моите рецепти'} ({myRecipeResults.length})
             </div>
             <div className="stack">
               {myRecipeResults.slice(0, myPage * PAGE_SIZE).map((r) => (
                 <div key={r.id} className="card-sm">
-                  <div className="row-between" style={{ marginBottom: 4 }}>
-                    <div className="row" style={{ gap: 8 }}>
-                      <span style={{ fontSize: 20 }}>{r.emoji}</span>
-                      <span style={{ fontWeight: 800, fontSize: 14 }}>{recipeDisplayName(r, lang)}</span>
+                  <div className="row-between mb-1">
+                    <div className="row-sm">
+                      <span className="emoji-sm">{r.emoji}</span>
+                      <span className="recipe-card-name">{recipeDisplayName(r, lang)}</span>
                     </div>
                     <span className="badge badge-neutral">⏱ {r.time} {lang === 'en' ? 'min' : 'мин'}</span>
                   </div>
-                  <div style={{ fontSize: 12, color: 'var(--text2)', fontWeight: 600, marginBottom: 8 }}>
+                  <div className="recipe-card-meta mb-2">
                     {r.ingredients.slice(0, 4).join(', ')}{r.ingredients.length > 4 ? '...' : ''}
                   </div>
                   <button className="btn btn-secondary btn-sm" onClick={() => viewFromModal(r)}>
@@ -442,7 +438,7 @@ export function RecipesScreen({ recipes, addRecipe, removeRecipe, updateRecipe, 
               ))}
             </div>
             {myRecipeResults.length > myPage * PAGE_SIZE && (
-              <button className="btn btn-ghost btn-full" style={{ marginTop: 8 }} onClick={() => setMyPage(p => p + 1)}>
+              <button className="btn btn-ghost btn-full mt-2" onClick={() => setMyPage(p => p + 1)}>
                 {lang === 'en' ? `Show more (${myRecipeResults.length - myPage * PAGE_SIZE} left)` : `Покажи още (${myRecipeResults.length - myPage * PAGE_SIZE} остават)`}
               </button>
             )}
@@ -450,19 +446,19 @@ export function RecipesScreen({ recipes, addRecipe, removeRecipe, updateRecipe, 
         )}
 
         {dbResults.length > 0 && (
-          <div style={{ marginTop: 16 }}>
-            <div className="section-title" style={{ marginBottom: 10 }}>
+          <div className="mt-4">
+            <div className="section-title mb-3">
               🌐 {lang === 'en' ? 'From Database' : 'От базата данни'} ({dbResults.length})
             </div>
             <div className="stack">
               {dbResults.slice(0, dbPage * PAGE_SIZE).map((r) => (
-                <div key={r.id} className="card-sm" style={{ cursor: 'pointer' }} onClick={() => { closeDbModal(); setFavoriteDetail(r); }}>
-                  <div className="row-between" style={{ marginBottom: 4 }}>
-                    <div className="row" style={{ gap: 8 }}>
-                      <span style={{ fontSize: 20 }}>{r.emoji}</span>
-                      <span style={{ fontWeight: 800, fontSize: 14 }}>{r.name}</span>
+                <div key={r.id} className="card-sm clickable" onClick={() => { closeDbModal(); setFavoriteDetail(r); }}>
+                  <div className="row-between mb-1">
+                    <div className="row-sm">
+                      <span className="emoji-sm">{r.emoji}</span>
+                      <span className="recipe-card-name">{r.name}</span>
                     </div>
-                    <div className="row" style={{ gap: 8 }}>
+                    <div className="row-sm">
                       <span className="badge badge-neutral">⏱ {r.time} мин</span>
                       <button
                         className="btn-heart"
@@ -473,14 +469,14 @@ export function RecipesScreen({ recipes, addRecipe, removeRecipe, updateRecipe, 
                       </button>
                     </div>
                   </div>
-                  <div style={{ fontSize: 12, color: 'var(--text2)', fontWeight: 600 }}>
+                  <div className="recipe-card-meta">
                     {r.ingredients.slice(0, 4).join(', ')}{r.ingredients.length > 4 ? '...' : ''}
                   </div>
                 </div>
               ))}
             </div>
             {dbResults.length > dbPage * PAGE_SIZE && (
-              <button className="btn btn-ghost btn-full" style={{ marginTop: 8 }} onClick={() => setDbPage(p => p + 1)}>
+              <button className="btn btn-ghost btn-full mt-2" onClick={() => setDbPage(p => p + 1)}>
                 {lang === 'en' ? `Show more (${dbResults.length - dbPage * PAGE_SIZE} left)` : `Покажи още (${dbResults.length - dbPage * PAGE_SIZE} остават)`}
               </button>
             )}

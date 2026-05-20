@@ -104,7 +104,7 @@ export const RecipeDetailView = ({
             <div className="detail-head-author">
               {L ? 'by' : 'от'}{' '}
               {onAuthorClick
-                ? <button onClick={onAuthorClick} style={{ background: 'none', border: 'none', cursor: 'pointer', fontWeight: 700, color: 'var(--clay-deep)', padding: 0 }}>{recipe.authorName}</button>
+                ? <button onClick={onAuthorClick} className="author-link">{recipe.authorName}</button>
                 : <strong>{recipe.authorName}</strong>
               }
             </div>
@@ -115,12 +115,12 @@ export const RecipeDetailView = ({
                 ? (L ? '♥ Saved' : '♥ Запазена')
                 : (L ? '♡ Save to favorites' : '♡ Запази в любими')}
               {favoriteCount != null && favoriteCount > 0 && (
-                <span style={{ marginLeft: 6, color: 'var(--ink-3)', fontWeight: 600 }}>({favoriteCount})</span>
+                <span className="favorite-count">({favoriteCount})</span>
               )}
             </button>
           )}
           {lang === 'bg' && hasTranslation && (
-            <div style={{ display: 'flex', gap: 4, marginTop: 8 }}>
+            <div className="lang-toggle">
               <button
                 className={`chip${!showTranslated ? ' selected' : ''}`}
                 onClick={() => setShowTranslated(false)}
@@ -136,15 +136,14 @@ export const RecipeDetailView = ({
             </div>
           )}
           {showTranslateButton && (
-            <button className="btn btn-ghost btn-sm" onClick={handleTranslate} style={{ marginTop: 8 }}>
+            <button className="btn btn-ghost btn-sm mt-2" onClick={handleTranslate}>
               🌐 Преведи на български
             </button>
           )}
           {isOwner && onSaveTranslation != null && showTranslateButton && (
             <button
-              className="btn btn-ghost btn-sm"
+              className="btn btn-ghost btn-sm mt-1"
               onClick={() => setSaveTranslationOpen(true)}
-              style={{ marginTop: 4 }}
             >
               💾 {hasTranslation ? 'Обнови превода' : 'Запази превод'}
             </button>
@@ -166,7 +165,7 @@ export const RecipeDetailView = ({
         </div>
       </div>
 
-      <div className="grid-2" style={{ alignItems: 'start', gap: 48 }}>
+      <div className="grid-2 recipe-detail-grid">
         <div>
           <div className="section-eyebrow">
             <span className="label">{L ? 'Ingredients' : 'Съставки'}</span>

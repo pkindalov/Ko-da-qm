@@ -15,7 +15,7 @@ const tagClass: Record<TagInputType, string> = {
   warn:    'tag-removable badge-dislike',
 };
 
-export function TagInput({ value, onChange, placeholder, type = 'neutral' }: TagInputProps) {
+export const TagInput = ({ value, onChange, placeholder, type = 'neutral' }: TagInputProps) => {
   const [input, setInput] = useState('');
 
   const add = () => {
@@ -26,14 +26,13 @@ export function TagInput({ value, onChange, placeholder, type = 'neutral' }: Tag
 
   return (
     <div>
-      <div style={{ display: 'flex', gap: 8 }}>
+      <div className="tag-input-row">
         <input
-          className="input-field"
+          className="input-field flex-1"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder={placeholder}
           onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); add(); } }}
-          style={{ flex: 1 }}
         />
         <button className="btn btn-secondary btn-sm" onClick={add}>+</button>
       </div>

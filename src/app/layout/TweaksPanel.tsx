@@ -13,7 +13,7 @@ const THEMES = [
   { id: 'dark' as const, label: '🌙 Нощ', labelEn: '🌙 Night' },
 ];
 
-export function TweaksPanel({ open, tweaks, setTweaks, onClose }: TweaksPanelProps) {
+export const TweaksPanel = ({ open, tweaks, setTweaks, onClose }: TweaksPanelProps) => {
   const L = tweaks.lang === 'en';
 
   return (
