@@ -65,13 +65,13 @@ export const RecipesScreen = ({ recipes, addRecipe, removeRecipe, updateRecipe, 
   const [favoritesOpen, setFavoritesOpen] = useState(true);
 
   const toNames = (list: { name: string; nameEn?: string }[]) =>
-    list.flatMap(p => p.nameEn ? [p.name, p.nameEn] : [p.name]);
+    list.flatMap(product => product.nameEn ? [product.name, product.nameEn] : [product.name]);
 
-  const allergies = [...profile.allergies, ...toNames(products.filter(p => p.status === 'allergic'))];
-  const dislikes  = [...profile.dislikes,  ...toNames(products.filter(p => p.status === 'disliked'))];
+  const allergies = [...profile.allergies, ...toNames(products.filter(product => product.status === 'allergic'))];
+  const dislikes  = [...profile.dislikes,  ...toNames(products.filter(product => product.status === 'disliked'))];
   const blocked   = [...allergies, ...dislikes];
-  const filteredProducts = products.filter(p =>
-    (lang === 'en' && p.nameEn ? p.nameEn : p.name).toLowerCase().includes(productFilter.toLowerCase())
+  const filteredProducts = products.filter(product =>
+    (lang === 'en' && product.nameEn ? product.nameEn : product.name).toLowerCase().includes(productFilter.toLowerCase())
   );
 
   const closeModal = () => {
@@ -90,16 +90,16 @@ export const RecipesScreen = ({ recipes, addRecipe, removeRecipe, updateRecipe, 
     setDbPage(1);
   };
 
-  const openEditModal = (r: Recipe) => {
+  const openEditModal = (recipe: Recipe) => {
     setForm({
-      name: r.name,
-      emoji: r.emoji,
-      time: r.time.toString(),
-      ingredients: r.ingredients.join('\n'),
-      steps: r.steps.join('\n'),
-      isPublic: r.isPublic,
+      name: recipe.name,
+      emoji: recipe.emoji,
+      time: recipe.time.toString(),
+      ingredients: recipe.ingredients.join('\n'),
+      steps: recipe.steps.join('\n'),
+      isPublic: recipe.isPublic,
     });
-    setEditingId(r.id);
+    setEditingId(recipe.id);
     setAddOpen(true);
   };
 
@@ -114,9 +114,9 @@ export const RecipesScreen = ({ recipes, addRecipe, removeRecipe, updateRecipe, 
     const term = dbSearch.toLowerCase().trim();
 
     const matched = term
-      ? recipes.filter(r => {
-          const name = (recipeDisplayName(r, lang)).toLowerCase();
-          return name.includes(term) || r.ingredients.some(i => i.toLowerCase().includes(term));
+      ? recipes.filter(recipe => {
+          const name = (recipeDisplayName(recipe, lang)).toLowerCase();
+          return name.includes(term) || recipe.ingredients.some(ingredient => ingredient.toLowerCase().includes(term));
         })
       : [];
     setMyRecipeResults(matched);
@@ -131,18 +131,18 @@ export const RecipesScreen = ({ recipes, addRecipe, removeRecipe, updateRecipe, 
     }
   };
 
-  const viewFromModal = (r: Recipe) => {
+  const viewFromModal = (recipe: Recipe) => {
     closeDbModal();
-    setDetail(r.id);
+    setDetail(recipe.id);
   };
 
-  const filtered = recipes.filter(r => !filterSafe || isSafe(r, blocked));
+  const filtered = recipes.filter(recipe => !filterSafe || isSafe(recipe, blocked));
 
   const saveRecipe = () => {
     const parsed = parseRecipeForm(form);
     if (!parsed) return;
     if (editingId) {
-      const existing = recipes.find(r => r.id === editingId);
+      const existing = recipes.find(recipe => recipe.id === editingId);
       if (existing) {
         updateRecipe({ ...existing, ...parsed, id: editingId });
         toast.success(lang === 'en' ? 'Recipe updated!' : 'Рецептата е обновена!');
@@ -154,8 +154,8 @@ export const RecipesScreen = ({ recipes, addRecipe, removeRecipe, updateRecipe, 
     closeModal();
   };
 
-  const detailRecipe = detail ? recipes.find((x) => x.id === detail) : null;
-  const pendingDeleteRecipe = pendingDeleteId ? (recipes.find((x) => x.id === pendingDeleteId) ?? null) : null;
+  const detailRecipe = detail ? recipes.find((recipe) => recipe.id === detail) : null;
+  const pendingDeleteRecipe = pendingDeleteId ? (recipes.find((recipe) => recipe.id === pendingDeleteId) ?? null) : null;
 
   const hasNoSearchResults = !dbLoading && dbSearch.length > 0 && dbResults.length === 0 && myRecipeResults.length === 0;
 
@@ -357,9 +357,9 @@ export const RecipesScreen = ({ recipes, addRecipe, removeRecipe, updateRecipe, 
                 />
               )}
               <div className="tag-list">
-                {filteredProducts.map(p => (
-                  <button key={p.id} className="chip" onClick={() => appendIngredient(lang === 'en' && p.nameEn ? p.nameEn : p.name)}>
-                    {p.emoji} {lang === 'en' && p.nameEn ? p.nameEn : p.name}
+                {filteredProducts.map(product => (
+                  <button key={product.id} className="chip" onClick={() => appendIngredient(lang === 'en' && product.nameEn ? product.nameEn : product.name)}>
+                    {product.emoji} {lang === 'en' && product.nameEn ? product.nameEn : product.name}
                   </button>
                 ))}
               </div>

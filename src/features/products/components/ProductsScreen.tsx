@@ -28,38 +28,38 @@ export const ProductsScreen = ({ products, setProducts, addProduct, lang }: Prod
   const [search, setSearch] = useState('');
   const [catFilter, setCatFilter] = useState('all');
   const [addOpen, setAddOpen] = useState(false);
-  const [newP, setNewP] = useState({ name: '', emoji: '📦', category: 'other' as Product['category'], status: 'liked' as ProductStatus });
-  const [editP, setEditP] = useState<Product | null>(null);
+  const [newProduct, setNewProduct] = useState({ name: '', emoji: '📦', category: 'other' as Product['category'], status: 'liked' as ProductStatus });
+  const [editProduct, setEditProduct] = useState<Product | null>(null);
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
 
   const filtered = filterProducts(products, search, catFilter, lang);
-  const pendingDeleteProduct = pendingDeleteId ? (products.find((p) => p.id === pendingDeleteId) ?? null) : null;
+  const pendingDeleteProduct = pendingDeleteId ? (products.find((product) => product.id === pendingDeleteId) ?? null) : null;
 
   const toggleStatus = (id: string, newStatus: ProductStatus) => {
-    setProducts(products.map((p) => (p.id === id ? { ...p, status: newStatus } : p)));
+    setProducts(products.map((product) => (product.id === id ? { ...product, status: newStatus } : product)));
   };
 
   const deleteProduct = (id: string) => {
-    setProducts(products.filter((p) => p.id !== id));
+    setProducts(products.filter((product) => product.id !== id));
     toast.success(isEnglish ? 'Product deleted' : 'Продуктът е изтрит');
   };
 
   const saveEdit = () => {
-    if (!editP || !editP.name.trim()) return;
-    setProducts(products.map((p) => (p.id === editP.id ? editP : p)));
-    setEditP(null);
+    if (!editProduct || !editProduct.name.trim()) return;
+    setProducts(products.map((product) => (product.id === editProduct.id ? editProduct : product)));
+    setEditProduct(null);
     toast.success(isEnglish ? 'Changes saved' : 'Промените са запазени');
   };
 
   const handleAddClose = () => {
-    setNewP({ name: '', emoji: '📦', category: 'other', status: 'liked' });
+    setNewProduct({ name: '', emoji: '📦', category: 'other', status: 'liked' });
     setAddOpen(false);
   };
 
   const handleAdd = async () => {
-    if (!newP.name.trim()) return;
-    await addProduct(newP);
-    setNewP({ name: '', emoji: '📦', category: 'other', status: 'liked' });
+    if (!newProduct.name.trim()) return;
+    await addProduct(newProduct);
+    setNewProduct({ name: '', emoji: '📦', category: 'other', status: 'liked' });
     setAddOpen(false);
   };
 
@@ -91,9 +91,9 @@ export const ProductsScreen = ({ products, setProducts, addProduct, lang }: Prod
             <input className="input-field" value={search} onChange={(e) => setSearch(e.target.value)} placeholder={isEnglish ? 'Search products…' : 'Търси…'} />
           </div>
           <div className="chip-group">
-            {STATUS_FILTERS.map((f) => (
-              <button key={f.id} className={`chip${catFilter === f.id ? ' selected' : ''}`} onClick={() => setCatFilter(f.id)}>
-                {isEnglish ?f.labelEn : f.label}
+            {STATUS_FILTERS.map((statusFilter) => (
+              <button key={statusFilter.id} className={`chip${catFilter === statusFilter.id ? ' selected' : ''}`} onClick={() => setCatFilter(statusFilter.id)}>
+                {isEnglish ? statusFilter.labelEn : statusFilter.label}
               </button>
             ))}
           </div>
@@ -101,28 +101,28 @@ export const ProductsScreen = ({ products, setProducts, addProduct, lang }: Prod
       </div>
 
       <div className="stack">
-        {filtered.map((p) => (
-          <div key={p.id} className="product-row">
-            <span className="emoji-md">{p.emoji}</span>
-            <span className="product-name">{isEnglish && p.nameEn ? p.nameEn : p.name}</span>
+        {filtered.map((product) => (
+          <div key={product.id} className="product-row">
+            <span className="emoji-md">{product.emoji}</span>
+            <span className="product-name">{isEnglish && product.nameEn ? product.nameEn : product.name}</span>
             <div className="product-row-actions">
-              <button className="btn btn-ghost btn-sm" onClick={() => setEditP(p)} title={isEnglish ? 'Edit' : 'Редактирай'}>✏</button>
-              <button className="btn btn-ghost btn-sm btn-danger-text" onClick={() => setPendingDeleteId(p.id)} title={isEnglish ? 'Delete' : 'Изтрий'}>✕</button>
+              <button className="btn btn-ghost btn-sm" onClick={() => setEditProduct(product)} title={isEnglish ? 'Edit' : 'Редактирай'}>✏</button>
+              <button className="btn btn-ghost btn-sm btn-danger-text" onClick={() => setPendingDeleteId(product.id)} title={isEnglish ? 'Delete' : 'Изтрий'}>✕</button>
             </div>
             <div className="product-row-tags">
               <div className="product-status-row">
-                {(['liked', 'disliked', 'allergic'] as ProductStatus[]).map((s) => (
+                {(['liked', 'disliked', 'allergic'] as ProductStatus[]).map((status) => (
                   <button
-                    key={s}
-                    className={`btn btn-sm ${p.status === s ? (s === 'liked' ? 'btn-secondary' : s === 'disliked' ? 'btn-warn' : 'btn-danger') : 'btn-ghost'}`}
-                    onClick={() => toggleStatus(p.id, s)}
-                    title={s === 'liked' ? (isEnglish ? 'I like this' : 'Харесвам') : s === 'disliked' ? (isEnglish ? 'I dislike this' : 'Не харесвам') : (isEnglish ? 'I am allergic' : 'Алергия')}
+                    key={status}
+                    className={`btn btn-sm ${product.status === status ? (status === 'liked' ? 'btn-secondary' : status === 'disliked' ? 'btn-warn' : 'btn-danger') : 'btn-ghost'}`}
+                    onClick={() => toggleStatus(product.id, status)}
+                    title={status === 'liked' ? (isEnglish ? 'I like this' : 'Харесвам') : status === 'disliked' ? (isEnglish ? 'I dislike this' : 'Не харесвам') : (isEnglish ? 'I am allergic' : 'Алергия')}
                   >
-                    {s === 'liked' ? '✓' : s === 'disliked' ? '✗' : '⚠'}
+                    {status === 'liked' ? '✓' : status === 'disliked' ? '✗' : '⚠'}
                   </button>
                 ))}
               </div>
-              <Badge type={statusBadge(p.status)}>{statusLabel(p.status, lang)}</Badge>
+              <Badge type={statusBadge(product.status)}>{statusLabel(product.status, lang)}</Badge>
             </div>
           </div>
         ))}
@@ -135,38 +135,38 @@ export const ProductsScreen = ({ products, setProducts, addProduct, lang }: Prod
         )}
       </div>
 
-      <Modal open={editP != null} onClose={() => setEditP(null)} title={isEnglish ? 'Edit Product' : 'Редактирай продукт'}>
-        {editP && (
+      <Modal open={editProduct != null} onClose={() => setEditProduct(null)} title={isEnglish ? 'Edit Product' : 'Редактирай продукт'}>
+        {editProduct && (
           <>
             <div className="product-edit-row">
               <div className="flex-1">
                 <label className="input-label">{isEnglish ? 'Product name' : 'Продукт'}</label>
-                <input className="input-field" value={editP.name} onChange={(e) => setEditP({ ...editP, name: e.target.value })} autoFocus />
+                <input className="input-field" value={editProduct.name} onChange={(e) => setEditProduct({ ...editProduct, name: e.target.value })} autoFocus />
               </div>
               <div className="product-edit-emoji-wrap">
                 <label className="input-label">Emoji</label>
-                <input className="input-field input-center" value={editP.emoji} onChange={(e) => setEditP({ ...editP, emoji: e.target.value })} />
+                <input className="input-field input-center" value={editProduct.emoji} onChange={(e) => setEditProduct({ ...editProduct, emoji: e.target.value })} />
               </div>
             </div>
             <div className="product-edit-mb">
               <label className="input-label">{isEnglish ? 'Category' : 'Категория'}</label>
-              <select className="input-field" value={editP.category} onChange={(e) => setEditP({ ...editP, category: e.target.value as Product['category'] })}>
-                {CATEGORIES.map((c) => (
-                  <option key={c.id} value={c.id}>{c.emoji} {isEnglish ?c.labelEn : c.label}</option>
+              <select className="input-field" value={editProduct.category} onChange={(e) => setEditProduct({ ...editProduct, category: e.target.value as Product['category'] })}>
+                {CATEGORIES.map((category) => (
+                  <option key={category.id} value={category.id}>{category.emoji} {isEnglish ? category.labelEn : category.label}</option>
                 ))}
               </select>
             </div>
             <div className="product-edit-mb-lg">
               <label className="input-label">{isEnglish ? 'My relationship with this food' : 'Моето отношение'}</label>
               <div className="chip-group">
-                <span className={`chip${editP.status === 'liked' ? ' selected' : ''}`} onClick={() => setEditP({ ...editP, status: 'liked' })}>✓ {isEnglish ? 'I like it' : 'Харесвам'}</span>
-                <span className={`chip${editP.status === 'disliked' ? ' sel-warn' : ''}`} onClick={() => setEditP({ ...editP, status: 'disliked' })}>✗ {isEnglish ? 'I dislike it' : 'Не харесвам'}</span>
-                <span className={`chip${editP.status === 'allergic' ? ' sel-danger' : ''}`} onClick={() => setEditP({ ...editP, status: 'allergic' })}>⚠ {isEnglish ? 'Allergic' : 'Алергия'}</span>
+                <span className={`chip${editProduct.status === 'liked' ? ' selected' : ''}`} onClick={() => setEditProduct({ ...editProduct, status: 'liked' })}>✓ {isEnglish ? 'I like it' : 'Харесвам'}</span>
+                <span className={`chip${editProduct.status === 'disliked' ? ' sel-warn' : ''}`} onClick={() => setEditProduct({ ...editProduct, status: 'disliked' })}>✗ {isEnglish ? 'I dislike it' : 'Не харесвам'}</span>
+                <span className={`chip${editProduct.status === 'allergic' ? ' sel-danger' : ''}`} onClick={() => setEditProduct({ ...editProduct, status: 'allergic' })}>⚠ {isEnglish ? 'Allergic' : 'Алергия'}</span>
               </div>
             </div>
             <div className="product-edit-actions">
               <button className="btn btn-primary flex-1" onClick={saveEdit}>{isEnglish ? 'Save' : 'Запази'}</button>
-              <button className="btn btn-ghost" onClick={() => setEditP(null)}>{isEnglish ? 'Cancel' : 'Отказ'}</button>
+              <button className="btn btn-ghost" onClick={() => setEditProduct(null)}>{isEnglish ? 'Cancel' : 'Отказ'}</button>
             </div>
           </>
         )}
@@ -184,28 +184,28 @@ export const ProductsScreen = ({ products, setProducts, addProduct, lang }: Prod
         <div className="product-edit-row">
           <div className="flex-1">
             <label className="input-label">{isEnglish ? 'Product name' : 'Продукт'}</label>
-            <input className="input-field" value={newP.name} onChange={(e) => setNewP({ ...newP, name: e.target.value })}
+            <input className="input-field" value={newProduct.name} onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })}
               placeholder={isEnglish ? 'e.g. Tomatoes' : 'напр. Домати'} autoFocus />
           </div>
           <div className="product-edit-emoji-wrap">
             <label className="input-label">Emoji</label>
-            <input className="input-field input-center" value={newP.emoji} onChange={(e) => setNewP({ ...newP, emoji: e.target.value })} />
+            <input className="input-field input-center" value={newProduct.emoji} onChange={(e) => setNewProduct({ ...newProduct, emoji: e.target.value })} />
           </div>
         </div>
         <div className="product-edit-mb">
           <label className="input-label">{isEnglish ? 'Category' : 'Категория'}</label>
-          <select className="input-field" value={newP.category} onChange={(e) => setNewP({ ...newP, category: e.target.value as Product['category'] })}>
-            {CATEGORIES.map((c) => (
-              <option key={c.id} value={c.id}>{c.emoji} {isEnglish ?c.labelEn : c.label}</option>
+          <select className="input-field" value={newProduct.category} onChange={(e) => setNewProduct({ ...newProduct, category: e.target.value as Product['category'] })}>
+            {CATEGORIES.map((category) => (
+              <option key={category.id} value={category.id}>{category.emoji} {isEnglish ? category.labelEn : category.label}</option>
             ))}
           </select>
         </div>
         <div className="product-edit-mb-lg">
           <label className="input-label">{isEnglish ? 'My relationship with this food' : 'Моето отношение'}</label>
           <div className="chip-group">
-            <span className={`chip${newP.status === 'liked' ? ' selected' : ''}`} onClick={() => setNewP({ ...newP, status: 'liked' })}>✓ {isEnglish ? 'I like it' : 'Харесвам'}</span>
-            <span className={`chip${newP.status === 'disliked' ? ' sel-warn' : ''}`} onClick={() => setNewP({ ...newP, status: 'disliked' })}>✗ {isEnglish ? 'I dislike it' : 'Не харесвам'}</span>
-            <span className={`chip${newP.status === 'allergic' ? ' sel-danger' : ''}`} onClick={() => setNewP({ ...newP, status: 'allergic' })}>⚠ {isEnglish ? 'Allergic' : 'Алергия'}</span>
+            <span className={`chip${newProduct.status === 'liked' ? ' selected' : ''}`} onClick={() => setNewProduct({ ...newProduct, status: 'liked' })}>✓ {isEnglish ? 'I like it' : 'Харесвам'}</span>
+            <span className={`chip${newProduct.status === 'disliked' ? ' sel-warn' : ''}`} onClick={() => setNewProduct({ ...newProduct, status: 'disliked' })}>✗ {isEnglish ? 'I dislike it' : 'Не харесвам'}</span>
+            <span className={`chip${newProduct.status === 'allergic' ? ' sel-danger' : ''}`} onClick={() => setNewProduct({ ...newProduct, status: 'allergic' })}>⚠ {isEnglish ? 'Allergic' : 'Алергия'}</span>
           </div>
         </div>
         <div className="product-edit-actions">

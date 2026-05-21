@@ -123,12 +123,12 @@ export const InteractiveFridge = ({ items, onRemove, onAddSlot, lang, selectedId
   const [activePopover, setActivePopover] = useState<PopoverState | null>(null);
 
   const byCategory = useMemo(() => {
-    const m: Partial<Record<FridgeItemCategory, FridgeItem[]>> = {};
+    const categoryMap: Partial<Record<FridgeItemCategory, FridgeItem[]>> = {};
     items.forEach((it) => {
-      if (!m[it.category]) m[it.category] = [];
-      m[it.category]!.push(it);
+      if (!categoryMap[it.category]) categoryMap[it.category] = [];
+      categoryMap[it.category]!.push(it);
     });
-    return m;
+    return categoryMap;
   }, [items]);
 
   const populatedCategories = useMemo(
@@ -158,7 +158,7 @@ export const InteractiveFridge = ({ items, onRemove, onAddSlot, lang, selectedId
     return () => document.removeEventListener('keydown', onKey);
   }, [activePopover]);
 
-  const toggleDoor = () => setOpen((v) => !v);
+  const toggleDoor = () => setOpen((isOpen) => !isOpen);
 
   const popover = (() => {
     if (!activePopover) return null;
@@ -240,7 +240,7 @@ export const InteractiveFridge = ({ items, onRemove, onAddSlot, lang, selectedId
 
                 {populatedCategories.length > 0
                   ? populatedCategories.map(cat => {
-                      const meta = CATEGORIES.find(c => c.id === cat)!;
+                      const meta = CATEGORIES.find(categoryDef => categoryDef.id === cat)!;
                       return (
                         <FridgeShelf
                           key={cat}

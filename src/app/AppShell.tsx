@@ -86,13 +86,13 @@ export const AppShell = () => {
       onDeleteFridgeItem={removeFridgeItem}
       onAddFridgeItem={addFridgeItem}
       onEditFridgeItem={updateFridgeItem}
-      onRemoveAllergy={(name) => setProfile({ ...profile, allergies: profile.allergies.filter(a => a !== name) })}
+      onRemoveAllergy={(name) => setProfile({ ...profile, allergies: profile.allergies.filter(allergy => allergy !== name) })}
       onAddAllergy={(name) => setProfile({ ...profile, allergies: [...profile.allergies, name] })}
-      onEditAllergy={(oldName, newName) => setProfile({ ...profile, allergies: profile.allergies.map(a => a === oldName ? newName : a) })}
-      onRemoveDislike={(name) => setProfile({ ...profile, dislikes: profile.dislikes.filter(d => d !== name) })}
+      onEditAllergy={(oldName, newName) => setProfile({ ...profile, allergies: profile.allergies.map(allergy => allergy === oldName ? newName : allergy) })}
+      onRemoveDislike={(name) => setProfile({ ...profile, dislikes: profile.dislikes.filter(dislike => dislike !== name) })}
       onAddDislike={(name) => setProfile({ ...profile, dislikes: [...profile.dislikes, name] })}
-      onEditDislike={(oldName, newName) => setProfile({ ...profile, dislikes: profile.dislikes.map(d => d === oldName ? newName : d) })}
-      onUpdateProductStatus={(productId, status) => setProducts(products.map(p => p.id === productId ? { ...p, status } : p))}
+      onEditDislike={(oldName, newName) => setProfile({ ...profile, dislikes: profile.dislikes.map(dislike => dislike === oldName ? newName : dislike) })}
+      onUpdateProductStatus={(productId, status) => setProducts(products.map(product => product.id === productId ? { ...product, status } : product))}
       communityFavoriteCounts={communityFavoriteCounts}
       onNavigateToUser={(userId) => navigate(`/user/${userId}`)}
     /></ErrorBoundary>,

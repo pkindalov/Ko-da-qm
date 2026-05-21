@@ -32,8 +32,8 @@ export const ProfileScreen = ({ profile, setProfile, products, lang, onLogout, o
     toast.success(isEnglish ? 'Name saved' : 'Името е запазено');
   };
 
-  const allergicProducts = products.filter(p => p.status === 'allergic');
-  const dislikedProducts = products.filter(p => p.status === 'disliked');
+  const allergicProducts = products.filter(product => product.status === 'allergic');
+  const dislikedProducts = products.filter(product => product.status === 'disliked');
 
   const manageButton = onNavigateToProducts && (
     <button className="btn btn-ghost btn-sm mt-2" onClick={onNavigateToProducts}>
@@ -88,9 +88,9 @@ export const ProfileScreen = ({ profile, setProfile, products, lang, onLogout, o
         </p>
         {allergicProducts.length > 0 ? (
           <div className="chip-group">
-            {allergicProducts.map(p => (
-              <span key={p.id} className="chip selected chip-allergy">
-                {p.emoji} {p.name}
+            {allergicProducts.map(product => (
+              <span key={product.id} className="chip selected chip-allergy">
+                {product.emoji} {product.name}
               </span>
             ))}
           </div>
@@ -109,9 +109,9 @@ export const ProfileScreen = ({ profile, setProfile, products, lang, onLogout, o
         </p>
         {dislikedProducts.length > 0 ? (
           <div className="chip-group">
-            {dislikedProducts.map(p => (
-              <span key={p.id} className="chip selected chip-warn">
-                {p.emoji} {p.name}
+            {dislikedProducts.map(product => (
+              <span key={product.id} className="chip selected chip-warn">
+                {product.emoji} {product.name}
               </span>
             ))}
           </div>

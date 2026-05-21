@@ -33,11 +33,11 @@ type DbRow = {
 };
 
 const toMatched = (row: DbRow, fridgeLow: string[], blocked: string[]): MatchedRecipe | null => {
-  const isBlocked = (i: string) => blocked.some((b) => i.toLowerCase().includes(b.toLowerCase()));
+  const isBlocked = (ingredient: string) => blocked.some((blockedEntry) => ingredient.toLowerCase().includes(blockedEntry.toLowerCase()));
   if (row.required_ingredients.some(isBlocked)) return null;
 
-  const matchFn = (i: string) =>
-    fridgeLow.some((f) => f.includes(i.toLowerCase()) || i.toLowerCase().includes(f));
+  const matchFn = (ingredient: string) =>
+    fridgeLow.some((fridgeName) => fridgeName.includes(ingredient.toLowerCase()) || ingredient.toLowerCase().includes(fridgeName));
 
   const matchedCount = row.required_ingredients.filter(matchFn).length;
   const matchScore = matchedCount / row.required_ingredients.length;
@@ -64,11 +64,11 @@ export const matchFromFridge = async (fridgeItems: FridgeItem[], blocked: string
   const { data, error } = await supabase.from('recipe_database').select('id, name, name_en, emoji, image_url, ingredients, steps, time, tags, required_ingredients, is_ai');
   if (error || !data) return [];
 
-  const fridgeLow = fridgeItems.map((f) => f.name.toLowerCase());
+  const fridgeLow = fridgeItems.map((item) => item.name.toLowerCase());
 
   return (data as DbRow[])
-    .map((r) => toMatched(r, fridgeLow, blocked))
-    .filter((r): r is MatchedRecipe => r !== null && r.matchScore > 0 && !excludeIds.includes(r.id))
+    .map((row) => toMatched(row, fridgeLow, blocked))
+    .filter((result): result is MatchedRecipe => result !== null && result.matchScore > 0 && !excludeIds.includes(result.id))
     .sort((a, b) => b.matchScore - a.matchScore);
 };
 
@@ -81,17 +81,17 @@ export const searchDatabase = async (query: string, blocked: string[]): Promise<
     supabase.from('recipes').select('id, name, name_en, name_translated, emoji, image_url, ingredients, steps, ingredients_translated, steps_translated, time, tags, required_ingredients, is_ai').eq('is_public', true),
   ]);
 
-  const isBlocked = (i: string) => blocked.some((b) => i.toLowerCase().includes(b.toLowerCase()));
-  const matchesQuery = (r: DbRow) =>
-    r.name.toLowerCase().includes(normalizedQuery) ||
-    r.ingredients.some((i) => i.toLowerCase().includes(normalizedQuery)) ||
-    r.tags.some((tag) => tag.toLowerCase().includes(normalizedQuery)) ||
-    r.required_ingredients.some((i) => i.toLowerCase().includes(normalizedQuery));
+  const isBlocked = (ingredient: string) => blocked.some((blockedEntry) => ingredient.toLowerCase().includes(blockedEntry.toLowerCase()));
+  const matchesQuery = (row: DbRow) =>
+    row.name.toLowerCase().includes(normalizedQuery) ||
+    row.ingredients.some((ingredient) => ingredient.toLowerCase().includes(normalizedQuery)) ||
+    row.tags.some((tag) => tag.toLowerCase().includes(normalizedQuery)) ||
+    row.required_ingredients.some((ingredient) => ingredient.toLowerCase().includes(normalizedQuery));
 
   const filterAndMap = (rows: DbRow[], isPublic: boolean): MatchedRecipe[] =>
     rows
-      .filter((r) => !r.required_ingredients.some(isBlocked) && matchesQuery(r))
-      .map((r) => ({ ...toMatched(r, [], [])!, isPublic, matchScore: 1, matchedCount: 1 }));
+      .filter((row) => !row.required_ingredients.some(isBlocked) && matchesQuery(row))
+      .map((row) => ({ ...toMatched(row, [], [])!, isPublic, matchScore: 1, matchedCount: 1 }));
 
   return [
     ...filterAndMap((dbResult.data ?? []) as DbRow[], false),

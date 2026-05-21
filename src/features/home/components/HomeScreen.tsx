@@ -112,33 +112,35 @@ export const HomeScreen = ({ profile, recipes, fridge, publicRecipes, favoriteId
 
   const submitAllergyForm = () => {
     if (!allergyFormValue.trim()) return;
+    if (!allergyFormMode) return;
     const newName = allergyFormValue.trim();
 
     if (allergyFormMode === 'add') {
       onAddAllergy(newName);
-    } else if (allergyFormMode === 'edit') {
-      const oldName = allergyFormOriginal;
-      const contributingProducts = products.filter(
-        p => p.status === 'allergic' && (p.name === oldName || p.nameEn === oldName)
-      );
-
-      if (profile.allergies.includes(oldName)) {
-        onEditAllergy(oldName, newName);
-      } else {
-        onAddAllergy(newName);
-      }
-
-      contributingProducts.forEach(p => onUpdateProductStatus(p.id, 'liked'));
+      closeAllergyForm();
+      return;
     }
 
+    const oldName = allergyFormOriginal;
+    const contributingProducts = products.filter(
+      product => product.status === 'allergic' && (product.name === oldName || product.nameEn === oldName)
+    );
+
+    if (profile.allergies.includes(oldName)) {
+      onEditAllergy(oldName, newName);
+    } else {
+      onAddAllergy(newName);
+    }
+
+    contributingProducts.forEach(product => onUpdateProductStatus(product.id, 'liked'));
     closeAllergyForm();
   };
 
   const handleDeleteAllergy = (name: string) => {
     onRemoveAllergy(name);
     products
-      .filter(p => p.status === 'allergic' && (p.name === name || p.nameEn === name))
-      .forEach(p => onUpdateProductStatus(p.id, 'liked'));
+      .filter(product => product.status === 'allergic' && (product.name === name || product.nameEn === name))
+      .forEach(product => onUpdateProductStatus(product.id, 'liked'));
   };
 
   const openAddDislikeForm = () => {
@@ -161,38 +163,40 @@ export const HomeScreen = ({ profile, recipes, fridge, publicRecipes, favoriteId
 
   const submitDislikeForm = () => {
     if (!dislikeFormValue.trim()) return;
+    if (!dislikeFormMode) return;
     const newName = dislikeFormValue.trim();
 
     if (dislikeFormMode === 'add') {
       onAddDislike(newName);
-    } else if (dislikeFormMode === 'edit') {
-      const oldName = dislikeFormOriginal;
-      const contributingProducts = products.filter(
-        p => p.status === 'disliked' && (p.name === oldName || p.nameEn === oldName)
-      );
-
-      if (profile.dislikes.includes(oldName)) {
-        onEditDislike(oldName, newName);
-      } else {
-        onAddDislike(newName);
-      }
-
-      contributingProducts.forEach(p => onUpdateProductStatus(p.id, 'liked'));
+      closeDislikeForm();
+      return;
     }
 
+    const oldName = dislikeFormOriginal;
+    const contributingProducts = products.filter(
+      product => product.status === 'disliked' && (product.name === oldName || product.nameEn === oldName)
+    );
+
+    if (profile.dislikes.includes(oldName)) {
+      onEditDislike(oldName, newName);
+    } else {
+      onAddDislike(newName);
+    }
+
+    contributingProducts.forEach(product => onUpdateProductStatus(product.id, 'liked'));
     closeDislikeForm();
   };
 
   const handleDeleteDislike = (name: string) => {
     onRemoveDislike(name);
     products
-      .filter(p => p.status === 'disliked' && (p.name === name || p.nameEn === name))
-      .forEach(p => onUpdateProductStatus(p.id, 'liked'));
+      .filter(product => product.status === 'disliked' && (product.name === name || product.nameEn === name))
+      .forEach(product => onUpdateProductStatus(product.id, 'liked'));
   };
 
-  const toNames = (list: Product[]) => list.flatMap(p => p.nameEn ? [p.name, p.nameEn] : [p.name]);
-  const allergies = [...new Set([...profile.allergies, ...toNames(products.filter(p => p.status === 'allergic'))])];
-  const dislikes  = [...new Set([...profile.dislikes,  ...toNames(products.filter(p => p.status === 'disliked'))])];
+  const toNames = (list: Product[]) => list.flatMap(product => product.nameEn ? [product.name, product.nameEn] : [product.name]);
+  const allergies = [...new Set([...profile.allergies, ...toNames(products.filter(product => product.status === 'allergic'))])];
+  const dislikes  = [...new Set([...profile.dislikes,  ...toNames(products.filter(product => product.status === 'disliked'))])];
   const blocked   = [...allergies, ...dislikes];
   const safeRecipes = recipes.filter((r) => isSafe(r, blocked));
   const greeting = getGreeting(new Date().getHours(), lang);

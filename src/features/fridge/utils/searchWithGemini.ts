@@ -19,11 +19,11 @@ const toMatchedRecipe = (recipe: GeminiRecipe, index: number, fridgeItems: Fridg
   const ingredients = recipe.ingredients ?? [];
   const steps = recipe.steps ?? [];
 
-  const matchFn = (i: string) => {
-    const ingLow = i.toLowerCase();
-    return fridgeItems.some((f) => {
-      const fLow = f.name.toLowerCase();
-      const fEn = toEnglish(f.name).toLowerCase();
+  const matchFn = (ingredient: string) => {
+    const ingLow = ingredient.toLowerCase();
+    return fridgeItems.some((fridgeItem) => {
+      const fLow = fridgeItem.name.toLowerCase();
+      const fEn = toEnglish(fridgeItem.name).toLowerCase();
       return fLow.includes(ingLow) || ingLow.includes(fLow) || fEn.includes(ingLow) || ingLow.includes(fEn);
     });
   };
@@ -59,6 +59,6 @@ export const searchWithGemini = async (
   if (error || !Array.isArray(data)) return [];
 
   return (data as GeminiRecipe[])
-    .filter((r): r is GeminiRecipe => r != null && typeof r === 'object')
-    .map((r, i) => toMatchedRecipe(r, i, fridgeItems));
+    .filter((geminiRecipe): geminiRecipe is GeminiRecipe => geminiRecipe != null && typeof geminiRecipe === 'object')
+    .map((geminiRecipe, index) => toMatchedRecipe(geminiRecipe, index, fridgeItems));
 };

@@ -82,7 +82,7 @@ const filterByIngredient = async (ingredient: string): Promise<string[]> => {
   try {
     const res = await fetch(`${BASE}/filter.php?i=${encodeURIComponent(ingredient)}`);
     const data = await res.json() as { meals: FilterMeal[] | null };
-    return data.meals?.map((m) => m.idMeal) ?? [];
+    return data.meals?.map((meal) => meal.idMeal) ?? [];
   } catch {
     return [];
   }
@@ -116,7 +116,7 @@ const mealToMatchedRecipe = (meal: DetailMeal, matchedCount: number, totalFridge
 
   const steps = meal.strInstructions
     .split(/\r?\n+/)
-    .map((s) => s.trim())
+    .map((step) => step.trim())
     .filter(Boolean);
 
   const tags = [meal.strCategory, meal.strArea].filter(Boolean);
@@ -142,7 +142,7 @@ const mealToMatchedRecipe = (meal: DetailMeal, matchedCount: number, totalFridge
 export const searchByFridge = async (fridgeItems: FridgeItem[], blocked: string[], excludeIds: string[] = []): Promise<MatchedRecipe[]> => {
   if (fridgeItems.length === 0) return [];
 
-  const englishNames = fridgeItems.map((f) => toEnglish(f.name));
+  const englishNames = fridgeItems.map((item) => toEnglish(item.name));
 
   // Query TheMealDB for each fridge item in parallel
   const idLists = await Promise.all(englishNames.map(filterByIngredient));
@@ -166,12 +166,12 @@ export const searchByFridge = async (fridgeItems: FridgeItem[], blocked: string[
 
   const details = await Promise.all(topIds.map(fetchDetail));
 
-  const isBlocked = (ing: string) =>
-    blocked.some((b) => ing.toLowerCase().includes(b.toLowerCase()));
+  const isBlocked = (ingredient: string) =>
+    blocked.some((blockedEntry) => ingredient.toLowerCase().includes(blockedEntry.toLowerCase()));
 
   return details
-    .filter((m): m is DetailMeal => m !== null)
-    .map((m) => mealToMatchedRecipe(m, idCount[m.idMeal], fridgeItems.length))
+    .filter((meal): meal is DetailMeal => meal !== null)
+    .map((meal) => mealToMatchedRecipe(meal, idCount[meal.idMeal], fridgeItems.length))
     .filter((r) => !r.requiredIngredients.some(isBlocked))
     .sort((a, b) => b.matchedCount - a.matchedCount);
 };

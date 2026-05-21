@@ -37,9 +37,9 @@ export const FridgeScreen = ({ fridge, addFridgeItem, removeFridgeItem, removePr
 
   const productStatusByName = useMemo(() => {
     const map = new Map<string, 'disliked' | 'allergic'>();
-    for (const p of products) {
-      if (p.status === 'disliked' || p.status === 'allergic') {
-        map.set(p.name.toLowerCase(), p.status);
+    for (const product of products) {
+      if (product.status === 'disliked' || product.status === 'allergic') {
+        map.set(product.name.toLowerCase(), product.status);
       }
     }
     return map;
@@ -113,7 +113,7 @@ export const FridgeScreen = ({ fridge, addFridgeItem, removeFridgeItem, removePr
   const addItemManually = async () => {
     if (!newItem.trim()) return;
     const trimmedName = newItem.trim();
-    const isDuplicate = products.some(p => p.name.toLowerCase() === trimmedName.toLowerCase());
+    const isDuplicate = products.some(product => product.name.toLowerCase() === trimmedName.toLowerCase());
     if (!isDuplicate) {
       await addProduct({ name: trimmedName, emoji: newEmoji, category: newCategory, status: newStatus });
     }
@@ -127,24 +127,24 @@ export const FridgeScreen = ({ fridge, addFridgeItem, removeFridgeItem, removePr
   };
 
   const availableProducts = products.filter(
-    (p) => !fridge.some((f) => f.name.toLowerCase() === p.name.toLowerCase()),
+    (product) => !fridge.some((fridgeItem) => fridgeItem.name.toLowerCase() === product.name.toLowerCase()),
   );
 
   const filteredProducts = productSearch
     ? availableProducts.filter(
-        (p) =>
-          p.name.toLowerCase().includes(productSearch.toLowerCase()) ||
-          (p.nameEn && p.nameEn.toLowerCase().includes(productSearch.toLowerCase())),
+        (product) =>
+          product.name.toLowerCase().includes(productSearch.toLowerCase()) ||
+          (product.nameEn && product.nameEn.toLowerCase().includes(productSearch.toLowerCase())),
       )
     : availableProducts;
 
   const allergicEntries = [
     ...profile.allergies,
-    ...products.filter(p => p.status === 'allergic').flatMap(p => p.nameEn ? [p.name, p.nameEn] : [p.name]),
+    ...products.filter(product => product.status === 'allergic').flatMap(product => product.nameEn ? [product.name, product.nameEn] : [product.name]),
   ];
   const dislikedEntries = [
     ...profile.dislikes,
-    ...products.filter(p => p.status === 'disliked').flatMap(p => p.nameEn ? [p.name, p.nameEn] : [p.name]),
+    ...products.filter(product => product.status === 'disliked').flatMap(product => product.nameEn ? [product.name, product.nameEn] : [product.name]),
   ];
   const blocked = [...allergicEntries, ...dislikedEntries];
 
@@ -168,7 +168,7 @@ export const FridgeScreen = ({ fridge, addFridgeItem, removeFridgeItem, removePr
     allIngredients.some((ing) => nameMatches(ing, blocked));
 
   const filterSafe = (results: MatchedRecipe[]) =>
-    results.filter((r) => !containsBlocked([...r.requiredIngredients, ...r.ingredients]));
+    results.filter((recipe) => !containsBlocked([...recipe.requiredIngredients, ...recipe.ingredients]));
 
   const handleWhatCanICook = async () => {
     setLoadingSuggestions(true);
@@ -180,19 +180,19 @@ export const FridgeScreen = ({ fridge, addFridgeItem, removeFridgeItem, removePr
       if (geminiMode) {
         const results = filterSafe(await searchWithGemini(searchFridge, blocked, lang));
         setSuggestions(results);
-        setSeenGeminiNames(results.map((r) => r.name));
+        setSeenGeminiNames(results.map((recipe) => recipe.name));
         setSuggestionSource('gemini');
         if (results.length > 0) toast.success(isEnglish ? `Found ${results.length} recipe${results.length === 1 ? '' : 's'}` : `Намерени ${results.length} рецепти`);
       } else {
         const online = filterSafe(await searchByFridge(searchFridge, blocked));
         if (online.length > 0) {
           setSuggestions(online);
-          setSeenApiIds(online.map((r) => r.id));
+          setSeenApiIds(online.map((recipe) => recipe.id));
           toast.success(isEnglish ? `Found ${online.length} recipe${online.length === 1 ? '' : 's'}` : `Намерени ${online.length} рецепти`);
         } else {
           const local = filterSafe(await matchFromFridge(searchFridge, blocked));
           setSuggestions(local);
-          setSeenApiIds(local.map((r) => r.id));
+          setSeenApiIds(local.map((recipe) => recipe.id));
           if (local.length > 0) toast.success(isEnglish ? `Found ${local.length} recipe${local.length === 1 ? '' : 's'}` : `Намерени ${local.length} рецепти`);
         }
         setSuggestionSource('api');
@@ -208,12 +208,12 @@ export const FridgeScreen = ({ fridge, addFridgeItem, removeFridgeItem, removePr
       const online = filterSafe(await searchByFridge(searchFridge, blocked, seenApiIds));
       if (online.length > 0) {
         setSuggestions(online);
-        setSeenApiIds((prev) => [...prev, ...online.map((r) => r.id)]);
+        setSeenApiIds((prev) => [...prev, ...online.map((recipe) => recipe.id)]);
         toast.success(isEnglish ? `Found ${online.length} recipe${online.length === 1 ? '' : 's'}` : `Намерени ${online.length} рецепти`);
       } else {
         const local = filterSafe(await matchFromFridge(searchFridge, blocked, seenApiIds));
         setSuggestions(local);
-        setSeenApiIds((prev) => [...prev, ...local.map((r) => r.id)]);
+        setSeenApiIds((prev) => [...prev, ...local.map((recipe) => recipe.id)]);
         if (local.length > 0) toast.success(isEnglish ? `Found ${local.length} recipe${local.length === 1 ? '' : 's'}` : `Намерени ${local.length} рецепти`);
       }
     } finally {
@@ -225,9 +225,9 @@ export const FridgeScreen = ({ fridge, addFridgeItem, removeFridgeItem, removePr
     setLoadingMoreSuggestions(true);
     try {
       const results = filterSafe(await searchWithGemini(searchFridge, blocked, lang, seenGeminiNames));
-      const newResults = results.filter((r) => !seenGeminiNames.includes(r.name));
+      const newResults = results.filter((recipe) => !seenGeminiNames.includes(recipe.name));
       setSuggestions(newResults);
-      setSeenGeminiNames((prev) => [...prev, ...newResults.map((r) => r.name)]);
+      setSeenGeminiNames((prev) => [...prev, ...newResults.map((recipe) => recipe.name)]);
       if (newResults.length > 0) toast.success(isEnglish ? `Found ${newResults.length} recipe${newResults.length === 1 ? '' : 's'}` : `Намерени ${newResults.length} рецепти`);
     } finally {
       setLoadingMoreSuggestions(false);
@@ -245,12 +245,12 @@ export const FridgeScreen = ({ fridge, addFridgeItem, removeFridgeItem, removePr
     if (success) setPendingSaveRecipe(null);
   };
 
-  const savedRecipeByName = new Map(recipes.map((r) => [r.name, r.id]));
+  const savedRecipeByName = new Map(recipes.map((recipe) => [recipe.name, recipe.id]));
 
-  const matchingRecipes = recipes.filter((r) => {
-    const safe = !r.requiredIngredients?.some((i) => blocked.some((b) => i.toLowerCase().includes(b)));
-    const hasIngredients = r.requiredIngredients?.some((i) =>
-      fridge.some((f) => f.name.toLowerCase().includes(i.toLowerCase()) || i.toLowerCase().includes(f.name.toLowerCase())),
+  const matchingRecipes = recipes.filter((recipe) => {
+    const safe = !recipe.requiredIngredients?.some((ingredient) => blocked.some((blockedEntry) => ingredient.toLowerCase().includes(blockedEntry)));
+    const hasIngredients = recipe.requiredIngredients?.some((ingredient) =>
+      fridge.some((fridgeItem) => fridgeItem.name.toLowerCase().includes(ingredient.toLowerCase()) || ingredient.toLowerCase().includes(fridgeItem.name.toLowerCase())),
     );
     return safe && hasIngredients;
   });
@@ -309,15 +309,15 @@ export const FridgeScreen = ({ fridge, addFridgeItem, removeFridgeItem, removePr
           </button>
           {matchingExpanded && (
             <div className="stack mb-5">
-              {matchingRecipes.map((r) => (
-                <div key={r.id} className="card-sm row">
-                  {r.imageUrl
-                    ? <img src={r.imageUrl} alt={recipeDisplayName(r, lang)} className="recipe-suggestion-img" />
-                    : <span className="emoji-lg">{r.emoji}</span>
+              {matchingRecipes.map((recipe) => (
+                <div key={recipe.id} className="card-sm row">
+                  {recipe.imageUrl
+                    ? <img src={recipe.imageUrl} alt={recipeDisplayName(recipe, lang)} className="recipe-suggestion-img" />
+                    : <span className="emoji-lg">{recipe.emoji}</span>
                   }
                   <div className="flex-1">
-                    <div className="recipe-card-name">{recipeDisplayName(r, lang)}</div>
-                    <div className="recipe-card-meta mt-1">⏱ {r.time} {isEnglish ? 'min' : 'мин'}</div>
+                    <div className="recipe-card-name">{recipeDisplayName(recipe, lang)}</div>
+                    <div className="recipe-card-meta mt-1">⏱ {recipe.time} {isEnglish ? 'min' : 'мин'}</div>
                   </div>
                   <Badge type="safe">✓ {isEnglish ? 'Safe' : 'Безопасно'}</Badge>
                 </div>
@@ -428,37 +428,37 @@ export const FridgeScreen = ({ fridge, addFridgeItem, removeFridgeItem, removePr
             />
           ) : (
             <div className="stack">
-              {suggestions.map((r) => {
-                const savedId = savedIdMap.get(r.id) ?? savedRecipeByName.get(r.name);
+              {suggestions.map((suggestion) => {
+                const savedId = savedIdMap.get(suggestion.id) ?? savedRecipeByName.get(suggestion.name);
                 const savedRecipe = savedId ? recipes.find(rec => rec.id === savedId) : null;
                 const hasTranslation = lang === 'bg' && savedRecipe?.ingredientsTranslated?.length;
-                const displayName = savedRecipe ? recipeDisplayName(savedRecipe, lang) : recipeDisplayName(r, lang);
-                const displayIngredients = hasTranslation ? savedRecipe!.ingredientsTranslated! : r.ingredients;
-                const displaySteps = hasTranslation && savedRecipe?.stepsTranslated?.length ? savedRecipe.stepsTranslated : r.steps;
+                const displayName = savedRecipe ? recipeDisplayName(savedRecipe, lang) : recipeDisplayName(suggestion, lang);
+                const displayIngredients = hasTranslation ? savedRecipe!.ingredientsTranslated! : suggestion.ingredients;
+                const displaySteps = hasTranslation && savedRecipe?.stepsTranslated?.length ? savedRecipe.stepsTranslated : suggestion.steps;
                 return (
-                <div key={r.id} className={`card-sm ${r.isAI ? 'suggestion-card-ai' : 'suggestion-card'}`}>
+                <div key={suggestion.id} className={`card-sm ${suggestion.isAI ? 'suggestion-card-ai' : 'suggestion-card'}`}>
                   <div className="row-between mb-2">
                     <div className="row-sm">
-                      {r.imageUrl
-                        ? <img src={r.imageUrl} alt={displayName} className="recipe-suggestion-img" />
-                        : <span className="emoji-md">{r.emoji}</span>
+                      {suggestion.imageUrl
+                        ? <img src={suggestion.imageUrl} alt={displayName} className="recipe-suggestion-img" />
+                        : <span className="emoji-md">{suggestion.emoji}</span>
                       }
                       <span className="suggestion-name">{displayName}</span>
-                      {r.isAI && <span className="badge badge-neutral suggestion-badge-ai">✨ AI</span>}
+                      {suggestion.isAI && <span className="badge badge-neutral suggestion-badge-ai">✨ AI</span>}
                     </div>
                     <span className="badge badge-safe">
-                      {r.matchedCount}/{r.requiredIngredients.length} {isEnglish ? 'match' : 'съвп.'}
+                      {suggestion.matchedCount}/{suggestion.requiredIngredients.length} {isEnglish ? 'match' : 'съвп.'}
                     </span>
                   </div>
                   <div className="suggestion-meta">
-                    ⏱ {r.time} {isEnglish ? 'min' : 'мин'} · {displayIngredients.slice(0, 3).join(', ')}{displayIngredients.length > 3 ? '...' : ''}
+                    ⏱ {suggestion.time} {isEnglish ? 'min' : 'мин'} · {displayIngredients.slice(0, 3).join(', ')}{displayIngredients.length > 3 ? '...' : ''}
                   </div>
                   <div className="suggestion-ings">
-                    {r.requiredIngredients.map((ing) => {
+                    {suggestion.requiredIngredients.map((ing) => {
                       const ingLow = ing.toLowerCase();
-                      const inFridge = safeFridge.some((f) => {
-                        const fLow = f.name.toLowerCase();
-                        const fEn = toEnglish(f.name).toLowerCase();
+                      const inFridge = safeFridge.some((fridgeItem) => {
+                        const fLow = fridgeItem.name.toLowerCase();
+                        const fEn = toEnglish(fridgeItem.name).toLowerCase();
                         return fLow.includes(ingLow) || ingLow.includes(fLow) ||
                                fEn.includes(ingLow) || ingLow.includes(fEn);
                       });
@@ -476,38 +476,38 @@ export const FridgeScreen = ({ fridge, addFridgeItem, removeFridgeItem, removePr
                     <div className="step-section-label">
                       {isEnglish ? 'Steps:' : 'Стъпки:'}
                     </div>
-                    {displaySteps.map((s, i) => (
-                      <div key={s} className="step-item">
-                        {i + 1}. {s}
+                    {displaySteps.map((step, stepIndex) => (
+                      <div key={step} className="step-item">
+                        {stepIndex + 1}. {step}
                       </div>
                     ))}
                   </div>
-                  {lang === 'bg' && !r.isAI && r.nameEn != null && r.nameEn !== '' && (
+                  {lang === 'bg' && !suggestion.isAI && suggestion.nameEn != null && suggestion.nameEn !== '' && (
                     <div className="translate-section">
                       <button
                         className="btn btn-ghost btn-sm"
-                        onClick={() => handleTranslateCard(r)}
+                        onClick={() => handleTranslateCard(suggestion)}
                       >
                         🌐 Преведи на български
                       </button>
                     </div>
                   )}
                   <div className="suggestion-wrap">
-                    {(savedIdMap.has(r.id) || savedRecipeByName.has(r.name)) ? (
+                    {(savedIdMap.has(suggestion.id) || savedRecipeByName.has(suggestion.name)) ? (
                       <div className="suggestion-actions suggestion-action-row">
                         <button
                           className="btn btn-danger btn-sm"
-                          onClick={() => setPendingRemoveSuggestionId(r.id)}
+                          onClick={() => setPendingRemoveSuggestionId(suggestion.id)}
                         >
                           🗑 {isEnglish ? 'Remove' : 'Премахни'}
                         </button>
-                        {updateRecipe != null && lang === 'bg' && !r.isAI && r.nameEn != null && r.nameEn !== '' && (
+                        {updateRecipe != null && lang === 'bg' && !suggestion.isAI && suggestion.nameEn != null && suggestion.nameEn !== '' && (
                           <button
                             className="btn btn-ghost btn-sm"
-                            onClick={() => setSaveTranslationFor(r)}
+                            onClick={() => setSaveTranslationFor(suggestion)}
                           >
                             💾 {(() => {
-                              const savedId = savedIdMap.get(r.id) ?? savedRecipeByName.get(r.name);
+                              const savedId = savedIdMap.get(suggestion.id) ?? savedRecipeByName.get(suggestion.name);
                               const saved = savedId ? recipes.find(rec => rec.id === savedId) : null;
                               return saved?.ingredientsTranslated?.length ? 'Обнови превода' : 'Запази превод';
                             })()}
@@ -517,10 +517,10 @@ export const FridgeScreen = ({ fridge, addFridgeItem, removeFridgeItem, removePr
                     ) : (
                       <button
                         className="btn btn-primary btn-sm"
-                        disabled={savingId === r.id}
-                        onClick={() => handleOpenSaveModal(r)}
+                        disabled={savingId === suggestion.id}
+                        onClick={() => handleOpenSaveModal(suggestion)}
                       >
-                        {savingId === r.id
+                        {savingId === suggestion.id
                           ? (isEnglish ? 'Saving...' : 'Запазване...')
                           : `💾 ${isEnglish ? 'Save recipe' : 'Запази рецептата'}`}
                       </button>
@@ -562,9 +562,9 @@ export const FridgeScreen = ({ fridge, addFridgeItem, removeFridgeItem, removePr
       )}
 
       {(() => {
-        const pendingItem = fridge.find(f => f.id === pendingRemoveItemId);
+        const pendingItem = fridge.find(fridgeItem => fridgeItem.id === pendingRemoveItemId);
         const matchingProduct = pendingItem
-          ? products.find(p => p.name.toLowerCase() === pendingItem.name.toLowerCase())
+          ? products.find(product => product.name.toLowerCase() === pendingItem.name.toLowerCase())
           : undefined;
         return (
           <Modal open={pendingRemoveItemId !== null} onClose={() => setPendingRemoveItemId(null)} title={isEnglish ? 'Remove item?' : 'Премахване на продукт?'}>
@@ -597,14 +597,14 @@ export const FridgeScreen = ({ fridge, addFridgeItem, removeFridgeItem, removePr
 
       <ConfirmDeleteModal
         open={pendingRemoveSuggestionId !== null}
-        itemName={suggestions?.find((r) => r.id === pendingRemoveSuggestionId)?.name ?? ''}
+        itemName={suggestions?.find((suggestion) => suggestion.id === pendingRemoveSuggestionId)?.name ?? ''}
         lang={lang}
         onConfirm={() => {
           if (pendingRemoveSuggestionId) {
             if (savedIdMap.has(pendingRemoveSuggestionId)) {
               unsaveRecipe(pendingRemoveSuggestionId);
             } else {
-              const name = suggestions?.find((r) => r.id === pendingRemoveSuggestionId)?.name;
+              const name = suggestions?.find((suggestion) => suggestion.id === pendingRemoveSuggestionId)?.name;
               if (name) {
                 const realId = savedRecipeByName.get(name);
                 if (realId) removeRecipe(realId);
@@ -682,14 +682,14 @@ export const FridgeScreen = ({ fridge, addFridgeItem, removeFridgeItem, removePr
               </div>
             ) : (
               <div className="modal-select-list">
-                {filteredProducts.map((p) => (
+                {filteredProducts.map((product) => (
                   <button
-                    key={p.id}
+                    key={product.id}
                     className="btn btn-ghost modal-select-btn"
-                    onClick={() => addFromProduct(p)}
+                    onClick={() => addFromProduct(product)}
                   >
-                    <span className="emoji-sm">{p.emoji}</span>
-                    <span className="item-name">{p.name}</span>
+                    <span className="emoji-sm">{product.emoji}</span>
+                    <span className="item-name">{product.name}</span>
                   </button>
                 ))}
               </div>
@@ -712,13 +712,13 @@ export const FridgeScreen = ({ fridge, addFridgeItem, removeFridgeItem, removePr
             <div className="product-edit-mb">
               <label className="input-label">{isEnglish ? 'Pick an emoji' : 'Избери емоджи'}</label>
               <div className="chip-group">
-                {FRIDGE_EMOJIS.map((e) => (
+                {FRIDGE_EMOJIS.map((emoji) => (
                   <span
-                    key={e}
-                    className={`chip chip-emoji${newEmoji === e ? ' selected' : ''}`}
-                    onClick={() => setNewEmoji(e)}
+                    key={emoji}
+                    className={`chip chip-emoji${newEmoji === emoji ? ' selected' : ''}`}
+                    onClick={() => setNewEmoji(emoji)}
                   >
-                    {e}
+                    {emoji}
                   </span>
                 ))}
               </div>
@@ -726,8 +726,8 @@ export const FridgeScreen = ({ fridge, addFridgeItem, removeFridgeItem, removePr
             <div className="product-edit-mb">
               <label className="input-label">{isEnglish ? 'Category' : 'Категория'}</label>
               <select className="input-field" value={newCategory} onChange={(e) => setNewCategory(e.target.value as FridgeItem['category'])}>
-                {CATEGORIES.map((c) => (
-                  <option key={c.id} value={c.id}>{c.emoji} {isEnglish ?c.labelEn : c.label}</option>
+                {CATEGORIES.map((category) => (
+                  <option key={category.id} value={category.id}>{category.emoji} {isEnglish ? category.labelEn : category.label}</option>
                 ))}
               </select>
             </div>
