@@ -477,7 +477,7 @@ export const FridgeScreen = ({ fridge, addFridgeItem, removeFridgeItem, removePr
                       {isEnglish ? 'Steps:' : 'Стъпки:'}
                     </div>
                     {displaySteps.map((s, i) => (
-                      <div key={`${i}-${s.slice(0, 12)}`} className="step-item">
+                      <div key={s} className="step-item">
                         {i + 1}. {s}
                       </div>
                     ))}
