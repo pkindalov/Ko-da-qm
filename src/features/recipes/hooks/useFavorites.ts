@@ -96,7 +96,8 @@ export const useFavorites = (lang: Language = 'bg') => {
   });
 
   const toggleFavorite = (recipe: Recipe) => {
-    if (favoriteIds.includes(recipe.id)) {
+    const latestIds = queryClient.getQueryData<FavoritesData>(['favorites'])?.favoriteIds ?? [];
+    if (latestIds.includes(recipe.id)) {
       removeMutation.mutate(recipe.id);
     } else {
       addMutation.mutate(recipe);

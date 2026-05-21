@@ -94,7 +94,8 @@ export const useFollows = (lang: Language = 'bg'): UseFollowsResult => {
   const toggleFollow = (targetUserId: string) => {
     // Guard here prevents optimistic updates for disallowed operations
     if (!currentUserId || targetUserId === currentUserId) return;
-    if (followingIds.includes(targetUserId)) {
+    const latestIds = queryClient.getQueryData<string[]>(['followingIds', currentUserId]) ?? [];
+    if (latestIds.includes(targetUserId)) {
       unfollowMutation.mutate(targetUserId);
     } else {
       followMutation.mutate(targetUserId);
