@@ -1,26 +1,26 @@
 import type { Recipe } from '../types';
 
-export const mapRecipeRow = (r: Record<string, unknown>): Recipe => ({
-  id: r.id as string,
-  name: r.name as string,
-  nameEn: (r.name_en as string | null) ?? undefined,
-  emoji: r.emoji as string,
-  imageUrl: (r.image_url as string | null) ?? undefined,
-  ingredients: (r.ingredients as string[]) ?? [],
-  steps: (r.steps as string[]) ?? [],
-  nameTranslated: (r.name_translated as string | null) ?? undefined,
-  ingredientsTranslated: ((r.ingredients_translated as string[] | null)?.length ?? 0) > 0
-    ? (r.ingredients_translated as string[])
+export const mapRecipeRow = (row: Record<string, unknown>): Recipe => ({
+  id: row.id as string,
+  name: row.name as string,
+  nameEn: (row.name_en as string | null) ?? undefined,
+  emoji: row.emoji as string,
+  imageUrl: (row.image_url as string | null) ?? undefined,
+  ingredients: (row.ingredients as string[]) ?? [],
+  steps: (row.steps as string[]) ?? [],
+  nameTranslated: (row.name_translated as string | null) ?? undefined,
+  ingredientsTranslated: ((row.ingredients_translated as string[] | null)?.length ?? 0) > 0
+    ? (row.ingredients_translated as string[])
     : undefined,
-  stepsTranslated: ((r.steps_translated as string[] | null)?.length ?? 0) > 0
-    ? (r.steps_translated as string[])
+  stepsTranslated: ((row.steps_translated as string[] | null)?.length ?? 0) > 0
+    ? (row.steps_translated as string[])
     : undefined,
-  time: r.time as number,
-  tags: (r.tags as string[]) ?? [],
-  requiredIngredients: (r.required_ingredients as string[]) ?? [],
-  isAI: r.is_ai as boolean,
-  isPublic: (r.is_public as boolean) ?? false,
-  authorId: (r.user_id as string | null) ?? undefined,
-  authorName: (r.author_name as string | null) ?? undefined,
-  authorEmail: (r.author_email as string | null) ?? undefined,
+  time: row.time as number,
+  tags: (row.tags as string[]) ?? [],
+  requiredIngredients: (row.required_ingredients as string[]) ?? [],
+  isAI: row.is_ai as boolean,
+  isPublic: (row.is_public as boolean) ?? false,
+  authorId: (row.user_id as string | null) ?? undefined,
+  authorName: (row.author_name as string | null) ?? undefined,
+  authorEmail: (row.author_email as string | null) ?? undefined,
 });

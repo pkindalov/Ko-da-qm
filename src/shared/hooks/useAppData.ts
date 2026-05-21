@@ -57,45 +57,45 @@ export const useAppData = (lang: Language = 'bg') => {
 
     // Only replace defaults when the user has saved data in DB
     if (fridgeRes.data && fridgeRes.data.length > 0) {
-      setFridgeState(fridgeRes.data.map(r => ({
-        id: r.id,
-        name: r.name,
-        emoji: r.emoji,
-        category: r.category,
+      setFridgeState(fridgeRes.data.map(fridgeRow => ({
+        id: fridgeRow.id,
+        name: fridgeRow.name,
+        emoji: fridgeRow.emoji,
+        category: fridgeRow.category,
       })));
     }
 
     if (recipesRes.data && recipesRes.data.length > 0) {
-      setRecipesState(recipesRes.data.map(r => ({
-        id: r.id,
-        name: r.name,
-        nameEn: r.name_en ?? undefined,
-        nameTranslated: r.name_translated ?? undefined,
-        emoji: r.emoji,
-        imageUrl: r.image_url ?? undefined,
-        ingredients: r.ingredients ?? [],
-        steps: r.steps ?? [],
-        ingredientsTranslated: r.ingredients_translated?.length ? r.ingredients_translated : undefined,
-        stepsTranslated: r.steps_translated?.length ? r.steps_translated : undefined,
-        time: r.time,
-        tags: r.tags ?? [],
-        requiredIngredients: r.required_ingredients ?? [],
-        isAI: r.is_ai,
-        isPublic: r.is_public ?? false,
-        authorId: r.user_id ?? undefined,
-        authorName: r.author_name ?? undefined,
-        authorEmail: r.author_email ?? undefined,
+      setRecipesState(recipesRes.data.map(recipeRow => ({
+        id: recipeRow.id,
+        name: recipeRow.name,
+        nameEn: recipeRow.name_en ?? undefined,
+        nameTranslated: recipeRow.name_translated ?? undefined,
+        emoji: recipeRow.emoji,
+        imageUrl: recipeRow.image_url ?? undefined,
+        ingredients: recipeRow.ingredients ?? [],
+        steps: recipeRow.steps ?? [],
+        ingredientsTranslated: recipeRow.ingredients_translated?.length ? recipeRow.ingredients_translated : undefined,
+        stepsTranslated: recipeRow.steps_translated?.length ? recipeRow.steps_translated : undefined,
+        time: recipeRow.time,
+        tags: recipeRow.tags ?? [],
+        requiredIngredients: recipeRow.required_ingredients ?? [],
+        isAI: recipeRow.is_ai,
+        isPublic: recipeRow.is_public ?? false,
+        authorId: recipeRow.user_id ?? undefined,
+        authorName: recipeRow.author_name ?? undefined,
+        authorEmail: recipeRow.author_email ?? undefined,
       })));
     }
 
     if (productsRes.data && productsRes.data.length > 0) {
-      const dbProducts = productsRes.data.map(r => ({
-        id: r.id,
-        name: r.name,
-        nameEn: r.name_en ?? undefined,
-        category: r.category,
-        status: r.status,
-        emoji: r.emoji,
+      const dbProducts = productsRes.data.map(productRow => ({
+        id: productRow.id,
+        name: productRow.name,
+        nameEn: productRow.name_en ?? undefined,
+        category: productRow.category,
+        status: productRow.status,
+        emoji: productRow.emoji,
       }));
       setProductsState([...DEFAULT_PRODUCTS, ...dbProducts]);
     }
@@ -144,14 +144,14 @@ export const useAppData = (lang: Language = 'bg') => {
   }, []);
 
   const removeFridgeItem = useCallback(async (id: string) => {
-    setFridgeState(prev => prev.filter(f => f.id !== id));
+    setFridgeState(prev => prev.filter(fridgeItem => fridgeItem.id !== id));
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
     await supabase.from('fridge_items').delete().eq('id', id).eq('user_id', user.id);
   }, []);
 
   const updateFridgeItem = useCallback(async (item: FridgeItem) => {
-    setFridgeState(prev => prev.map(f => f.id === item.id ? item : f));
+    setFridgeState(prev => prev.map(fridgeItem => fridgeItem.id === item.id ? item : fridgeItem));
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
     const { error } = await supabase.from('fridge_items')
@@ -195,14 +195,14 @@ export const useAppData = (lang: Language = 'bg') => {
   }, []);
 
   const removeRecipe = useCallback(async (id: string) => {
-    setRecipesState(prev => prev.filter(r => r.id !== id));
+    setRecipesState(prev => prev.filter(existingRecipe => existingRecipe.id !== id));
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
     await supabase.from('recipes').delete().eq('id', id).eq('user_id', user.id);
   }, []);
 
   const updateRecipe = useCallback(async (recipe: Recipe) => {
-    setRecipesState(prev => prev.map(r => r.id === recipe.id ? recipe : r));
+    setRecipesState(prev => prev.map(existingRecipe => existingRecipe.id === recipe.id ? recipe : existingRecipe));
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
     const { error } = await supabase.from('recipes')
@@ -234,8 +234,8 @@ export const useAppData = (lang: Language = 'bg') => {
 
   const setProducts = useCallback((next: Product[]) => {
     setProductsState(next);
-    const defaultIds = new Set(DEFAULT_PRODUCTS.map(p => p.id));
-    const userProducts = next.filter(p => !defaultIds.has(p.id));
+    const defaultIds = new Set(DEFAULT_PRODUCTS.map(product => product.id));
+    const userProducts = next.filter(product => !defaultIds.has(product.id));
 
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       const user = session?.user;
@@ -262,7 +262,7 @@ export const useAppData = (lang: Language = 'bg') => {
       const { error: deleteError } = await supabase.from('products')
         .delete()
         .eq('user_id', user.id)
-        .not('id', 'in', `(${userProducts.map(i => i.id).join(',')})`);
+        .not('id', 'in', `(${userProducts.map(product => product.id).join(',')})`);
       if (deleteError) console.error('products cleanup delete error:', deleteError);
     });
   }, []);
@@ -288,7 +288,7 @@ export const useAppData = (lang: Language = 'bg') => {
   }, []);
 
   const removeProduct = useCallback((id: string) => {
-    setProducts(products.filter(p => p.id !== id));
+    setProducts(products.filter(product => product.id !== id));
   }, [products, setProducts]);
 
   return { loading, userId, userEmail, profile, setProfile, fridge, addFridgeItem, removeFridgeItem, updateFridgeItem, recipes, addRecipe, removeRecipe, updateRecipe, products, setProducts, addProduct, removeProduct };
