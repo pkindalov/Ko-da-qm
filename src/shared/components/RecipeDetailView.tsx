@@ -170,11 +170,11 @@ export const RecipeDetailView = ({
           <div className="section-eyebrow">
             <span className="label">{isEnglish ? 'Ingredients' : 'Съставки'}</span>
           </div>
-          {displayIngredients.map((ing, i) => {
+          {displayIngredients.map((ing) => {
             const isAllergyIng = allergies.some((b) => ing.toLowerCase().includes(b.toLowerCase()));
             const isBlockedIng = isAllergyIng || dislikes.some((b) => ing.toLowerCase().includes(b.toLowerCase()));
             return (
-              <div key={`ing-${i}`} className={`ing-row${isBlockedIng ? ' blocked' : ''}`}>
+              <div key={ing} className={`ing-row${isBlockedIng ? ' blocked' : ''}`}>
                 <span className={`dot ${isBlockedIng ? 'dot-danger' : 'dot-safe'}`} />
                 <span className="ing-name">{ing}</span>
                 {isBlockedIng && (
@@ -191,9 +191,9 @@ export const RecipeDetailView = ({
             <span className="label">{isEnglish ? 'Method' : 'Метод'}</span>
           </div>
           <div className="step-grid">
-            {displaySteps.map((step, i) => (
-              <div key={`step-${i}`} className="step">
-                <span className="step-num">{String(i + 1).padStart(2, '0')}</span>
+            {displaySteps.map((step, stepIndex) => (
+              <div key={step} className="step">
+                <span className="step-num">{String(stepIndex + 1).padStart(2, '0')}</span>
                 <div className="step-text">{step}</div>
               </div>
             ))}

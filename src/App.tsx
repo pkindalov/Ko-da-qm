@@ -18,9 +18,9 @@ export const App = () => {
       <BrowserRouter>
         <Toaster position="top-center" richColors closeButton duration={TOAST_DURATION_MS} />
         <Routes>
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/login" element={<LoginScreen />} />
-          <Route path="/register" element={<RegisterScreen />} />
+          <Route path="/" element={<ErrorBoundary><LandingPage /></ErrorBoundary>} />
+          <Route path="/login" element={<ErrorBoundary><LoginScreen /></ErrorBoundary>} />
+          <Route path="/register" element={<ErrorBoundary><RegisterScreen /></ErrorBoundary>} />
           <Route path="/user/:id" element={<ProtectedRoute><ErrorBoundary><UserProfilePage /></ErrorBoundary></ProtectedRoute>} />
           <Route path="/*" element={<ProtectedRoute />} />
         </Routes>
