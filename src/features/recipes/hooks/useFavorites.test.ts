@@ -1,8 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { renderHook, act } from '@testing-library/react';
+import { renderHook, act, waitFor } from '@testing-library/react';
 import { toast } from 'sonner';
 import { useFavorites } from './useFavorites';
 import type { Recipe } from '../../../shared/types';
+import { createQueryWrapper } from '../../../test/queryWrapper';
 
 const { mockGetUser, mockSelect, mockInsert, mockEq, mockDelete, mockFrom } = vi.hoisted(() => {
   const mockSelect = vi.fn();
@@ -72,7 +73,7 @@ describe('useFavorites', () => {
   it('returns empty state when no user is authenticated', async () => {
     mockGetUser.mockResolvedValue({ data: { user: null } });
 
-    const { result } = renderHook(() => useFavorites());
+    const { result } = renderHook(() => useFavorites(), { wrapper: createQueryWrapper() });
     await act(async () => {});
 
     expect(result.current.favoriteIds).toEqual([]);
@@ -84,12 +85,11 @@ describe('useFavorites', () => {
     mockGetUser.mockResolvedValue({ data: { user: { id: 'user-1' } } });
     mockSelect.mockResolvedValue({ data: [makeDbRow()], error: null });
 
-    const { result } = renderHook(() => useFavorites());
-    await act(async () => {});
+    const { result } = renderHook(() => useFavorites(), { wrapper: createQueryWrapper() });
+    await waitFor(() => expect(result.current.favoriteIds).toEqual(['r1']));
 
     expect(mockFrom).toHaveBeenCalledWith('favorites');
     expect(mockSelect).toHaveBeenCalledWith('recipe_id, recipes(*)');
-    expect(result.current.favoriteIds).toEqual(['r1']);
     expect(result.current.favoriteRecipes).toHaveLength(1);
     expect(result.current.favoriteRecipes[0].name).toBe('Pancakes');
   });
@@ -98,7 +98,7 @@ describe('useFavorites', () => {
     mockGetUser.mockResolvedValue({ data: { user: { id: 'user-1' } } });
     mockSelect.mockResolvedValue({ data: null, error: null });
 
-    const { result } = renderHook(() => useFavorites());
+    const { result } = renderHook(() => useFavorites(), { wrapper: createQueryWrapper() });
     await act(async () => {});
 
     expect(result.current.favoriteIds).toEqual([]);
@@ -112,10 +112,8 @@ describe('useFavorites', () => {
       error: null,
     });
 
-    const { result } = renderHook(() => useFavorites());
-    await act(async () => {});
-
-    expect(result.current.favoriteIds).toEqual(['deleted-id']);
+    const { result } = renderHook(() => useFavorites(), { wrapper: createQueryWrapper() });
+    await waitFor(() => expect(result.current.favoriteIds).toEqual(['deleted-id']));
     expect(result.current.favoriteRecipes).toEqual([]);
   });
 
@@ -124,7 +122,7 @@ describe('useFavorites', () => {
     mockSelect.mockResolvedValue({ data: [], error: null });
     mockInsert.mockResolvedValue({ error: null });
 
-    const { result } = renderHook(() => useFavorites());
+    const { result } = renderHook(() => useFavorites(), { wrapper: createQueryWrapper() });
     await act(async () => {});
 
     const recipe = makeRecipe();
@@ -140,14 +138,12 @@ describe('useFavorites', () => {
     mockSelect.mockResolvedValue({ data: [makeDbRow()], error: null });
     mockEq.mockReturnValueOnce({ eq: mockEq }).mockResolvedValueOnce({ error: null });
 
-    const { result } = renderHook(() => useFavorites());
-    await act(async () => {});
-
-    expect(result.current.favoriteIds).toContain('r1');
+    const { result } = renderHook(() => useFavorites(), { wrapper: createQueryWrapper() });
+    await waitFor(() => expect(result.current.favoriteIds).toContain('r1'));
 
     await act(async () => { result.current.toggleFavorite(makeRecipe()); });
+    await waitFor(() => expect(result.current.favoriteIds).not.toContain('r1'));
 
-    expect(result.current.favoriteIds).not.toContain('r1');
     expect(result.current.favoriteRecipes).toHaveLength(0);
     expect(mockDelete).toHaveBeenCalled();
     expect(mockEq).toHaveBeenCalledWith('recipe_id', 'r1');
@@ -159,12 +155,12 @@ describe('useFavorites', () => {
     mockSelect.mockResolvedValue({ data: [], error: null });
     mockInsert.mockResolvedValue({ error: null });
 
-    const { result } = renderHook(() => useFavorites());
-    await act(async () => {});
+    const wrapper = createQueryWrapper();
+    const { result } = renderHook(() => useFavorites(), { wrapper });
+    await waitFor(() => expect(wrapper.queryClient.isFetching()).toBe(0));
 
     await act(async () => { result.current.toggleFavorite(makeRecipe({ id: 'new-id' })); });
-
-    expect(result.current.favoriteIds).toContain('new-id');
+    await waitFor(() => expect(result.current.favoriteIds).toContain('new-id'));
   });
 
   it('toggleFavorite removes when already favorited', async () => {
@@ -172,12 +168,11 @@ describe('useFavorites', () => {
     mockSelect.mockResolvedValue({ data: [makeDbRow()], error: null });
     mockEq.mockReturnValueOnce({ eq: mockEq }).mockResolvedValueOnce({ error: null });
 
-    const { result } = renderHook(() => useFavorites());
-    await act(async () => {});
+    const { result } = renderHook(() => useFavorites(), { wrapper: createQueryWrapper() });
+    await waitFor(() => expect(result.current.favoriteIds).toContain('r1'));
 
     await act(async () => { result.current.toggleFavorite(makeRecipe({ id: 'r1' })); });
-
-    expect(result.current.favoriteIds).not.toContain('r1');
+    await waitFor(() => expect(result.current.favoriteIds).not.toContain('r1'));
   });
 
   it('handles null optional fields in joined recipe row', async () => {
@@ -187,8 +182,8 @@ describe('useFavorites', () => {
       error: null,
     });
 
-    const { result } = renderHook(() => useFavorites());
-    await act(async () => {});
+    const { result } = renderHook(() => useFavorites(), { wrapper: createQueryWrapper() });
+    await waitFor(() => expect(result.current.favoriteRecipes).toHaveLength(1));
 
     expect(result.current.favoriteRecipes[0].nameEn).toBeUndefined();
     expect(result.current.favoriteRecipes[0].authorName).toBeUndefined();
@@ -200,10 +195,8 @@ describe('useFavorites', () => {
     const row2 = { recipe_id: 'r2', recipes: { ...makeDbRow().recipes, id: 'r2', name: 'Waffles' } };
     mockSelect.mockResolvedValue({ data: [row1, row2], error: null });
 
-    const { result } = renderHook(() => useFavorites());
-    await act(async () => {});
-
-    expect(result.current.favoriteIds).toEqual(['r1', 'r2']);
+    const { result } = renderHook(() => useFavorites(), { wrapper: createQueryWrapper() });
+    await waitFor(() => expect(result.current.favoriteIds).toEqual(['r1', 'r2']));
     expect(result.current.favoriteRecipes).toHaveLength(2);
     expect(result.current.favoriteRecipes[0].name).toBe('Pancakes');
     expect(result.current.favoriteRecipes[1].name).toBe('Waffles');
@@ -212,7 +205,7 @@ describe('useFavorites', () => {
   it('addFavorite is a no-op when user is null — state and DB unchanged', async () => {
     mockGetUser.mockResolvedValue({ data: { user: null } });
 
-    const { result } = renderHook(() => useFavorites());
+    const { result } = renderHook(() => useFavorites(), { wrapper: createQueryWrapper() });
     await act(async () => {});
 
     await act(async () => { result.current.toggleFavorite(makeRecipe()); });
@@ -228,10 +221,8 @@ describe('useFavorites', () => {
       .mockResolvedValueOnce({ data: { user: null } });
     mockSelect.mockResolvedValue({ data: [makeDbRow()], error: null });
 
-    const { result } = renderHook(() => useFavorites());
-    await act(async () => {});
-
-    expect(result.current.favoriteIds).toContain('r1');
+    const { result } = renderHook(() => useFavorites(), { wrapper: createQueryWrapper() });
+    await waitFor(() => expect(result.current.favoriteIds).toContain('r1'));
 
     await act(async () => { result.current.toggleFavorite(makeRecipe()); });
 
@@ -244,16 +235,17 @@ describe('useFavorites', () => {
     mockSelect.mockResolvedValue({ data: [], error: null });
     mockInsert.mockResolvedValue({ error: null });
 
-    const { result } = renderHook(() => useFavorites());
-    await act(async () => {});
+    const wrapper = createQueryWrapper();
+    const { result } = renderHook(() => useFavorites(), { wrapper });
+    await waitFor(() => expect(wrapper.queryClient.isFetching()).toBe(0));
 
     const recipe = makeRecipe();
     await act(async () => {
       result.current.toggleFavorite(recipe);
       result.current.toggleFavorite(recipe);
     });
+    await waitFor(() => expect(result.current.favoriteIds).toEqual(['r1']));
 
-    expect(result.current.favoriteIds).toEqual(['r1']);
     expect(result.current.favoriteRecipes).toHaveLength(1);
   });
 
@@ -263,7 +255,7 @@ describe('useFavorites', () => {
     mockInsert.mockResolvedValue({ error: null });
     vi.mocked(toast.success).mockClear();
 
-    const { result } = renderHook(() => useFavorites('en'));
+    const { result } = renderHook(() => useFavorites('en'), { wrapper: createQueryWrapper() });
     await act(async () => {});
 
     await act(async () => { result.current.toggleFavorite(makeRecipe()); });
@@ -279,7 +271,7 @@ describe('useFavorites', () => {
     vi.mocked(toast.success).mockClear();
     vi.mocked(toast.error).mockClear();
 
-    const { result } = renderHook(() => useFavorites('en'));
+    const { result } = renderHook(() => useFavorites('en'), { wrapper: createQueryWrapper() });
     await act(async () => {});
 
     await act(async () => { result.current.toggleFavorite(makeRecipe()); });
@@ -296,8 +288,8 @@ describe('useFavorites', () => {
     mockEq.mockReturnValueOnce({ eq: mockEq }).mockResolvedValueOnce({ error: null });
     vi.mocked(toast.success).mockClear();
 
-    const { result } = renderHook(() => useFavorites('en'));
-    await act(async () => {});
+    const { result } = renderHook(() => useFavorites('en'), { wrapper: createQueryWrapper() });
+    await waitFor(() => expect(result.current.favoriteIds).toContain('r1'));
 
     await act(async () => { result.current.toggleFavorite(makeRecipe()); });
 
@@ -312,8 +304,8 @@ describe('useFavorites', () => {
     vi.mocked(toast.success).mockClear();
     vi.mocked(toast.error).mockClear();
 
-    const { result } = renderHook(() => useFavorites('en'));
-    await act(async () => {});
+    const { result } = renderHook(() => useFavorites('en'), { wrapper: createQueryWrapper() });
+    await waitFor(() => expect(result.current.favoriteIds).toContain('r1'));
 
     await act(async () => { result.current.toggleFavorite(makeRecipe()); });
 

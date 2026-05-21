@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { renderHook, act } from '@testing-library/react';
+import { renderHook, act, waitFor } from '@testing-library/react';
 import { useFollows } from './useFollows';
+import { createQueryWrapper } from '../../../test/queryWrapper';
 
 const { mockGetUser, mockFrom, mockSelect, mockEq, mockInsert, mockDelete, mockDeleteEq1, mockDeleteEq2 } = vi.hoisted(() => {
   const mockEq = vi.fn();
@@ -37,12 +38,11 @@ describe('useFollows', () => {
   it('returns empty state and stops loading when no user is authenticated', async () => {
     mockGetUser.mockResolvedValue({ data: { user: null } });
 
-    const { result } = renderHook(() => useFollows('en'));
-    await act(async () => {});
+    const { result } = renderHook(() => useFollows('en'), { wrapper: createQueryWrapper() });
+    await waitFor(() => expect(result.current.loading).toBe(false));
 
     expect(result.current.followingIds).toEqual([]);
     expect(result.current.currentUserId).toBe('');
-    expect(result.current.loading).toBe(false);
     expect(mockFrom).not.toHaveBeenCalled();
   });
 
@@ -50,12 +50,11 @@ describe('useFollows', () => {
     mockGetUser.mockResolvedValue({ data: { user: { id: 'u1' } } });
     mockEq.mockResolvedValue({ data: [{ following_id: 'u2' }, { following_id: 'u3' }], error: null });
 
-    const { result } = renderHook(() => useFollows('en'));
-    await act(async () => {});
+    const { result } = renderHook(() => useFollows('en'), { wrapper: createQueryWrapper() });
+    await waitFor(() => expect(result.current.loading).toBe(false));
 
     expect(result.current.followingIds).toEqual(['u2', 'u3']);
     expect(result.current.currentUserId).toBe('u1');
-    expect(result.current.loading).toBe(false);
     expect(mockFrom).toHaveBeenCalledWith('follows');
     expect(mockEq).toHaveBeenCalledWith('follower_id', 'u1');
   });
@@ -64,11 +63,10 @@ describe('useFollows', () => {
     mockGetUser.mockResolvedValue({ data: { user: { id: 'u1' } } });
     mockEq.mockResolvedValue({ data: [], error: null });
 
-    const { result } = renderHook(() => useFollows('en'));
-    await act(async () => {});
+    const { result } = renderHook(() => useFollows('en'), { wrapper: createQueryWrapper() });
+    await waitFor(() => expect(result.current.loading).toBe(false));
 
     expect(result.current.followingIds).toEqual([]);
-    expect(result.current.loading).toBe(false);
   });
 
   it('logs error and keeps empty followingIds on DB load error', async () => {
@@ -76,8 +74,8 @@ describe('useFollows', () => {
     mockEq.mockResolvedValue({ data: null, error: { message: 'DB error' } });
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
-    const { result } = renderHook(() => useFollows('en'));
-    await act(async () => {});
+    const { result } = renderHook(() => useFollows('en'), { wrapper: createQueryWrapper() });
+    await waitFor(() => expect(result.current.loading).toBe(false));
 
     expect(result.current.followingIds).toEqual([]);
     expect(consoleSpy).toHaveBeenCalledWith('useFollows load error:', { message: 'DB error' });
@@ -88,11 +86,10 @@ describe('useFollows', () => {
     mockGetUser.mockRejectedValue(new Error('Network error'));
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
-    const { result } = renderHook(() => useFollows('en'));
-    await act(async () => {});
+    const { result } = renderHook(() => useFollows('en'), { wrapper: createQueryWrapper() });
+    await waitFor(() => expect(result.current.loading).toBe(false));
 
     expect(result.current.followingIds).toEqual([]);
-    expect(result.current.loading).toBe(false);
     expect(consoleSpy).toHaveBeenCalledWith('useFollows getUser error:', expect.any(Error));
     consoleSpy.mockRestore();
   });
@@ -102,12 +99,12 @@ describe('useFollows', () => {
     mockEq.mockResolvedValue({ data: [], error: null });
     mockInsert.mockResolvedValue({ error: null });
 
-    const { result } = renderHook(() => useFollows('en'));
-    await act(async () => {});
+    const { result } = renderHook(() => useFollows('en'), { wrapper: createQueryWrapper() });
+    await waitFor(() => expect(result.current.loading).toBe(false));
 
     await act(async () => { result.current.toggleFollow('u2'); });
+    await waitFor(() => expect(result.current.followingIds).toContain('u2'));
 
-    expect(result.current.followingIds).toContain('u2');
     expect(mockInsert).toHaveBeenCalledWith({ follower_id: 'u1', following_id: 'u2' });
   });
 
@@ -116,14 +113,12 @@ describe('useFollows', () => {
     mockEq.mockResolvedValue({ data: [{ following_id: 'u2' }], error: null });
     mockDeleteEq2.mockResolvedValue({ error: null });
 
-    const { result } = renderHook(() => useFollows('en'));
-    await act(async () => {});
-
-    expect(result.current.followingIds).toContain('u2');
+    const { result } = renderHook(() => useFollows('en'), { wrapper: createQueryWrapper() });
+    await waitFor(() => expect(result.current.followingIds).toContain('u2'));
 
     await act(async () => { result.current.toggleFollow('u2'); });
+    await waitFor(() => expect(result.current.followingIds).not.toContain('u2'));
 
-    expect(result.current.followingIds).not.toContain('u2');
     expect(mockDelete).toHaveBeenCalled();
   });
 
@@ -133,7 +128,7 @@ describe('useFollows', () => {
     mockInsert.mockResolvedValue({ error: { message: 'DB error' } });
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
-    const { result } = renderHook(() => useFollows('en'));
+    const { result } = renderHook(() => useFollows('en'), { wrapper: createQueryWrapper() });
     await act(async () => {});
 
     await act(async () => { result.current.toggleFollow('u2'); });
@@ -148,8 +143,8 @@ describe('useFollows', () => {
     mockDeleteEq2.mockResolvedValue({ error: { message: 'DB error' } });
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
-    const { result } = renderHook(() => useFollows('en'));
-    await act(async () => {});
+    const { result } = renderHook(() => useFollows('en'), { wrapper: createQueryWrapper() });
+    await waitFor(() => expect(result.current.followingIds).toContain('u2'));
 
     await act(async () => { result.current.toggleFollow('u2'); });
 
@@ -161,7 +156,7 @@ describe('useFollows', () => {
     mockGetUser.mockResolvedValue({ data: { user: { id: 'u1' } } });
     mockEq.mockResolvedValue({ data: [], error: null });
 
-    const { result } = renderHook(() => useFollows('en'));
+    const { result } = renderHook(() => useFollows('en'), { wrapper: createQueryWrapper() });
     await act(async () => {});
 
     await act(async () => { result.current.toggleFollow('u1'); });
@@ -175,7 +170,7 @@ describe('useFollows', () => {
     mockEq.mockResolvedValueOnce({ data: [], error: null });
     mockInsert.mockResolvedValue({ error: null });
 
-    const { result } = renderHook(() => useFollows('en'));
+    const { result } = renderHook(() => useFollows('en'), { wrapper: createQueryWrapper() });
     await act(async () => {});
 
     await act(async () => { result.current.toggleFollow('u3'); });

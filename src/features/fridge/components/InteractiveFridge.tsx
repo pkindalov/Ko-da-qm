@@ -182,13 +182,13 @@ export const InteractiveFridge = ({ items, onRemove, onAddSlot, lang, selectedId
             Sits below the popover (z-index 9998 vs 9999) so the popover itself is still interactive. */}
         <div
           data-testid="popover-backdrop"
-          style={{ position: 'fixed', inset: 0, zIndex: 9998 }}
+          className="popover-backdrop"
           onClick={() => setActivePopover(null)}
           aria-hidden="true"
         />
         <div
           className={`p-popover p-popover-${activePopover.status}`}
-          style={{ position: 'fixed', top, left, width: POPOVER_W, zIndex: 9999 }}
+          style={{ top, left }}
           role="tooltip"
         >
           <span className="p-popover-name">{activePopover.name}</span>

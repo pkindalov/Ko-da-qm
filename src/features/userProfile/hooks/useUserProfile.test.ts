@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { renderHook, act } from '@testing-library/react';
+import { renderHook, act, waitFor } from '@testing-library/react';
 import { useUserProfile } from './useUserProfile';
+import { createQueryWrapper } from '../../../test/queryWrapper';
 
 const makeDbRow = (overrides = {}) => ({
   id: 'recipe-1',
@@ -72,7 +73,7 @@ describe('useUserProfile', () => {
   });
 
   it('returns empty state and stops loading when userId is empty', async () => {
-    const { result } = renderHook(() => useUserProfile(''));
+    const { result } = renderHook(() => useUserProfile(''), { wrapper: createQueryWrapper() });
     await act(async () => {});
 
     expect(result.current.recipes).toEqual([]);
@@ -85,8 +86,8 @@ describe('useUserProfile', () => {
     mockRecipesOrder.mockResolvedValue({ data: [makeDbRow()], error: null });
     mockUsersSingle.mockResolvedValue({ data: { name: 'Petya' }, error: null });
 
-    const { result } = renderHook(() => useUserProfile('user-42'));
-    await act(async () => {});
+    const { result } = renderHook(() => useUserProfile('user-42'), { wrapper: createQueryWrapper() });
+    await waitFor(() => expect(result.current.loading).toBe(false));
 
     expect(mockFrom).toHaveBeenCalledWith('recipes');
     expect(mockRecipesEq1).toHaveBeenCalledWith('user_id', 'user-42');
@@ -107,8 +108,8 @@ describe('useUserProfile', () => {
     mockRecipesOrder.mockResolvedValue({ data: [makeDbRow()], error: null });
     mockUsersSingle.mockResolvedValue({ data: { name: '' }, error: null });
 
-    const { result } = renderHook(() => useUserProfile('user-42'));
-    await act(async () => {});
+    const { result } = renderHook(() => useUserProfile('user-42'), { wrapper: createQueryWrapper() });
+    await waitFor(() => expect(result.current.loading).toBe(false));
 
     expect(result.current.userName).toBe('Petya');
   });
@@ -117,7 +118,7 @@ describe('useUserProfile', () => {
     mockRecipesOrder.mockResolvedValue({ data: [], error: null });
     mockUsersSingle.mockResolvedValue({ data: { name: '' }, error: null });
 
-    renderHook(() => useUserProfile('user-42'));
+    renderHook(() => useUserProfile('user-42'), { wrapper: createQueryWrapper() });
     await act(async () => {});
 
     expect(mockRecipesSelect).toHaveBeenCalledWith(
@@ -129,10 +130,9 @@ describe('useUserProfile', () => {
     mockRecipesOrder.mockResolvedValue({ data: null, error: null });
     mockUsersSingle.mockResolvedValue({ data: null, error: null });
 
-    const { result } = renderHook(() => useUserProfile('user-42'));
-    await act(async () => {});
+    const { result } = renderHook(() => useUserProfile('user-42'), { wrapper: createQueryWrapper() });
+    await waitFor(() => expect(result.current.loading).toBe(false));
 
     expect(result.current.recipes).toEqual([]);
-    expect(result.current.loading).toBe(false);
   });
 });

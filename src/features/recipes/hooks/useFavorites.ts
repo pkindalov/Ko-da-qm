@@ -1,75 +1,105 @@
-import { useState, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { supabase } from '../../../lib/supabase';
 import { mapRecipeRow } from '../../../shared/utils/mapRecipeRow';
 import type { Recipe, Language } from '../../../shared/types';
 
+interface FavoritesData {
+  favoriteIds: string[];
+  favoriteRecipes: Recipe[];
+}
+
+const EMPTY_FAVORITES: FavoritesData = { favoriteIds: [], favoriteRecipes: [] };
+
+const fetchFavorites = async (): Promise<FavoritesData> => {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return EMPTY_FAVORITES;
+
+  const { data } = await supabase.from('favorites').select('recipe_id, recipes(*)');
+  if (!data) return EMPTY_FAVORITES;
+
+  const favoriteIds = data.map(f => f.recipe_id as string);
+  const favoriteRecipes = data
+    .map(f => f.recipes as unknown as Record<string, unknown> | null)
+    .filter((r): r is Record<string, unknown> => r !== null)
+    .map(mapRecipeRow);
+
+  return { favoriteIds, favoriteRecipes };
+};
+
 export const useFavorites = (lang: Language = 'bg') => {
-  const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
-  const [favoriteRecipes, setFavoriteRecipes] = useState<Recipe[]>([]);
+  const queryClient = useQueryClient();
 
-  useEffect(() => {
-    loadFavorites();
-  }, []);
+  const { data } = useQuery<FavoritesData>({
+    queryKey: ['favorites'],
+    queryFn: fetchFavorites,
+  });
 
-  const loadFavorites = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+  const favoriteIds = data?.favoriteIds ?? [];
+  const favoriteRecipes = data?.favoriteRecipes ?? [];
 
-    const { data } = await supabase
-      .from('favorites')
-      .select('recipe_id, recipes(*)');
-
-    if (!data) return;
-
-    const ids = data.map(f => f.recipe_id as string);
-    const recipes = data
-      .map(f => f.recipes as unknown as Record<string, unknown> | null)
-      .filter((r): r is Record<string, unknown> => r !== null)
-      .map(mapRecipeRow);
-
-    setFavoriteIds(ids);
-    setFavoriteRecipes(recipes);
-  };
-
-  const addFavorite = async (recipe: Recipe) => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-
-    setFavoriteIds(prev => prev.includes(recipe.id) ? prev : [...prev, recipe.id]);
-    setFavoriteRecipes(prev => prev.some(r => r.id === recipe.id) ? prev : [recipe, ...prev]);
-    const { error } = await supabase.from('favorites').insert({ user_id: user.id, recipe_id: recipe.id });
-    if (error) {
-      setFavoriteIds(prev => prev.filter(id => id !== recipe.id));
-      setFavoriteRecipes(prev => prev.filter(r => r.id !== recipe.id));
+  const addMutation = useMutation({
+    mutationFn: async (recipe: Recipe) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+      const { error } = await supabase.from('favorites').insert({ user_id: user.id, recipe_id: recipe.id });
+      if (error) throw error;
+    },
+    onMutate: async (recipe) => {
+      await queryClient.cancelQueries({ queryKey: ['favorites'] });
+      const previous = queryClient.getQueryData<FavoritesData>(['favorites']);
+      queryClient.setQueryData<FavoritesData>(['favorites'], (old) => {
+        const prev = old ?? EMPTY_FAVORITES;
+        if (prev.favoriteIds.includes(recipe.id)) return prev;
+        return {
+          favoriteIds: [...prev.favoriteIds, recipe.id],
+          favoriteRecipes: [recipe, ...prev.favoriteRecipes],
+        };
+      });
+      return { previous };
+    },
+    onError: (_err, _recipe, context) => {
+      queryClient.setQueryData(['favorites'], context?.previous);
       toast.error(lang === 'en' ? 'Failed to add to favorites' : 'Грешка при добавяне в любими');
-      return;
-    }
-    toast.success(lang === 'en' ? 'Added to favorites' : 'Добавено в любими');
-  };
+    },
+    onSuccess: () => {
+      toast.success(lang === 'en' ? 'Added to favorites' : 'Добавено в любими');
+    },
+  });
 
-  const removeFavorite = async (recipeId: string) => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-
-    const removedRecipe = favoriteRecipes.find(r => r.id === recipeId);
-    setFavoriteIds(prev => prev.filter(id => id !== recipeId));
-    setFavoriteRecipes(prev => prev.filter(r => r.id !== recipeId));
-    const { error } = await supabase.from('favorites').delete().eq('recipe_id', recipeId).eq('user_id', user.id);
-    if (error) {
-      setFavoriteIds(prev => prev.includes(recipeId) ? prev : [recipeId, ...prev]);
-      if (removedRecipe) setFavoriteRecipes(prev => prev.some(r => r.id === recipeId) ? prev : [...prev, removedRecipe]);
+  const removeMutation = useMutation({
+    mutationFn: async (recipeId: string) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+      const { error } = await supabase.from('favorites').delete().eq('recipe_id', recipeId).eq('user_id', user.id);
+      if (error) throw error;
+    },
+    onMutate: async (recipeId) => {
+      await queryClient.cancelQueries({ queryKey: ['favorites'] });
+      const previous = queryClient.getQueryData<FavoritesData>(['favorites']);
+      queryClient.setQueryData<FavoritesData>(['favorites'], (old) => {
+        const prev = old ?? EMPTY_FAVORITES;
+        return {
+          favoriteIds: prev.favoriteIds.filter(id => id !== recipeId),
+          favoriteRecipes: prev.favoriteRecipes.filter(r => r.id !== recipeId),
+        };
+      });
+      return { previous };
+    },
+    onError: (_err, _recipeId, context) => {
+      queryClient.setQueryData(['favorites'], context?.previous);
       toast.error(lang === 'en' ? 'Failed to remove from favorites' : 'Грешка при премахване от любими');
-      return;
-    }
-    toast.success(lang === 'en' ? 'Removed from favorites' : 'Премахнато от любими');
-  };
+    },
+    onSuccess: () => {
+      toast.success(lang === 'en' ? 'Removed from favorites' : 'Премахнато от любими');
+    },
+  });
 
   const toggleFavorite = (recipe: Recipe) => {
     if (favoriteIds.includes(recipe.id)) {
-      removeFavorite(recipe.id);
+      removeMutation.mutate(recipe.id);
     } else {
-      addFavorite(recipe);
+      addMutation.mutate(recipe);
     }
   };
 

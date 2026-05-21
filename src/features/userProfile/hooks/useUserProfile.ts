@@ -1,7 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../../../lib/supabase';
 import { mapRecipeRow } from '../../../shared/utils/mapRecipeRow';
 import type { Recipe } from '../../../shared/types';
+
+interface UserProfileData {
+  userName: string;
+  recipes: Recipe[];
+}
 
 interface UserProfile {
   userName: string;
@@ -9,46 +14,42 @@ interface UserProfile {
   loading: boolean;
 }
 
+const fetchUserProfile = async (userId: string): Promise<UserProfileData> => {
+  const [recipesResult, userResult] = await Promise.all([
+    supabase
+      .from('recipes')
+      .select('id, name, name_en, name_translated, emoji, image_url, ingredients, steps, ingredients_translated, steps_translated, time, tags, required_ingredients, is_ai, is_public, user_id, author_name, author_email')
+      .eq('user_id', userId)
+      .eq('is_public', true)
+      .order('created_at', { ascending: false }),
+    supabase
+      .from('users')
+      .select('name')
+      .eq('id', userId)
+      .single(),
+  ]);
+
+  const recipes = recipesResult.data?.map(mapRecipeRow) ?? [];
+  let userName = '';
+  if (userResult.data?.name) {
+    userName = userResult.data.name;
+  } else if (recipesResult.data?.[0]?.author_name) {
+    userName = recipesResult.data[0].author_name as string;
+  }
+
+  return { userName, recipes };
+};
+
 export const useUserProfile = (userId: string): UserProfile => {
-  const [userName, setUserName] = useState('');
-  const [recipes, setRecipes] = useState<Recipe[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data, isPending } = useQuery<UserProfileData>({
+    queryKey: ['userProfile', userId],
+    queryFn: () => fetchUserProfile(userId),
+    enabled: userId !== '',
+  });
 
-  useEffect(() => {
-    if (!userId) {
-      setLoading(false);
-      return;
-    }
-    loadUserProfile();
-  }, [userId]);
-
-  const loadUserProfile = async () => {
-    const [recipesResult, userResult] = await Promise.all([
-      supabase
-        .from('recipes')
-        .select('id, name, name_en, name_translated, emoji, image_url, ingredients, steps, ingredients_translated, steps_translated, time, tags, required_ingredients, is_ai, is_public, user_id, author_name, author_email')
-        .eq('user_id', userId)
-        .eq('is_public', true)
-        .order('created_at', { ascending: false }),
-      supabase
-        .from('users')
-        .select('name')
-        .eq('id', userId)
-        .single(),
-    ]);
-
-    if (recipesResult.data) {
-      setRecipes(recipesResult.data.map(mapRecipeRow));
-    }
-
-    if (userResult.data?.name) {
-      setUserName(userResult.data.name);
-    } else if (recipesResult.data?.[0]?.author_name) {
-      setUserName(recipesResult.data[0].author_name as string);
-    }
-
-    setLoading(false);
+  return {
+    userName: data?.userName ?? '',
+    recipes: data?.recipes ?? [],
+    loading: userId !== '' && isPending,
   };
-
-  return { userName, recipes, loading };
 };

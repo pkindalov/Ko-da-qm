@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { renderHook, act } from '@testing-library/react';
+import { renderHook, act, waitFor } from '@testing-library/react';
 import { usePublicRecipes } from './usePublicRecipes';
+import { createQueryWrapper } from '../../../test/queryWrapper';
 
 const { mockGetUser, mockLimit, mockOrder, mockNeq, mockEq, mockSelect, mockFrom } = vi.hoisted(() => {
   const mockLimit = vi.fn();
@@ -58,11 +59,10 @@ describe('usePublicRecipes', () => {
   it('returns empty array and stops loading when no user is authenticated', async () => {
     mockGetUser.mockResolvedValue({ data: { user: null } });
 
-    const { result } = renderHook(() => usePublicRecipes());
-    await act(async () => {});
+    const { result } = renderHook(() => usePublicRecipes(), { wrapper: createQueryWrapper() });
+    await waitFor(() => expect(result.current.loading).toBe(false));
 
     expect(result.current.publicRecipes).toEqual([]);
-    expect(result.current.loading).toBe(false);
     expect(mockFrom).not.toHaveBeenCalled();
   });
 
@@ -70,8 +70,8 @@ describe('usePublicRecipes', () => {
     mockGetUser.mockResolvedValue({ data: { user: { id: 'user-1' } } });
     mockLimit.mockResolvedValue({ data: [makeDbRow()], error: null });
 
-    const { result } = renderHook(() => usePublicRecipes());
-    await act(async () => {});
+    const { result } = renderHook(() => usePublicRecipes(), { wrapper: createQueryWrapper() });
+    await waitFor(() => expect(result.current.loading).toBe(false));
 
     expect(mockFrom).toHaveBeenCalledWith('recipes');
     expect(mockEq).toHaveBeenCalledWith('is_public', true);
@@ -101,7 +101,7 @@ describe('usePublicRecipes', () => {
     mockGetUser.mockResolvedValue({ data: { user: { id: 'user-1' } } });
     mockLimit.mockResolvedValue({ data: [], error: null });
 
-    renderHook(() => usePublicRecipes());
+    renderHook(() => usePublicRecipes(), { wrapper: createQueryWrapper() });
     await act(async () => {});
 
     expect(mockSelect).toHaveBeenCalledWith(
@@ -113,11 +113,10 @@ describe('usePublicRecipes', () => {
     mockGetUser.mockResolvedValue({ data: { user: { id: 'user-1' } } });
     mockLimit.mockResolvedValue({ data: null, error: null });
 
-    const { result } = renderHook(() => usePublicRecipes());
-    await act(async () => {});
+    const { result } = renderHook(() => usePublicRecipes(), { wrapper: createQueryWrapper() });
+    await waitFor(() => expect(result.current.loading).toBe(false));
 
     expect(result.current.publicRecipes).toEqual([]);
-    expect(result.current.loading).toBe(false);
   });
 
   it('handles null optional fields gracefully', async () => {
@@ -127,8 +126,8 @@ describe('usePublicRecipes', () => {
       error: null,
     });
 
-    const { result } = renderHook(() => usePublicRecipes());
-    await act(async () => {});
+    const { result } = renderHook(() => usePublicRecipes(), { wrapper: createQueryWrapper() });
+    await waitFor(() => expect(result.current.loading).toBe(false));
 
     expect(result.current.publicRecipes[0].nameEn).toBeUndefined();
     expect(result.current.publicRecipes[0].authorName).toBeUndefined();

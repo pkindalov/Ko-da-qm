@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { renderHook, act } from '@testing-library/react';
+import { renderHook, act, waitFor } from '@testing-library/react';
 import { useRecipeFavoriteCounts } from './useRecipeFavoriteCounts';
+import { createQueryWrapper } from '../../../test/queryWrapper';
 
 const { mockRpc } = vi.hoisted(() => {
   const mockRpc = vi.fn();
@@ -17,7 +18,7 @@ describe('useRecipeFavoriteCounts', () => {
   });
 
   it('returns empty object when recipeIds is empty', async () => {
-    const { result } = renderHook(() => useRecipeFavoriteCounts([]));
+    const { result } = renderHook(() => useRecipeFavoriteCounts([]), { wrapper: createQueryWrapper() });
     await act(async () => {});
 
     expect(result.current).toEqual({});
@@ -33,19 +34,18 @@ describe('useRecipeFavoriteCounts', () => {
       error: null,
     });
 
-    const { result } = renderHook(() => useRecipeFavoriteCounts(['r1', 'r2']));
-    await act(async () => {});
+    const { result } = renderHook(() => useRecipeFavoriteCounts(['r1', 'r2']), { wrapper: createQueryWrapper() });
+    await waitFor(() => expect(result.current).toEqual({ r1: 5, r2: 2 }));
 
     expect(mockRpc).toHaveBeenCalledWith('get_recipe_favorite_counts', {
       recipe_ids: ['r1', 'r2'],
     });
-    expect(result.current).toEqual({ r1: 5, r2: 2 });
   });
 
   it('returns empty object when RPC returns null data', async () => {
     mockRpc.mockResolvedValue({ data: null, error: null });
 
-    const { result } = renderHook(() => useRecipeFavoriteCounts(['r1']));
+    const { result } = renderHook(() => useRecipeFavoriteCounts(['r1']), { wrapper: createQueryWrapper() });
     await act(async () => {});
 
     expect(result.current).toEqual({});
@@ -57,10 +57,9 @@ describe('useRecipeFavoriteCounts', () => {
       error: null,
     });
 
-    const { result } = renderHook(() => useRecipeFavoriteCounts(['r1']));
-    await act(async () => {});
+    const { result } = renderHook(() => useRecipeFavoriteCounts(['r1']), { wrapper: createQueryWrapper() });
+    await waitFor(() => expect(result.current['r1']).toBe(7));
 
-    expect(result.current['r1']).toBe(7);
     expect(typeof result.current['r1']).toBe('number');
   });
 });

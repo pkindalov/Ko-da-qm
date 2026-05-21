@@ -1,24 +1,25 @@
-import { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../../../lib/supabase';
 
+const fetchFollowerCount = async (userId: string): Promise<number> => {
+  const { count, error } = await supabase
+    .from('follows')
+    .select('follower_id', { count: 'exact', head: true })
+    .eq('following_id', userId);
+
+  if (error) {
+    console.error('useFollowerCount error:', error);
+    return 0;
+  }
+  return count ?? 0;
+};
+
 export const useFollowerCount = (userId: string) => {
-  const [followerCount, setFollowerCount] = useState(0);
-
-  useEffect(() => {
-    if (!userId) return;
-
-    supabase
-      .from('follows')
-      .select('follower_id', { count: 'exact', head: true })
-      .eq('following_id', userId)
-      .then(({ count, error }) => {
-        if (error) {
-          console.error('useFollowerCount error:', error);
-          return;
-        }
-        setFollowerCount(count ?? 0);
-      });
-  }, [userId]);
+  const { data: followerCount = 0 } = useQuery<number>({
+    queryKey: ['followerCount', userId],
+    queryFn: () => fetchFollowerCount(userId),
+    enabled: userId !== '',
+  });
 
   return followerCount;
 };

@@ -327,8 +327,18 @@
 .ifridge .product.status-disliked .p-status { display: flex; background: var(--warn); }
 .ifridge .product.selected .p-status { display: none; }
 
+/* Invisible full-viewport backdrop that closes the popover on outside click */
+.popover-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 9998;
+}
+
 /* Status popover (position: fixed — escapes overflow:hidden) */
 .p-popover {
+  position: fixed;
+  width: 180px; /* matches POPOVER_W constant */
+  z-index: 9999;
   background: #fff;
   border: 1.5px solid var(--border);
   border-radius: 10px;

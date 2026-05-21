@@ -366,7 +366,7 @@ export const FridgeScreen = ({ fridge, addFridgeItem, removeFridgeItem, removePr
               <>В новия таб на браузъра постави текста (Ctrl+V) в Google Translate, изчакай превода, и го копирай (най-отдолу има иконка с документи отляво до буквата „G").</>,
               <>Върни се тук и натисни <strong>„Запази превод"</strong>, след което попълни преведените полета.</>,
             ] as React.ReactNode[]).map((step, i) => (
-              <div key={i} className="tip-row">
+              <div key={`tip-${i + 1}`} className="tip-row">
                 <span className="tip-num">{String(i + 1).padStart(2, '0')}</span>
                 <span className="tip-text">{step}</span>
               </div>
@@ -477,7 +477,7 @@ export const FridgeScreen = ({ fridge, addFridgeItem, removeFridgeItem, removePr
                       {isEnglish ? 'Steps:' : 'Стъпки:'}
                     </div>
                     {displaySteps.map((s, i) => (
-                      <div key={i} className="step-item">
+                      <div key={`${i}-${s.slice(0, 12)}`} className="step-item">
                         {i + 1}. {s}
                       </div>
                     ))}

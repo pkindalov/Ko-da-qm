@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { renderHook, act } from '@testing-library/react';
+import { renderHook, act, waitFor } from '@testing-library/react';
 import { useFeedRecipes } from './useFeedRecipes';
+import { createQueryWrapper } from '../../../test/queryWrapper';
 
 const { mockFrom, mockSelect, mockIn, mockEq, mockOrder, mockLimit } = vi.hoisted(() => {
   const mockLimit = vi.fn();
@@ -48,7 +49,7 @@ describe('useFeedRecipes', () => {
   });
 
   it('returns empty recipes and stops loading when followingIds is empty', async () => {
-    const { result } = renderHook(() => useFeedRecipes([]));
+    const { result } = renderHook(() => useFeedRecipes([]), { wrapper: createQueryWrapper() });
     await act(async () => {});
 
     expect(result.current.recipes).toEqual([]);
@@ -59,8 +60,8 @@ describe('useFeedRecipes', () => {
   it('fetches public recipes from followed users and maps them', async () => {
     mockLimit.mockResolvedValue({ data: [makeDbRow()], error: null });
 
-    const { result } = renderHook(() => useFeedRecipes(['u2']));
-    await act(async () => {});
+    const { result } = renderHook(() => useFeedRecipes(['u2']), { wrapper: createQueryWrapper() });
+    await waitFor(() => expect(result.current.loading).toBe(false));
 
     expect(mockFrom).toHaveBeenCalledWith('recipes');
     expect(mockIn).toHaveBeenCalledWith('user_id', ['u2']);
@@ -77,7 +78,7 @@ describe('useFeedRecipes', () => {
   it('selects only required fields – no wildcard', async () => {
     mockLimit.mockResolvedValue({ data: [], error: null });
 
-    renderHook(() => useFeedRecipes(['u2']));
+    renderHook(() => useFeedRecipes(['u2']), { wrapper: createQueryWrapper() });
     await act(async () => {});
 
     expect(mockSelect).toHaveBeenCalledWith(
@@ -88,7 +89,7 @@ describe('useFeedRecipes', () => {
   it('orders by created_at descending', async () => {
     mockLimit.mockResolvedValue({ data: [], error: null });
 
-    renderHook(() => useFeedRecipes(['u2']));
+    renderHook(() => useFeedRecipes(['u2']), { wrapper: createQueryWrapper() });
     await act(async () => {});
 
     expect(mockOrder).toHaveBeenCalledWith('created_at', { ascending: false });
@@ -97,22 +98,20 @@ describe('useFeedRecipes', () => {
   it('returns empty array when query returns null data', async () => {
     mockLimit.mockResolvedValue({ data: null, error: null });
 
-    const { result } = renderHook(() => useFeedRecipes(['u2']));
-    await act(async () => {});
+    const { result } = renderHook(() => useFeedRecipes(['u2']), { wrapper: createQueryWrapper() });
+    await waitFor(() => expect(result.current.loading).toBe(false));
 
     expect(result.current.recipes).toEqual([]);
-    expect(result.current.loading).toBe(false);
   });
 
   it('logs error and stops loading on DB error', async () => {
     mockLimit.mockResolvedValue({ data: null, error: { message: 'DB error' } });
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
-    const { result } = renderHook(() => useFeedRecipes(['u2']));
-    await act(async () => {});
+    const { result } = renderHook(() => useFeedRecipes(['u2']), { wrapper: createQueryWrapper() });
+    await waitFor(() => expect(result.current.loading).toBe(false));
 
     expect(result.current.recipes).toEqual([]);
-    expect(result.current.loading).toBe(false);
     expect(consoleSpy).toHaveBeenCalledWith('useFeedRecipes load error:', { message: 'DB error' });
     consoleSpy.mockRestore();
   });
@@ -120,14 +119,14 @@ describe('useFeedRecipes', () => {
   it('passes multiple following IDs to the query', async () => {
     mockLimit.mockResolvedValue({ data: [], error: null });
 
-    renderHook(() => useFeedRecipes(['u2', 'u3', 'u4']));
+    renderHook(() => useFeedRecipes(['u2', 'u3', 'u4']), { wrapper: createQueryWrapper() });
     await act(async () => {});
 
     expect(mockIn).toHaveBeenCalledWith('user_id', ['u2', 'u3', 'u4']);
   });
 
   it('stays loading and does not query when enabled is false', async () => {
-    const { result } = renderHook(() => useFeedRecipes(['u2'], false));
+    const { result } = renderHook(() => useFeedRecipes(['u2'], false), { wrapper: createQueryWrapper() });
     await act(async () => {});
 
     expect(result.current.loading).toBe(true);
@@ -138,12 +137,12 @@ describe('useFeedRecipes', () => {
   it('does not query when followingIds transitions from non-empty to empty', async () => {
     mockLimit.mockResolvedValue({ data: [makeDbRow()], error: null });
 
+    const wrapper = createQueryWrapper();
     const { result, rerender } = renderHook(
       ({ ids }: { ids: string[] }) => useFeedRecipes(ids),
-      { initialProps: { ids: ['u2'] } },
+      { initialProps: { ids: ['u2'] }, wrapper },
     );
-    await act(async () => {});
-    expect(result.current.recipes).toHaveLength(1);
+    await waitFor(() => expect(result.current.recipes).toHaveLength(1));
 
     mockFrom.mockClear();
     rerender({ ids: [] });
@@ -156,16 +155,16 @@ describe('useFeedRecipes', () => {
   it('clears stale recipes when a re-fetch returns null data', async () => {
     mockLimit.mockResolvedValueOnce({ data: [makeDbRow()], error: null });
 
+    const wrapper = createQueryWrapper();
     const { result, rerender } = renderHook(
       ({ ids }: { ids: string[] }) => useFeedRecipes(ids),
-      { initialProps: { ids: ['u2'] } },
+      { initialProps: { ids: ['u2'] }, wrapper },
     );
-    await act(async () => {});
-    expect(result.current.recipes).toHaveLength(1);
+    await waitFor(() => expect(result.current.recipes).toHaveLength(1));
 
     mockLimit.mockResolvedValueOnce({ data: null, error: null });
     rerender({ ids: ['u2', 'u3'] });
-    await act(async () => {});
+    await waitFor(() => expect(result.current.loading).toBe(false));
 
     expect(result.current.recipes).toEqual([]);
   });

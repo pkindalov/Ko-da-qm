@@ -17,6 +17,7 @@ import { useFavorites } from '../features/recipes/hooks/useFavorites';
 import { useRecipeFavoriteCounts } from '../features/userProfile/hooks/useRecipeFavoriteCounts';
 import { useNotifications } from '../features/notifications/hooks/useNotifications';
 import { NotificationBell } from '../features/notifications/components/NotificationBell';
+import { ErrorBoundary } from '../shared/components/ErrorBoundary';
 import { DEFAULT_TWEAKS } from '../shared/constants/defaults';
 import { supabase } from '../lib/supabase';
 import type { Tab } from '../shared/types';
@@ -71,8 +72,8 @@ export const AppShell = () => {
   };
 
   const screens: Record<Tab, React.ReactNode> = {
-    feed: <FeedScreen lang={tweaks.lang} allergies={profile.allergies} dislikes={profile.dislikes} />,
-    home: <HomeScreen
+    feed: <ErrorBoundary><FeedScreen lang={tweaks.lang} allergies={profile.allergies} dislikes={profile.dislikes} /></ErrorBoundary>,
+    home: <ErrorBoundary><HomeScreen
       profile={profile}
       recipes={recipes}
       fridge={fridge}
@@ -94,11 +95,11 @@ export const AppShell = () => {
       onUpdateProductStatus={(productId, status) => setProducts(products.map(p => p.id === productId ? { ...p, status } : p))}
       communityFavoriteCounts={communityFavoriteCounts}
       onNavigateToUser={(userId) => navigate(`/user/${userId}`)}
-    />,
-    fridge: <FridgeScreen fridge={fridge} addFridgeItem={addFridgeItem} removeFridgeItem={removeFridgeItem} removeProduct={removeProduct} addProduct={addProduct} addRecipe={addRecipe} removeRecipe={removeRecipe} updateRecipe={updateRecipe} profile={profile} recipes={recipes} products={products} lang={tweaks.lang} />,
-    recipes: <RecipesScreen recipes={recipes} addRecipe={addRecipe} removeRecipe={removeRecipe} updateRecipe={updateRecipe} favoriteRecipes={favoriteRecipes} favoriteIds={favoriteIds} onToggleFavorite={toggleFavorite} products={products} profile={profile} lang={tweaks.lang} userEmail={userEmail} openRecipeId={pendingOpenRecipeId} onRecipeOpened={handleRecipeOpened} />,
-    products: <ProductsScreen products={products} setProducts={setProducts} addProduct={addProduct} lang={tweaks.lang} />,
-    profile: <ProfileScreen profile={profile} setProfile={setProfile} products={products} lang={tweaks.lang} onLogout={handleLogout} onTweaksToggle={() => setTweaksOpen((o) => !o)} onNavigateToProducts={() => setTab('products')} onViewPublicProfile={userId ? () => navigate(`/user/${userId}`) : undefined} />,
+    /></ErrorBoundary>,
+    fridge: <ErrorBoundary><FridgeScreen fridge={fridge} addFridgeItem={addFridgeItem} removeFridgeItem={removeFridgeItem} removeProduct={removeProduct} addProduct={addProduct} addRecipe={addRecipe} removeRecipe={removeRecipe} updateRecipe={updateRecipe} profile={profile} recipes={recipes} products={products} lang={tweaks.lang} /></ErrorBoundary>,
+    recipes: <ErrorBoundary><RecipesScreen recipes={recipes} addRecipe={addRecipe} removeRecipe={removeRecipe} updateRecipe={updateRecipe} favoriteRecipes={favoriteRecipes} favoriteIds={favoriteIds} onToggleFavorite={toggleFavorite} products={products} profile={profile} lang={tweaks.lang} userEmail={userEmail} openRecipeId={pendingOpenRecipeId} onRecipeOpened={handleRecipeOpened} /></ErrorBoundary>,
+    products: <ErrorBoundary><ProductsScreen products={products} setProducts={setProducts} addProduct={addProduct} lang={tweaks.lang} /></ErrorBoundary>,
+    profile: <ErrorBoundary><ProfileScreen profile={profile} setProfile={setProfile} products={products} lang={tweaks.lang} onLogout={handleLogout} onTweaksToggle={() => setTweaksOpen((o) => !o)} onNavigateToProducts={() => setTab('products')} onViewPublicProfile={userId ? () => navigate(`/user/${userId}`) : undefined} /></ErrorBoundary>,
   };
 
   return (
