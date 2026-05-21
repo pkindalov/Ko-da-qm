@@ -61,7 +61,7 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: #fff;
+  background: var(--surface);
   border: 1.5px solid var(--border);
   padding: 6px 12px;
   border-radius: 999px;
@@ -73,12 +73,12 @@
   width: 7px; height: 7px;
   border-radius: 50%;
   background: var(--secondary);
-  box-shadow: 0 0 0 4px rgba(95,138,107,.18);
+  box-shadow: 0 0 0 4px color-mix(in oklch, var(--moss) 18%, transparent);
 }
 
 .ifridge .btn-door {
   background: var(--primary);
-  color: #fff;
+  color: var(--paper);
   border: none;
   border-radius: 999px;
   padding: 8px 16px;
@@ -88,7 +88,7 @@
   cursor: pointer;
   transition: background .15s;
 }
-.ifridge .btn-door:hover { background: #a8512c; }
+.ifridge .btn-door:hover { background: var(--clay-deep); }
 
 /* Perspective scene */
 .ifridge .scene {
@@ -289,13 +289,13 @@
   height: 16px;
   border-radius: 50%;
   background: var(--primary);
-  color: #fff;
+  color: var(--surface);
   display: none;
   align-items: center;
   justify-content: center;
   font-size: 9px;
   font-weight: 900;
-  border: 2px solid #fff;
+  border: 2px solid var(--surface);
   pointer-events: none;
 }
 
@@ -314,13 +314,13 @@
   top: -7px; left: -7px;
   width: 16px; height: 16px;
   border-radius: 50%;
-  color: #fff;
+  color: var(--surface);
   display: none;
   align-items: center;
   justify-content: center;
   font-size: 9px;
   font-weight: 900;
-  border: 2px solid #fff;
+  border: 2px solid var(--surface);
   cursor: pointer;
 }
 .ifridge .product.status-allergic .p-status { display: flex; background: var(--danger); }
@@ -339,7 +339,7 @@
   position: fixed;
   width: 180px; /* matches POPOVER_W constant */
   z-index: 9999;
-  background: #fff;
+  background: var(--surface);
   border: 1.5px solid var(--border);
   border-radius: 10px;
   padding: 10px 12px;
@@ -349,8 +349,8 @@
   gap: 2px;
   pointer-events: auto;
 }
-.p-popover-allergic { border-color: rgba(220,38,38,.35); }
-.p-popover-disliked  { border-color: rgba(217,119,6,.35); }
+.p-popover-allergic { border-color: color-mix(in oklch, var(--rust) 35%, transparent); }
+.p-popover-disliked  { border-color: color-mix(in oklch, var(--amber) 35%, transparent); }
 .p-popover-name {
   font-size: 13px;
   font-weight: 800;
@@ -372,8 +372,8 @@
   line-height: 1.4;
 }
 
-.ifridge .product.status-allergic { border-color: rgba(220, 38, 38, 0.45); }
-.ifridge .product.status-disliked { border-color: rgba(217, 119, 6, 0.4); }
+.ifridge .product.status-allergic { border-color: color-mix(in oklch, var(--rust) 45%, transparent); }
+.ifridge .product.status-disliked { border-color: color-mix(in oklch, var(--amber) 40%, transparent); }
 
 /* Remove button (hover-revealed) */
 .ifridge .product .p-rm {
@@ -382,7 +382,7 @@
   width: 18px; height: 18px;
   border-radius: 50%;
   background: var(--danger);
-  color: #fff;
+  color: var(--surface);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -391,7 +391,7 @@
   opacity: 0;
   pointer-events: none;
   transition: opacity .15s;
-  border: 2px solid #fff;
+  border: 2px solid var(--surface);
   cursor: pointer;
   padding: 0;
   line-height: 1;
@@ -604,7 +604,7 @@
 }
 .ifridge .tap-hint .pill {
   background: rgba(44,24,16,.85);
-  color: #fff;
+  color: var(--paper);
   font-size: 12px;
   font-weight: 800;
   letter-spacing: .4px;
