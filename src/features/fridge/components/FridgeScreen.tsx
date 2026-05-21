@@ -454,7 +454,7 @@ export const FridgeScreen = ({ fridge, addFridgeItem, removeFridgeItem, removePr
                     ⏱ {suggestion.time} {isEnglish ? 'min' : 'мин'} · {displayIngredients.slice(0, 3).join(', ')}{displayIngredients.length > 3 ? '...' : ''}
                   </div>
                   <div className="suggestion-ings">
-                    {suggestion.requiredIngredients.map((ing) => {
+                    {suggestion.requiredIngredients.map((ing, ingIndex) => {
                       const ingLow = ing.toLowerCase();
                       const inFridge = safeFridge.some((fridgeItem) => {
                         const fLow = fridgeItem.name.toLowerCase();
@@ -464,7 +464,7 @@ export const FridgeScreen = ({ fridge, addFridgeItem, removeFridgeItem, removePr
                       });
                       return (
                         <span
-                          key={ing}
+                          key={`ing-${ingIndex}`}
                           className={`badge ${inFridge ? 'badge-in-fridge' : 'badge-missing'}`}
                         >
                           {inFridge ? '✓' : '+'} {ing}
@@ -477,7 +477,7 @@ export const FridgeScreen = ({ fridge, addFridgeItem, removeFridgeItem, removePr
                       {isEnglish ? 'Steps:' : 'Стъпки:'}
                     </div>
                     {displaySteps.map((step, stepIndex) => (
-                      <div key={step} className="step-item">
+                      <div key={`step-${stepIndex}`} className="step-item">
                         {stepIndex + 1}. {step}
                       </div>
                     ))}
