@@ -58,17 +58,22 @@ export const getNotificationMessage = (
   return `${beforeActor}${name}${betweenActorEntity}${entityKeyword}${afterEntity}`;
 };
 
+const MS_PER_SECOND = 1000;
+const SECONDS_PER_MINUTE = 60;
+const MINUTES_PER_HOUR = 60;
+const HOURS_PER_DAY = 24;
+
 export const formatTimeAgo = (dateStr: string, lang: Language): string => {
-  const seconds = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
+  const seconds = Math.floor((Date.now() - new Date(dateStr).getTime()) / MS_PER_SECOND);
 
-  if (seconds < 60) return lang === 'en' ? 'just now' : 'сега';
+  if (seconds < SECONDS_PER_MINUTE) return lang === 'en' ? 'just now' : 'сега';
 
-  const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) return lang === 'en' ? `${minutes}m ago` : `преди ${minutes}м`;
+  const minutes = Math.floor(seconds / SECONDS_PER_MINUTE);
+  if (minutes < MINUTES_PER_HOUR) return lang === 'en' ? `${minutes}m ago` : `преди ${minutes}м`;
 
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return lang === 'en' ? `${hours}h ago` : `преди ${hours}ч`;
+  const hours = Math.floor(minutes / MINUTES_PER_HOUR);
+  if (hours < HOURS_PER_DAY) return lang === 'en' ? `${hours}h ago` : `преди ${hours}ч`;
 
-  const days = Math.floor(hours / 24);
+  const days = Math.floor(hours / HOURS_PER_DAY);
   return lang === 'en' ? `${days}d ago` : `преди ${days}д`;
 };

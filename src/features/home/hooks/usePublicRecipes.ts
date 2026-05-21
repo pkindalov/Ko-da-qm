@@ -3,6 +3,8 @@ import { supabase } from '../../../lib/supabase';
 import { mapRecipeRow } from '../../../shared/utils/mapRecipeRow';
 import type { Recipe } from '../../../shared/types';
 
+const PUBLIC_RECIPES_LIMIT = 20;
+
 const fetchPublicRecipes = async (): Promise<Recipe[]> => {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return [];
@@ -13,7 +15,7 @@ const fetchPublicRecipes = async (): Promise<Recipe[]> => {
     .eq('is_public', true)
     .neq('user_id', user.id)
     .order('created_at', { ascending: false })
-    .limit(20);
+    .limit(PUBLIC_RECIPES_LIMIT);
 
   return data?.map(mapRecipeRow) ?? [];
 };
