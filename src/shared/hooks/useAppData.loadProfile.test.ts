@@ -28,7 +28,7 @@ vi.mock('../../lib/supabase', () => ({
   },
 }));
 
-function makeFromChain(profileData: object | null) {
+const makeFromChain = (profileData: object | null) => {
   mockSingle.mockResolvedValue({ data: profileData, error: null });
   mockEq.mockReturnValue({ single: mockSingle });
   mockSelect.mockReturnValue({ eq: mockEq });

@@ -11,6 +11,5 @@ export const recipeRisk = (recipe: Recipe, allergies: string[], dislikes: string
   return 'safe';
 };
 
-export function isSafe(recipe: Recipe, blocked: string[]): boolean {
-  return !recipe.requiredIngredients?.some((i) => matchesAny(i, blocked));
-}
+export const isSafe = (recipe: Recipe, blocked: string[]): boolean =>
+  !recipe.requiredIngredients?.some((i) => matchesAny(i, blocked));

@@ -32,7 +32,7 @@ type DbRow = {
   is_ai: boolean;
 };
 
-function toMatched(row: DbRow, fridgeLow: string[], blocked: string[]): MatchedRecipe | null {
+const toMatched = (row: DbRow, fridgeLow: string[], blocked: string[]): MatchedRecipe | null => {
   const isBlocked = (i: string) => blocked.some((b) => i.toLowerCase().includes(b.toLowerCase()));
   if (row.required_ingredients.some(isBlocked)) return null;
 
@@ -58,9 +58,9 @@ function toMatched(row: DbRow, fridgeLow: string[], blocked: string[]): MatchedR
     matchScore,
     matchedCount,
   };
-}
+};
 
-export async function matchFromFridge(fridgeItems: FridgeItem[], blocked: string[], excludeIds: string[] = []): Promise<MatchedRecipe[]> {
+export const matchFromFridge = async (fridgeItems: FridgeItem[], blocked: string[], excludeIds: string[] = []): Promise<MatchedRecipe[]> => {
   const { data, error } = await supabase.from('recipe_database').select('id, name, name_en, emoji, image_url, ingredients, steps, time, tags, required_ingredients, is_ai');
   if (error || !data) return [];
 
@@ -70,9 +70,9 @@ export async function matchFromFridge(fridgeItems: FridgeItem[], blocked: string
     .map((r) => toMatched(r, fridgeLow, blocked))
     .filter((r): r is MatchedRecipe => r !== null && r.matchScore > 0 && !excludeIds.includes(r.id))
     .sort((a, b) => b.matchScore - a.matchScore);
-}
+};
 
-export async function searchDatabase(query: string, blocked: string[]): Promise<MatchedRecipe[]> {
+export const searchDatabase = async (query: string, blocked: string[]): Promise<MatchedRecipe[]> => {
   const normalizedQuery = query.toLowerCase().trim();
   if (!normalizedQuery) return [];
 
@@ -97,4 +97,4 @@ export async function searchDatabase(query: string, blocked: string[]): Promise<
     ...filterAndMap((dbResult.data ?? []) as DbRow[], false),
     ...filterAndMap((userResult.data ?? []) as DbRow[], true),
   ];
-}
+};

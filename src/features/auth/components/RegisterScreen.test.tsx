@@ -23,19 +23,19 @@ const renderRegister = async () => {
   await screen.findByPlaceholderText('Иван Иванов');
 };
 
-async function fillForm(
+const fillForm = async (
   user: ReturnType<typeof userEvent.setup>,
   name: string,
   email: string,
   password: string,
   confirm: string,
-) {
+) => {
   await user.type(screen.getByPlaceholderText('Иван Иванов'), name);
   await user.type(screen.getByPlaceholderText('you@example.com'), email);
   const passwordFields = screen.getAllByPlaceholderText('••••••••');
   await user.type(passwordFields[0], password);
   await user.type(passwordFields[1], confirm);
-}
+};
 
 describe('RegisterScreen', () => {
   beforeEach(() => {

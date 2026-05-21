@@ -49,7 +49,7 @@ const makeRecipe = (overrides = {}) => ({
   ...overrides,
 });
 
-function setupLoadAllMocks(profileData: object | null = { name: 'Alice', allergies: [], dislikes: [], dietary_prefs: [] }) {
+const setupLoadAllMocks = (profileData: object | null = { name: 'Alice', allergies: [], dislikes: [], dietary_prefs: [] }) => {
   mockGetUser.mockResolvedValue({ data: { user: { id: 'user-1', user_metadata: {} } } });
   mockFrom.mockImplementation((table: string) => {
     if (table === 'users') {

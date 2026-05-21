@@ -2,6 +2,9 @@ import type { FridgeItem } from '../../../shared/types';
 import type { MatchedRecipe } from './matchFromFridge';
 
 const BASE = 'https://www.themealdb.com/api/json/v1/1';
+const MEAL_DB_MAX_INGREDIENTS = 20;
+const MAX_SEARCH_RESULTS = 8;
+const DEFAULT_ESTIMATED_TIME_MIN = 30;
 
 const CATEGORY_EMOJI: Record<string, string> = {
   Beef: '🥩', Chicken: '🍗', Seafood: '🐟', Vegetarian: '🥗',
@@ -67,15 +70,15 @@ const BG_TO_EN: Record<string, string> = {
   'черен пипер': 'pepper',
 };
 
-export function toEnglish(name: string): string {
+export const toEnglish = (name: string): string => {
   const lower = name.toLowerCase().trim();
   return BG_TO_EN[lower] ?? lower;
-}
+};
 
 interface FilterMeal { idMeal: string; strMeal: string }
 interface DetailMeal { idMeal: string; strMeal: string; strCategory: string; strArea: string; strInstructions: string; strTags: string | null; strMealThumb: string | null; [key: string]: string | null }
 
-async function filterByIngredient(ingredient: string): Promise<string[]> {
+const filterByIngredient = async (ingredient: string): Promise<string[]> => {
   try {
     const res = await fetch(`${BASE}/filter.php?i=${encodeURIComponent(ingredient)}`);
     const data = await res.json() as { meals: FilterMeal[] | null };
@@ -83,9 +86,9 @@ async function filterByIngredient(ingredient: string): Promise<string[]> {
   } catch {
     return [];
   }
-}
+};
 
-async function fetchDetail(id: string): Promise<DetailMeal | null> {
+const fetchDetail = async (id: string): Promise<DetailMeal | null> => {
   try {
     const res = await fetch(`${BASE}/lookup.php?i=${id}`);
     const data = await res.json() as { meals: DetailMeal[] | null };
@@ -93,14 +96,14 @@ async function fetchDetail(id: string): Promise<DetailMeal | null> {
   } catch {
     return null;
   }
-}
+};
 
-function mealToMatchedRecipe(meal: DetailMeal, matchedCount: number, totalFridgeItems: number): MatchedRecipe {
+const mealToMatchedRecipe = (meal: DetailMeal, matchedCount: number, totalFridgeItems: number): MatchedRecipe => {
   const ingredients: string[] = [];
   const requiredIngredients: string[] = [];
   const seen = new Set<string>();
 
-  for (let i = 1; i <= 20; i++) {
+  for (let i = 1; i <= MEAL_DB_MAX_INGREDIENTS; i++) {
     const ing = meal[`strIngredient${i}`];
     const measure = meal[`strMeasure${i}`];
     if (!ing?.trim()) break;
@@ -126,7 +129,7 @@ function mealToMatchedRecipe(meal: DetailMeal, matchedCount: number, totalFridge
     imageUrl: meal.strMealThumb ?? undefined,
     ingredients,
     steps,
-    time: 30,
+    time: DEFAULT_ESTIMATED_TIME_MIN,
     tags,
     requiredIngredients,
     isAI: false,
@@ -134,9 +137,9 @@ function mealToMatchedRecipe(meal: DetailMeal, matchedCount: number, totalFridge
     matchedCount,
     matchScore: matchedCount / totalFridgeItems,
   };
-}
+};
 
-export async function searchByFridge(fridgeItems: FridgeItem[], blocked: string[], excludeIds: string[] = []): Promise<MatchedRecipe[]> {
+export const searchByFridge = async (fridgeItems: FridgeItem[], blocked: string[], excludeIds: string[] = []): Promise<MatchedRecipe[]> => {
   if (fridgeItems.length === 0) return [];
 
   const englishNames = fridgeItems.map((f) => toEnglish(f.name));
@@ -152,11 +155,11 @@ export async function searchByFridge(fridgeItems: FridgeItem[], blocked: string[
     }
   }
 
-  // Take top 8 by match count, skipping already-seen IDs
+  // Take top results by match count, skipping already-seen IDs
   const topIds = Object.entries(idCount)
     .sort((a, b) => b[1] - a[1])
     .filter(([id]) => !excludeIds.includes(id))
-    .slice(0, 8)
+    .slice(0, MAX_SEARCH_RESULTS)
     .map(([id]) => id);
 
   if (topIds.length === 0) return [];
@@ -171,4 +174,4 @@ export async function searchByFridge(fridgeItems: FridgeItem[], blocked: string[
     .map((m) => mealToMatchedRecipe(m, idCount[m.idMeal], fridgeItems.length))
     .filter((r) => !r.requiredIngredients.some(isBlocked))
     .sort((a, b) => b.matchedCount - a.matchedCount);
-}
+};

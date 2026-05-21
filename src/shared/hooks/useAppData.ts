@@ -4,7 +4,7 @@ import { supabase } from '../../lib/supabase';
 import { DEFAULT_PROFILE, DEFAULT_FRIDGE, DEFAULT_RECIPES, DEFAULT_PRODUCTS } from '../constants/defaults';
 import type { Profile, FridgeItem, Recipe, Product, Language } from '../types';
 
-export function useAppData(lang: Language = 'bg') {
+export const useAppData = (lang: Language = 'bg') => {
   const langRef = useRef(lang);
   useEffect(() => { langRef.current = lang; }, [lang]);
 
@@ -18,11 +18,7 @@ export function useAppData(lang: Language = 'bg') {
   const [recipes, setRecipesState] = useState<Recipe[]>(DEFAULT_RECIPES);
   const [products, setProductsState] = useState<Product[]>(DEFAULT_PRODUCTS);
 
-  useEffect(() => {
-    loadAll();
-  }, []);
-
-  async function loadAll() {
+  const loadAll = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { setLoading(false); return; }
     setUserId(user.id);
@@ -105,7 +101,11 @@ export function useAppData(lang: Language = 'bg') {
     }
 
     setLoading(false);
-  }
+  };
+
+  useEffect(() => {
+    loadAll();
+  }, []);
 
   const setProfile = useCallback(async (next: Profile) => {
     setProfileState(next);
