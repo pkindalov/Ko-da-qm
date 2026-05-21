@@ -3,6 +3,8 @@ import type { FridgeItem, Language } from '../../../shared/types';
 import type { MatchedRecipe } from './matchFromFridge';
 import { toEnglish } from './searchTheMealDB';
 
+const DEFAULT_RECIPE_TIME_MIN = 30;
+
 interface GeminiRecipe {
   name: string;
   nameEn?: string;
@@ -36,7 +38,7 @@ const toMatchedRecipe = (recipe: GeminiRecipe, index: number, fridgeItems: Fridg
     emoji: recipe.emoji ?? '🍽',
     ingredients,
     steps,
-    time: recipe.time ?? 30,
+    time: recipe.time ?? DEFAULT_RECIPE_TIME_MIN,
     tags: recipe.tags ?? [],
     requiredIngredients,
     isAI: true,

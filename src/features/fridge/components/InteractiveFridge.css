@@ -337,6 +337,8 @@
 /* Status popover (position: fixed — escapes overflow:hidden) */
 .p-popover {
   position: fixed;
+  top: var(--p-top);
+  left: var(--p-left);
   width: 180px; /* matches POPOVER_W constant */
   z-index: 9999;
   background: var(--surface);

@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 
-export function useLocalStorage<T>(key: string, defaultValue: T): [T, (value: T) => void] {
+export const useLocalStorage = <T,>(key: string, defaultValue: T): [T, (value: T) => void] => {
   const [value, setValue] = useState<T>(() => {
     try {
       const stored = localStorage.getItem(key);

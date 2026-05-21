@@ -23,6 +23,10 @@ const SHELF_ORDER: FridgeItemCategory[] = [
 
 const POPOVER_W = 180;
 const POPOVER_H_EST = 72;
+const POPOVER_GAP = 8;
+const POPOVER_FLIP_CLEARANCE = 12;
+const FALLBACK_VIEWPORT_WIDTH = 800;
+const FALLBACK_VIEWPORT_HEIGHT = 600;
 
 interface PopoverState {
   id: string;
@@ -162,14 +166,14 @@ export const InteractiveFridge = ({ items, onRemove, onAddSlot, lang, selectedId
 
   const popover = (() => {
     if (!activePopover) return null;
-    const viewportWidth = window.innerWidth || 800;
-    const viewportHeight = window.innerHeight || 600;
+    const viewportWidth = window.innerWidth || FALLBACK_VIEWPORT_WIDTH;
+    const viewportHeight = window.innerHeight || FALLBACK_VIEWPORT_HEIGHT;
     const midX = activePopover.badgeLeft + activePopover.badgeWidth / 2;
-    const showAbove = viewportHeight - activePopover.badgeBottom < POPOVER_H_EST + 12;
+    const showAbove = viewportHeight - activePopover.badgeBottom < POPOVER_H_EST + POPOVER_FLIP_CLEARANCE;
     const top = showAbove
-      ? activePopover.badgeTop - POPOVER_H_EST - 8
-      : activePopover.badgeBottom + 8;
-    const left = Math.max(8, Math.min(midX - POPOVER_W / 2, viewportWidth - POPOVER_W - 8));
+      ? activePopover.badgeTop - POPOVER_H_EST - POPOVER_GAP
+      : activePopover.badgeBottom + POPOVER_GAP;
+    const left = Math.max(POPOVER_GAP, Math.min(midX - POPOVER_W / 2, viewportWidth - POPOVER_W - POPOVER_GAP));
     const statusLabel = activePopover.status === 'allergic'
       ? (isEnglish ? 'Allergic' : 'Алергичен')
       : (isEnglish ? 'Disliked' : 'Нехаресван');
@@ -187,8 +191,13 @@ export const InteractiveFridge = ({ items, onRemove, onAddSlot, lang, selectedId
           aria-hidden="true"
         />
         <div
+          ref={(el) => {
+            if (el) {
+              el.style.setProperty('--p-top', `${top}px`);
+              el.style.setProperty('--p-left', `${left}px`);
+            }
+          }}
           className={`p-popover p-popover-${activePopover.status}`}
-          style={{ top, left }}
           role="tooltip"
         >
           <span className="p-popover-name">{activePopover.name}</span>

@@ -10,12 +10,13 @@ import { ErrorBoundary } from './shared/components/ErrorBoundary';
 import './shared/styles/globals.css';
 
 const queryClient = new QueryClient();
+const TOAST_DURATION_MS = 3000;
 
 export const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
-        <Toaster position="top-center" richColors closeButton duration={3000} />
+        <Toaster position="top-center" richColors closeButton duration={TOAST_DURATION_MS} />
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<LoginScreen />} />
