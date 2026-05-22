@@ -1,15 +1,16 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, lazy, Suspense } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Sidebar } from './layout/Sidebar';
 import { BottomNav } from './layout/BottomNav';
 import { TweaksPanel } from './layout/TweaksPanel';
-import { HomeScreen } from '../features/home/components/HomeScreen';
-import { FeedScreen } from '../features/feed/components/FeedScreen';
-import { FridgeScreen } from '../features/fridge/components/FridgeScreen';
-import { RecipesScreen } from '../features/recipes/components/RecipesScreen';
-import { ProductsScreen } from '../features/products/components/ProductsScreen';
-import { ProfileScreen } from '../features/profile/components/ProfileScreen';
+
+const HomeScreen = lazy(() => import('../features/home/components/HomeScreen').then(m => ({ default: m.HomeScreen })));
+const FeedScreen = lazy(() => import('../features/feed/components/FeedScreen').then(m => ({ default: m.FeedScreen })));
+const FridgeScreen = lazy(() => import('../features/fridge/components/FridgeScreen').then(m => ({ default: m.FridgeScreen })));
+const RecipesScreen = lazy(() => import('../features/recipes/components/RecipesScreen').then(m => ({ default: m.RecipesScreen })));
+const ProductsScreen = lazy(() => import('../features/products/components/ProductsScreen').then(m => ({ default: m.ProductsScreen })));
+const ProfileScreen = lazy(() => import('../features/profile/components/ProfileScreen').then(m => ({ default: m.ProfileScreen })));
 import { useLocalStorage } from '../shared/hooks/useLocalStorage';
 import { useAppData } from '../shared/hooks/useAppData';
 import { usePublicRecipes } from '../features/home/hooks/usePublicRecipes';
@@ -109,7 +110,7 @@ export const AppShell = () => {
         <div className="mobile-notif-bar">
           <NotificationBell notifications={notifications} unreadCount={unreadCount} onMarkAsRead={markAsRead} onMarkAllAsRead={markAllAsRead} onMarkAsUnread={markAsUnread} onMarkAllAsUnread={markAllAsUnread} onDeleteNotification={deleteNotification} onDeleteAll={deleteAllNotifications} onEntityClick={handleEntityClick} lang={tweaks.lang} />
         </div>
-        {screens[tab]}
+        <Suspense fallback={null}>{screens[tab]}</Suspense>
       </main>
       <BottomNav tab={tab} setTab={setTab} lang={tweaks.lang} />
       <TweaksPanel open={tweaksOpen} tweaks={tweaks} setTweaks={setTweaks} onClose={() => setTweaksOpen(false)} />

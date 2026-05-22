@@ -9,7 +9,14 @@ import { UserProfilePage } from './features/userProfile/components/UserProfilePa
 import { ErrorBoundary } from './shared/components/ErrorBoundary';
 import './shared/styles/globals.css';
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 60_000,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 const TOAST_DURATION_MS = 3000;
 
 export const App = () => {
