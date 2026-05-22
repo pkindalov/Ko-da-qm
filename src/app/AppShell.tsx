@@ -29,7 +29,7 @@ export const AppShell = () => {
   const { publicRecipes } = usePublicRecipes();
   const { favoriteIds, favoriteRecipes, toggleFavorite } = useFavorites(tweaks.lang);
   const navigate = useNavigate();
-  const publicRecipeIds = useMemo(() => publicRecipes.map((r) => r.id), [publicRecipes]);
+  const publicRecipeIds = useMemo(() => publicRecipes.map((recipe) => recipe.id), [publicRecipes]);
   const communityFavoriteCounts = useRecipeFavoriteCounts(publicRecipeIds);
   const { notifications, unreadCount, markAsRead, markAllAsRead, markAsUnread, markAllAsUnread, deleteNotification, deleteAllNotifications } = useNotifications(tweaks.lang);
   const [tweaksOpen, setTweaksOpen] = useState(false);

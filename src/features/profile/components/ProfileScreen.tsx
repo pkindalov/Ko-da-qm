@@ -136,7 +136,7 @@ export const ProfileScreen = ({ profile, setProfile, products, lang, onLogout, o
                   setProfile({
                     ...profile,
                     dietaryPrefs: sel
-                      ? profile.dietaryPrefs.filter((p) => p !== id)
+                      ? profile.dietaryPrefs.filter((pref) => pref !== id)
                       : [...profile.dietaryPrefs, id],
                   })
                 }

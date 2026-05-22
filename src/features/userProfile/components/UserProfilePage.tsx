@@ -22,7 +22,7 @@ export const UserProfilePage = () => {
 
   const { userName, recipes, loading } = useUserProfile(userId);
   const { favoriteIds, toggleFavorite } = useFavorites();
-  const recipeIds = useMemo(() => recipes.map((r) => r.id), [recipes]);
+  const recipeIds = useMemo(() => recipes.map((recipe) => recipe.id), [recipes]);
   const favoriteCounts = useRecipeFavoriteCounts(recipeIds);
   const { followingIds, currentUserId, toggleFollow } = useFollows(tweaks.lang);
   const followerCount = useFollowerCount(userId);
@@ -95,32 +95,32 @@ export const UserProfilePage = () => {
             />
           ) : (
             <div className="grid-3">
-              {recipes.map((r) => {
-                const name = recipeDisplayName(r, tweaks.lang);
-                const tag = r.tags?.[0] ?? (isEnglish ? 'recipe' : 'рецепта');
-                const count = favoriteCounts[r.id] ?? 0;
+              {recipes.map((recipe) => {
+                const name = recipeDisplayName(recipe, tweaks.lang);
+                const tag = recipe.tags?.[0] ?? (isEnglish ? 'recipe' : 'рецепта');
+                const count = favoriteCounts[recipe.id] ?? 0;
                 return (
-                  <div key={r.id} className="recipe-card" onClick={() => setSelectedRecipe(r)}>
+                  <div key={recipe.id} className="recipe-card" onClick={() => setSelectedRecipe(recipe)}>
                     <div className="recipe-image">
                       <div className="recipe-image-stripes" />
-                      {r.imageUrl
-                        ? <img src={r.imageUrl} alt={name} className="recipe-card-img" />
-                        : <div className="recipe-image-emoji">{r.emoji}</div>
+                      {recipe.imageUrl
+                        ? <img src={recipe.imageUrl} alt={name} className="recipe-card-img" />
+                        : <div className="recipe-image-emoji">{recipe.emoji}</div>
                       }
-                      <div className="recipe-image-label">{tag} · {r.time}min</div>
+                      <div className="recipe-image-label">{tag} · {recipe.time}min</div>
                       <button
                         className="btn-favorite"
-                        onClick={(e) => { e.stopPropagation(); toggleFavorite(r); }}
-                        aria-label={favoriteIds.includes(r.id) ? 'Remove from favorites' : 'Add to favorites'}
+                        onClick={(e) => { e.stopPropagation(); toggleFavorite(recipe); }}
+                        aria-label={favoriteIds.includes(recipe.id) ? 'Remove from favorites' : 'Add to favorites'}
                       >
-                        {favoriteIds.includes(r.id) ? '♥' : '♡'}
+                        {favoriteIds.includes(recipe.id) ? '♥' : '♡'}
                       </button>
                     </div>
                     <div className="recipe-body">
                       <div className="recipe-name italic">{name}</div>
-                      <div className="recipe-meta">{r.time} {isEnglish ? 'min' : 'мин'}</div>
+                      <div className="recipe-meta">{recipe.time} {isEnglish ? 'min' : 'мин'}</div>
                       <div className="recipe-tags">
-                        {r.isAI && <Badge type="primary">AI</Badge>}
+                        {recipe.isAI && <Badge type="primary">AI</Badge>}
                         {count > 0 && <span className="badge badge-neutral">♥ {count}</span>}
                       </div>
                     </div>

@@ -228,28 +228,28 @@ export const RecipesScreen = ({ recipes, addRecipe, removeRecipe, updateRecipe, 
               </div>
               {favoritesOpen && (
                 <div className="grid-3 mb-6">
-                  {favoriteRecipes.map((r) => {
-                    const risk = recipeRisk(r, allergies, dislikes);
-                    const name = recipeDisplayName(r, lang);
-                    const tag = r.tags?.[0] ?? (lang === 'en' ? 'recipe' : 'рецепта');
+                  {favoriteRecipes.map((recipe) => {
+                    const risk = recipeRisk(recipe, allergies, dislikes);
+                    const name = recipeDisplayName(recipe, lang);
+                    const tag = recipe.tags?.[0] ?? (lang === 'en' ? 'recipe' : 'рецепта');
                     return (
-                      <div key={r.id} className={`recipe-card${risk === 'allergy' ? ' allergy' : ''}`} onClick={() => setFavoriteDetail(r)}>
+                      <div key={recipe.id} className={`recipe-card${risk === 'allergy' ? ' allergy' : ''}`} onClick={() => setFavoriteDetail(recipe)}>
                         <div className="recipe-image">
                           <div className="recipe-image-stripes" />
-                          {r.imageUrl
-                            ? <img src={r.imageUrl} alt={name} className="recipe-card-img" />
-                            : <div className="recipe-image-emoji">{r.emoji}</div>}
-                          <div className="recipe-image-label">{tag} · {r.time}min</div>
+                          {recipe.imageUrl
+                            ? <img src={recipe.imageUrl} alt={name} className="recipe-card-img" />
+                            : <div className="recipe-image-emoji">{recipe.emoji}</div>}
+                          <div className="recipe-image-label">{tag} · {recipe.time}min</div>
                           <button
                             className="btn-favorite"
-                            onClick={(e) => { e.stopPropagation(); onToggleFavorite(r); }}
+                            onClick={(e) => { e.stopPropagation(); onToggleFavorite(recipe); }}
                             aria-label="Remove from favorites"
                           >♥</button>
                         </div>
                         <div className="recipe-body">
                           <div className="recipe-name italic">{name}</div>
-                          <div className="recipe-meta">⏱ {r.time} {lang === 'en' ? 'min' : 'мин'}</div>
-                          {r.authorName && <div className="recipe-meta">👤 {r.authorName}</div>}
+                          <div className="recipe-meta">⏱ {recipe.time} {lang === 'en' ? 'min' : 'мин'}</div>
+                          {recipe.authorName && <div className="recipe-meta">👤 {recipe.authorName}</div>}
                           <div className="recipe-tags">
                             {risk === 'safe'    && <Badge type="safe"><span className="dot dot-safe" /> {lang === 'en' ? 'safe' : 'безопасно'}</Badge>}
                             {risk === 'dislike' && <Badge type="dislike"><span className="dot dot-warn" /> {lang === 'en' ? 'check' : 'провери'}</Badge>}
@@ -273,23 +273,23 @@ export const RecipesScreen = ({ recipes, addRecipe, removeRecipe, updateRecipe, 
             />
           ) : (
             <div className="grid-3">
-              {filtered.map((r) => {
-                const risk = recipeRisk(r, allergies, dislikes);
-                const name = recipeDisplayName(r, lang);
-                const tag = r.tags?.[0] ?? (lang === 'en' ? 'recipe' : 'рецепта');
+              {filtered.map((recipe) => {
+                const risk = recipeRisk(recipe, allergies, dislikes);
+                const name = recipeDisplayName(recipe, lang);
+                const tag = recipe.tags?.[0] ?? (lang === 'en' ? 'recipe' : 'рецепта');
                 return (
-                  <div key={r.id} className={`recipe-card${risk === 'allergy' ? ' allergy' : ''}`} onClick={() => setDetail(r.id)}>
+                  <div key={recipe.id} className={`recipe-card${risk === 'allergy' ? ' allergy' : ''}`} onClick={() => setDetail(recipe.id)}>
                     <div className="recipe-image">
                       <div className="recipe-image-stripes" />
-                      {r.imageUrl
-                        ? <img src={r.imageUrl} alt={name} className="recipe-card-img" />
-                        : <div className="recipe-image-emoji">{r.emoji}</div>}
-                      <div className="recipe-image-label">{tag} · {r.time}min</div>
-                      {r.isAI && <span className="ai-badge"><Badge type="primary">✨ AI</Badge></span>}
+                      {recipe.imageUrl
+                        ? <img src={recipe.imageUrl} alt={name} className="recipe-card-img" />
+                        : <div className="recipe-image-emoji">{recipe.emoji}</div>}
+                      <div className="recipe-image-label">{tag} · {recipe.time}min</div>
+                      {recipe.isAI && <span className="ai-badge"><Badge type="primary">✨ AI</Badge></span>}
                     </div>
                     <div className="recipe-body">
                       <div className="recipe-name italic">{name}</div>
-                      <div className="recipe-meta">⏱ {r.time} {lang === 'en' ? 'min' : 'мин'}</div>
+                      <div className="recipe-meta">⏱ {recipe.time} {lang === 'en' ? 'min' : 'мин'}</div>
                       <div className="recipe-tags">
                         {risk === 'safe'    && <Badge type="safe"><span className="dot dot-safe" /> {lang === 'en' ? 'safe' : 'безопасно'}</Badge>}
                         {risk === 'dislike' && <Badge type="dislike"><span className="dot dot-warn" /> {lang === 'en' ? 'check' : 'провери'}</Badge>}
@@ -297,7 +297,7 @@ export const RecipesScreen = ({ recipes, addRecipe, removeRecipe, updateRecipe, 
                       </div>
                       <button
                         className="btn btn-danger btn-sm mt-2 btn-full"
-                        onClick={(e) => { e.stopPropagation(); setPendingDeleteId(r.id); }}
+                        onClick={(e) => { e.stopPropagation(); setPendingDeleteId(recipe.id); }}
                       >
                         🗑 {lang === 'en' ? 'Delete' : 'Изтрий'}
                       </button>
@@ -419,19 +419,19 @@ export const RecipesScreen = ({ recipes, addRecipe, removeRecipe, updateRecipe, 
               📖 {lang === 'en' ? 'My Recipes' : 'Моите рецепти'} ({myRecipeResults.length})
             </div>
             <div className="stack">
-              {myRecipeResults.slice(0, myPage * PAGE_SIZE).map((r) => (
-                <div key={r.id} className="card-sm">
+              {myRecipeResults.slice(0, myPage * PAGE_SIZE).map((recipe) => (
+                <div key={recipe.id} className="card-sm">
                   <div className="row-between mb-1">
                     <div className="row-sm">
-                      <span className="emoji-sm">{r.emoji}</span>
-                      <span className="recipe-card-name">{recipeDisplayName(r, lang)}</span>
+                      <span className="emoji-sm">{recipe.emoji}</span>
+                      <span className="recipe-card-name">{recipeDisplayName(recipe, lang)}</span>
                     </div>
-                    <span className="badge badge-neutral">⏱ {r.time} {lang === 'en' ? 'min' : 'мин'}</span>
+                    <span className="badge badge-neutral">⏱ {recipe.time} {lang === 'en' ? 'min' : 'мін'}</span>
                   </div>
                   <div className="recipe-card-meta mb-2">
-                    {r.ingredients.slice(0, 4).join(', ')}{r.ingredients.length > 4 ? '...' : ''}
+                    {recipe.ingredients.slice(0, 4).join(', ')}{recipe.ingredients.length > 4 ? '...' : ''}
                   </div>
-                  <button className="btn btn-secondary btn-sm" onClick={() => viewFromModal(r)}>
+                  <button className="btn btn-secondary btn-sm" onClick={() => viewFromModal(recipe)}>
                     👁 {lang === 'en' ? 'View' : 'Виж'}
                   </button>
                 </div>
@@ -451,26 +451,26 @@ export const RecipesScreen = ({ recipes, addRecipe, removeRecipe, updateRecipe, 
               🌐 {lang === 'en' ? 'From Database' : 'От базата данни'} ({dbResults.length})
             </div>
             <div className="stack">
-              {dbResults.slice(0, dbPage * PAGE_SIZE).map((r) => (
-                <div key={r.id} className="card-sm clickable" onClick={() => { closeDbModal(); setFavoriteDetail(r); }}>
+              {dbResults.slice(0, dbPage * PAGE_SIZE).map((recipe) => (
+                <div key={recipe.id} className="card-sm clickable" onClick={() => { closeDbModal(); setFavoriteDetail(recipe); }}>
                   <div className="row-between mb-1">
                     <div className="row-sm">
-                      <span className="emoji-sm">{r.emoji}</span>
-                      <span className="recipe-card-name">{r.name}</span>
+                      <span className="emoji-sm">{recipe.emoji}</span>
+                      <span className="recipe-card-name">{recipe.name}</span>
                     </div>
                     <div className="row-sm">
-                      <span className="badge badge-neutral">⏱ {r.time} мин</span>
+                      <span className="badge badge-neutral">⏱ {recipe.time} мин</span>
                       <button
                         className="btn-heart"
-                        onClick={(e) => { e.stopPropagation(); onToggleFavorite(r); }}
-                        aria-label={favoriteIds.includes(r.id) ? (lang === 'en' ? 'Remove from favorites' : 'Премахни от любими') : (lang === 'en' ? 'Add to favorites' : 'Добави в любими')}
+                        onClick={(e) => { e.stopPropagation(); onToggleFavorite(recipe); }}
+                        aria-label={favoriteIds.includes(recipe.id) ? (lang === 'en' ? 'Remove from favorites' : 'Премахни от любими') : (lang === 'en' ? 'Add to favorites' : 'Добави в любими')}
                       >
-                        {favoriteIds.includes(r.id) ? '♥' : '♡'}
+                        {favoriteIds.includes(recipe.id) ? '♥' : '♡'}
                       </button>
                     </div>
                   </div>
                   <div className="recipe-card-meta">
-                    {r.ingredients.slice(0, 4).join(', ')}{r.ingredients.length > 4 ? '...' : ''}
+                    {recipe.ingredients.slice(0, 4).join(', ')}{recipe.ingredients.length > 4 ? '...' : ''}
                   </div>
                 </div>
               ))}

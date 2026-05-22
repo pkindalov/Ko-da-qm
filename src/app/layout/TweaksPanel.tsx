@@ -25,13 +25,13 @@ export const TweaksPanel = ({ open, tweaks, setTweaks, onClose }: TweaksPanelPro
 
       <div className="tweak-row">
         <span className="tweak-label">{isEnglish ? 'Theme' : 'Тема'}</span>
-        {THEMES.map((t) => (
+        {THEMES.map((theme) => (
           <button
-            key={t.id}
-            className={`theme-btn${tweaks.theme === t.id ? ' active' : ''}`}
-            onClick={() => setTweaks({ ...tweaks, theme: t.id })}
+            key={theme.id}
+            className={`theme-btn${tweaks.theme === theme.id ? ' active' : ''}`}
+            onClick={() => setTweaks({ ...tweaks, theme: theme.id })}
           >
-            {isEnglish ? t.labelEn : t.label}
+            {isEnglish ? theme.labelEn : theme.label}
           </button>
         ))}
       </div>

@@ -51,11 +51,11 @@ export const Sidebar = ({ tab, setTab, lang, profile, tweaksOpen, onTweaksToggle
 
       <nav className="nav">
         <div className="nav-section-label">{lang === 'en' ? 'Sections' : 'Секции'}</div>
-        {NAV.map((n, i) => (
-          <button key={n.id} className={`nav-item${tab === n.id ? ' active' : ''}`} onClick={() => setTab(n.id)}>
+        {NAV.map((navItem, i) => (
+          <button key={navItem.id} className={`nav-item${tab === navItem.id ? ' active' : ''}`} onClick={() => setTab(navItem.id)}>
             <span className="nav-num">{String(i + 1).padStart(2, '0')}</span>
-            <span className="nav-glyph">{n.glyph}</span>
-            <span>{lang === 'en' ? n.labelEn : n.label}</span>
+            <span className="nav-glyph">{navItem.glyph}</span>
+            <span>{lang === 'en' ? navItem.labelEn : navItem.label}</span>
           </button>
         ))}
         <NotificationBell

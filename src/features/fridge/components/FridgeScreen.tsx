@@ -754,7 +754,7 @@ export const FridgeScreen = ({ fridge, addFridgeItem, removeFridgeItem, removePr
           onConfirm={async (name, ingredients, steps) => {
             if (!saveTranslationFor) return;
             const savedId = savedIdMap.get(saveTranslationFor.id) ?? savedRecipeByName.get(saveTranslationFor.name);
-            const savedRecipe = savedId ? recipes.find(r => r.id === savedId) : null;
+            const savedRecipe = savedId ? recipes.find(recipe => recipe.id === savedId) : null;
             if (!savedRecipe) return;
             updateRecipe({ ...savedRecipe, nameTranslated: name, ingredientsTranslated: ingredients, stepsTranslated: steps });
             toast.success(isEnglish ? 'Translation saved!' : 'Преводът е запазен!');

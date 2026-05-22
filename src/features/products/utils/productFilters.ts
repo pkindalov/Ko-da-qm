@@ -7,10 +7,10 @@ export const filterProducts = (
   lang: Language,
 ): Product[] => {
   const isEnglish = lang === 'en';
-  return products.filter((p) => {
-    const name = isEnglish && p.nameEn ? p.nameEn : p.name;
+  return products.filter((product) => {
+    const name = isEnglish && product.nameEn ? product.nameEn : product.name;
     const matchSearch = name.toLowerCase().includes(search.toLowerCase());
-    const matchCat = catFilter === 'all' || p.category === catFilter || catFilter === p.status;
+    const matchCat = catFilter === 'all' || product.category === catFilter || catFilter === product.status;
     return matchSearch && matchCat;
   });
 };

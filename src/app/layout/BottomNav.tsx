@@ -72,18 +72,18 @@ interface BottomNavProps {
 }
 
 export const BottomNav = ({ tab, setTab, lang }: BottomNavProps) => {
-  const isEn = lang === 'en';
+  const isEnglish = lang === 'en';
 
   return (
     <nav className="bottom-nav">
-      {NAV.map((n) => (
+      {NAV.map((navItem) => (
         <button
-          key={n.id}
-          className={`bn-item${tab === n.id ? ' active' : ''}`}
-          onClick={() => setTab(n.id)}
+          key={navItem.id}
+          className={`bn-item${tab === navItem.id ? ' active' : ''}`}
+          onClick={() => setTab(navItem.id)}
         >
-          <span className="bn-icon">{n.icon}</span>
-          <span className="bn-label">{isEn ? n.labelEn : n.label}</span>
+          <span className="bn-icon">{navItem.icon}</span>
+          <span className="bn-label">{isEnglish ? navItem.labelEn : navItem.label}</span>
         </button>
       ))}
     </nav>

@@ -30,12 +30,7 @@ const fetchUserProfile = async (userId: string): Promise<UserProfileData> => {
   ]);
 
   const recipes = recipesResult.data?.map(mapRecipeRow) ?? [];
-  let userName = '';
-  if (userResult.data?.name) {
-    userName = userResult.data.name;
-  } else if (recipesResult.data?.[0]?.author_name) {
-    userName = recipesResult.data[0].author_name as string;
-  }
+  const userName = userResult.data?.name || (recipesResult.data?.[0]?.author_name as string) || '';
 
   return { userName, recipes };
 };

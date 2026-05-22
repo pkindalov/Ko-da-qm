@@ -198,7 +198,7 @@ export const HomeScreen = ({ profile, recipes, fridge, publicRecipes, favoriteId
   const allergies = [...new Set([...profile.allergies, ...toNames(products.filter(product => product.status === 'allergic'))])];
   const dislikes  = [...new Set([...profile.dislikes,  ...toNames(products.filter(product => product.status === 'disliked'))])];
   const blocked   = [...allergies, ...dislikes];
-  const safeRecipes = recipes.filter((r) => isSafe(r, blocked));
+  const safeRecipes = recipes.filter((recipe) => isSafe(recipe, blocked));
   const greeting = getGreeting(new Date().getHours(), lang);
 
   const today = new Date().toLocaleDateString(isEnglish ? 'en-GB' : 'bg-BG', { weekday: 'long', day: 'numeric', month: 'long' });
@@ -269,7 +269,7 @@ export const HomeScreen = ({ profile, recipes, fridge, publicRecipes, favoriteId
             {isEnglish ? 'These ingredients are always flagged.' : 'Тези съставки винаги се маркират.'}
           </div>
           <div className="alert-banner-tags">
-            {allergies.map((a) => <Badge type="allergy" key={a}>{a}</Badge>)}
+            {allergies.map((allergy) => <Badge type="allergy" key={allergy}>{allergy}</Badge>)}
           </div>
         </div>
       )}
@@ -288,22 +288,22 @@ export const HomeScreen = ({ profile, recipes, fridge, publicRecipes, favoriteId
         />
       ) : (
         <div className="grid-3">
-          {recipes.slice(0, RECIPES_PREVIEW_SIZE).map((r) => {
-            const risk = recipeRisk(r, allergies, dislikes);
-            const name = recipeDisplayName(r, lang);
-            const tag = r.tags?.[0] ?? (isEnglish ? 'recipe' : 'рецепта');
+          {recipes.slice(0, RECIPES_PREVIEW_SIZE).map((recipe) => {
+            const risk = recipeRisk(recipe, allergies, dislikes);
+            const name = recipeDisplayName(recipe, lang);
+            const tag = recipe.tags?.[0] ?? (isEnglish ? 'recipe' : 'рецепта');
             return (
-              <div key={r.id} className={`recipe-card${risk === 'allergy' ? ' allergy' : ''}`} onClick={() => setTab('recipes')}>
+              <div key={recipe.id} className={`recipe-card${risk === 'allergy' ? ' allergy' : ''}`} onClick={() => setTab('recipes')}>
                 <div className="recipe-image">
                   <div className="recipe-image-stripes" />
-                  {r.imageUrl
-                    ? <img src={r.imageUrl} alt={name} className="recipe-card-img" />
-                    : <div className="recipe-image-emoji">{r.emoji}</div>}
-                  <div className="recipe-image-label">{tag} · {r.time}min</div>
+                  {recipe.imageUrl
+                    ? <img src={recipe.imageUrl} alt={name} className="recipe-card-img" />
+                    : <div className="recipe-image-emoji">{recipe.emoji}</div>}
+                  <div className="recipe-image-label">{tag} · {recipe.time}min</div>
                 </div>
                 <div className="recipe-body">
                   <div className="recipe-name italic">{name}</div>
-                  <div className="recipe-meta">⏱ {r.time} {isEnglish ? 'min' : 'мин'}</div>
+                  <div className="recipe-meta">⏱ {recipe.time} {isEnglish ? 'min' : 'мин'}</div>
                   <div className="recipe-tags">
                     {risk === 'safe'    && <Badge type="safe"><span className="dot dot-safe" /> {isEnglish ? 'safe' : 'безопасно'}</Badge>}
                     {risk === 'dislike' && <Badge type="dislike"><span className="dot dot-warn" /> {isEnglish ? 'check' : 'провери'}</Badge>}
@@ -325,42 +325,42 @@ export const HomeScreen = ({ profile, recipes, fridge, publicRecipes, favoriteId
             <span className="label">{publicRecipes.length} {isEnglish ? 'recipes' : 'рецепти'}</span>
           </div>
           <div className="grid-3">
-            {publicRecipes.slice(0, communityPage * COMMUNITY_PAGE_SIZE).map((r) => {
-              const risk = recipeRisk(r, allergies, dislikes);
-              const name = recipeDisplayName(r, lang);
-              const tag = r.tags?.[0] ?? (isEnglish ? 'recipe' : 'рецепта');
+            {publicRecipes.slice(0, communityPage * COMMUNITY_PAGE_SIZE).map((recipe) => {
+              const risk = recipeRisk(recipe, allergies, dislikes);
+              const name = recipeDisplayName(recipe, lang);
+              const tag = recipe.tags?.[0] ?? (isEnglish ? 'recipe' : 'рецепта');
               return (
-                <div key={r.id} className={`recipe-card${risk === 'allergy' ? ' allergy' : ''}`} onClick={() => setSelectedRecipe(r)}>
+                <div key={recipe.id} className={`recipe-card${risk === 'allergy' ? ' allergy' : ''}`} onClick={() => setSelectedRecipe(recipe)}>
                   <div className="recipe-image">
                     <div className="recipe-image-stripes" />
-                    {r.imageUrl
-                      ? <img src={r.imageUrl} alt={name} className="recipe-card-img" />
-                      : <div className="recipe-image-emoji">{r.emoji}</div>}
-                    <div className="recipe-image-label">{tag} · {r.time}min</div>
+                    {recipe.imageUrl
+                      ? <img src={recipe.imageUrl} alt={name} className="recipe-card-img" />
+                      : <div className="recipe-image-emoji">{recipe.emoji}</div>}
+                    <div className="recipe-image-label">{tag} · {recipe.time}min</div>
                     <button
                       className="btn-favorite"
-                      onClick={(e) => { e.stopPropagation(); onToggleFavorite(r); }}
-                      aria-label={favoriteIds.includes(r.id) ? 'Remove from favorites' : 'Add to favorites'}
+                      onClick={(e) => { e.stopPropagation(); onToggleFavorite(recipe); }}
+                      aria-label={favoriteIds.includes(recipe.id) ? 'Remove from favorites' : 'Add to favorites'}
                     >
-                      {favoriteIds.includes(r.id) ? '♥' : '♡'}
+                      {favoriteIds.includes(recipe.id) ? '♥' : '♡'}
                     </button>
                   </div>
                   <div className="recipe-body">
                     <div className="recipe-name italic">{name}</div>
-                    <div className="recipe-meta">⏱ {r.time} {isEnglish ? 'min' : 'мин'}</div>
-                    {communityFavoriteCounts[r.id] > 0 && (
-                      <div className="recipe-meta">♥ {communityFavoriteCounts[r.id]}</div>
+                    <div className="recipe-meta">⏱ {recipe.time} {isEnglish ? 'min' : 'мин'}</div>
+                    {communityFavoriteCounts[recipe.id] > 0 && (
+                      <div className="recipe-meta">♥ {communityFavoriteCounts[recipe.id]}</div>
                     )}
-                    {r.authorName && r.authorId && onNavigateToUser && (
+                    {recipe.authorName && recipe.authorId && onNavigateToUser && (
                       <button
                         className="recipe-author-btn"
-                        onClick={(e) => { e.stopPropagation(); onNavigateToUser(r.authorId!); }}
+                        onClick={(e) => { e.stopPropagation(); onNavigateToUser(recipe.authorId!); }}
                       >
-                        👤 {r.authorName}
+                        👤 {recipe.authorName}
                       </button>
                     )}
-                    {r.authorName && (!r.authorId || !onNavigateToUser) && (
-                      <div className="recipe-meta">👤 {r.authorName}</div>
+                    {recipe.authorName && (!recipe.authorId || !onNavigateToUser) && (
+                      <div className="recipe-meta">👤 {recipe.authorName}</div>
                     )}
                     <div className="recipe-tags">
                       {risk === 'safe'    && <Badge type="safe"><span className="dot dot-safe" /> {isEnglish ? 'safe' : 'безопасно'}</Badge>}
@@ -392,19 +392,19 @@ export const HomeScreen = ({ profile, recipes, fridge, publicRecipes, favoriteId
           </p>
         ) : (
           <div className="modal-list">
-            {safeRecipes.map(r => {
-              const recipeName = recipeDisplayName(r, lang);
+            {safeRecipes.map(recipe => {
+              const recipeName = recipeDisplayName(recipe, lang);
               return (
                 <button
-                  key={r.id}
+                  key={recipe.id}
                   type="button"
                   className="modal-list-btn"
-                  onClick={() => { setOpenStatModal(null); setSelectedSafeRecipe(r); }}
+                  onClick={() => { setOpenStatModal(null); setSelectedSafeRecipe(recipe); }}
                   aria-label={recipeName}
                 >
-                  <span className="emoji-sm">{r.emoji}</span>
+                  <span className="emoji-sm">{recipe.emoji}</span>
                   <span className="item-name">{recipeName}</span>
-                  <span className="item-time">⏱ {r.time} {isEnglish ? 'min' : 'мин'}</span>
+                  <span className="item-time">⏱ {recipe.time} {isEnglish ? 'min' : 'мин'}</span>
                 </button>
               );
             })}

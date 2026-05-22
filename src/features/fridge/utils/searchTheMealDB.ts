@@ -172,6 +172,6 @@ export const searchByFridge = async (fridgeItems: FridgeItem[], blocked: string[
   return details
     .filter((meal): meal is DetailMeal => meal !== null)
     .map((meal) => mealToMatchedRecipe(meal, idCount[meal.idMeal], fridgeItems.length))
-    .filter((r) => !r.requiredIngredients.some(isBlocked))
+    .filter((recipe) => !recipe.requiredIngredients.some(isBlocked))
     .sort((a, b) => b.matchedCount - a.matchedCount);
 };

@@ -8,7 +8,7 @@ export const openGoogleTranslate = async (recipe: {
   steps: string[];
 }): Promise<{ clipboardUsed: boolean }> => {
   const name = recipe.nameEn ?? recipe.name;
-  const text = [name, ...recipe.ingredients, ...recipe.steps.map((s, i) => `${i + 1}. ${s}`)].join('\n');
+  const text = [name, ...recipe.ingredients, ...recipe.steps.map((step, i) => `${i + 1}. ${step}`)].join('\n');
 
   if (text.length < URL_TEXT_LIMIT) {
     window.open(`${GOOGLE_TRANSLATE_BASE}&text=${encodeURIComponent(text)}`, '_blank');

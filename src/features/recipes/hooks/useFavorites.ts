@@ -18,10 +18,10 @@ const fetchFavorites = async (): Promise<FavoritesData> => {
   const { data } = await supabase.from('favorites').select('recipe_id, recipes(*)');
   if (!data) return EMPTY_FAVORITES;
 
-  const favoriteIds = data.map(f => f.recipe_id as string);
+  const favoriteIds = data.map(favorite => favorite.recipe_id as string);
   const favoriteRecipes = data
-    .map(f => f.recipes as unknown as Record<string, unknown> | null)
-    .filter((r): r is Record<string, unknown> => r !== null)
+    .map(favorite => favorite.recipes as unknown as Record<string, unknown> | null)
+    .filter((recipeRecord): recipeRecord is Record<string, unknown> => recipeRecord !== null)
     .map(mapRecipeRow);
 
   return { favoriteIds, favoriteRecipes };
@@ -81,7 +81,7 @@ export const useFavorites = (lang: Language = 'bg') => {
         const prev = old ?? EMPTY_FAVORITES;
         return {
           favoriteIds: prev.favoriteIds.filter(id => id !== recipeId),
-          favoriteRecipes: prev.favoriteRecipes.filter(r => r.id !== recipeId),
+          favoriteRecipes: prev.favoriteRecipes.filter(recipe => recipe.id !== recipeId),
         };
       });
       return { previous };
