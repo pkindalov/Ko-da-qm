@@ -25,11 +25,11 @@
   left: 0; right: 0; bottom: 0;
   height: 32%;
   background:
-    linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(44,24,16,.06) 100%),
+    linear-gradient(180deg, rgba(0,0,0,0) 0%, color-mix(in oklch, var(--ink) 6%, transparent) 100%),
     repeating-linear-gradient(115deg, var(--line) 0 28px, var(--line-2) 28px 56px);
   transform: perspective(800px) rotateX(58deg);
   transform-origin: bottom center;
-  border-top: 1.5px solid rgba(44,24,16,.08);
+  border-top: 1.5px solid color-mix(in oklch, var(--ink) 8%, transparent);
 }
 
 /* Warm light pool when door is open */
@@ -107,7 +107,7 @@
   width: 360px;
   height: 640px;
   transform-style: preserve-3d;
-  filter: drop-shadow(0 24px 24px rgba(44,24,16,.18));
+  filter: drop-shadow(0 24px 24px color-mix(in oklch, var(--ink) 18%, transparent));
 }
 
 /* Cabinet body */
@@ -138,8 +138,8 @@
   border-radius: 16px;
   overflow: hidden;
   box-shadow:
-    inset 0 0 0 1px rgba(44,24,16,.06),
-    inset 0 30px 50px rgba(44,24,16,.10);
+    inset 0 0 0 1px color-mix(in oklch, var(--ink) 6%, transparent),
+    inset 0 30px 50px color-mix(in oklch, var(--ink) 10%, transparent);
 }
 .ifridge .interior::before {
   content: "";
@@ -155,7 +155,7 @@
   content: "";
   position: absolute;
   inset: 0;
-  background: repeating-linear-gradient(90deg, rgba(44,24,16,.04) 0 1px, transparent 1px 24px);
+  background: repeating-linear-gradient(90deg, color-mix(in oklch, var(--ink) 4%, transparent) 0 1px, transparent 1px 24px);
   pointer-events: none;
 }
 
@@ -195,7 +195,7 @@
 .ifridge .freezer {
   height: 112px;
   position: relative;
-  border-bottom: 2px dashed rgba(44,24,16,.12);
+  border-bottom: 2px dashed color-mix(in oklch, var(--ink) 12%, transparent);
   margin: -8px 0 5px;
   padding: 10px 3px 6px;
   display: flex;
@@ -221,7 +221,7 @@
   left: 5px;
   font-size: 7px;
   font-weight: 800;
-  color: rgba(44,24,16,.5);
+  color: color-mix(in oklch, var(--ink) 50%, transparent);
   letter-spacing: .3px;
   text-transform: uppercase;
   pointer-events: none;
@@ -229,7 +229,7 @@
   background: rgba(255,255,255,.65);
   padding: 2px 5px;
   border-radius: 4px;
-  border: 1px solid rgba(44,24,16,.08);
+  border: 1px solid color-mix(in oklch, var(--ink) 8%, transparent);
 }
 
 /* Product items */
@@ -251,14 +251,14 @@
   background: linear-gradient(180deg, var(--surface) 0%, var(--paper-2) 100%);
   box-shadow:
     inset 0 1px 0 rgba(255,255,255,.9),
-    0 4px 0 rgba(44,24,16,.06),
-    0 8px 10px rgba(44,24,16,.06);
-  border: 1px solid rgba(44,24,16,.08);
+    0 4px 0 color-mix(in oklch, var(--ink) 6%, transparent),
+    0 8px 10px color-mix(in oklch, var(--ink) 6%, transparent);
+  border: 1px solid color-mix(in oklch, var(--ink) 8%, transparent);
 }
 @media (hover: hover) {
   .ifridge .product:hover {
     transform: translateY(-3px);
-    box-shadow: 0 6px 0 rgba(44,24,16,.06), 0 12px 18px rgba(44,24,16,.14);
+    box-shadow: 0 6px 0 color-mix(in oklch, var(--ink) 6%, transparent), 0 12px 18px color-mix(in oklch, var(--ink) 14%, transparent);
   }
 }
 .ifridge .product .p-emoji {
@@ -345,7 +345,7 @@
   border: 1.5px solid var(--border);
   border-radius: var(--r-sm);
   padding: 10px 12px;
-  box-shadow: 0 8px 24px rgba(44,24,16,.18);
+  box-shadow: 0 8px 24px color-mix(in oklch, var(--ink) 18%, transparent);
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -419,7 +419,7 @@
   flex: 0 0 auto;
   width: 40px; height: 44px;
   border-radius: 8px;
-  border: 1.5px dashed rgba(44,24,16,.22);
+  border: 1.5px dashed color-mix(in oklch, var(--ink) 22%, transparent);
   background: rgba(255,255,255,.4);
   color: var(--text2);
   font-weight: 900;
@@ -456,7 +456,7 @@
   box-shadow:
     inset 0 0 0 2px rgba(255,255,255,.5),
     inset 0 -30px 60px rgba(0,0,0,.06),
-    0 12px 28px rgba(44,24,16,.12);
+    0 12px 28px color-mix(in oklch, var(--ink) 12%, transparent);
   backface-visibility: hidden;
   cursor: pointer;
 }
@@ -478,13 +478,13 @@
   align-items: stretch;
   padding: 26px 12px;
   gap: 12px;
-  box-shadow: inset 0 0 0 1px rgba(44,24,16,.06);
+  box-shadow: inset 0 0 0 1px color-mix(in oklch, var(--ink) 6%, transparent);
 }
 .ifridge .door-bin {
   height: 54px;
   background: linear-gradient(180deg, rgba(255,255,255,.85), rgba(255,255,255,.55));
-  border: 1px solid rgba(44,24,16,.10);
-  border-radius: 10px 10px 14px 14px;
+  border: 1px solid color-mix(in oklch, var(--ink) 10%, transparent);
+  border-radius: var(--r-sm) var(--r-sm) var(--r) var(--r);
   position: relative;
   display: flex;
   align-items: flex-end;
@@ -502,7 +502,7 @@
   width: 15px; height: 40px;
   border-radius: 6px 6px 3px 3px;
   background: linear-gradient(180deg, var(--surface) 30%, var(--paper-2) 100%);
-  box-shadow: 0 1px 0 rgba(44,24,16,.18), inset 0 1px 0 rgba(255,255,255,.7);
+  box-shadow: 0 1px 0 color-mix(in oklch, var(--ink) 18%, transparent), inset 0 1px 0 rgba(255,255,255,.7);
   position: relative;
 }
 .ifridge .bottle::before {
@@ -524,7 +524,7 @@
   position: absolute;
   left: 20px; right: 50px; top: 24px;
   height: 38px;
-  border-radius: 10px;
+  border-radius: var(--r-sm);
   background: var(--ink);
   color: var(--amber-soft);
   display: flex;
@@ -549,7 +549,7 @@
   font-size: 10px;
   font-weight: 900;
   letter-spacing: 5px;
-  color: rgba(44,24,16,.35);
+  color: color-mix(in oklch, var(--ink) 35%, transparent);
   text-transform: uppercase;
   pointer-events: none;
 }
@@ -592,7 +592,7 @@
 }
 .ifridge .feet span {
   width: 30px; height: 12px;
-  border-radius: 0 0 6px 6px;
+  border-radius: 0 0 var(--r-xs) var(--r-xs);
   background: linear-gradient(180deg, var(--ink-2), var(--ink));
 }
 
@@ -605,7 +605,7 @@
   pointer-events: none;
 }
 .ifridge .tap-hint .pill {
-  background: rgba(44,24,16,.85);
+  background: color-mix(in oklch, var(--ink) 85%, transparent);
   color: var(--paper);
   font-size: 12px;
   font-weight: 800;
