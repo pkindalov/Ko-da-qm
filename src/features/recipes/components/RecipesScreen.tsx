@@ -426,7 +426,7 @@ export const RecipesScreen = ({ recipes, addRecipe, removeRecipe, updateRecipe, 
                       <span className="emoji-sm">{recipe.emoji}</span>
                       <span className="recipe-card-name">{recipeDisplayName(recipe, lang)}</span>
                     </div>
-                    <span className="badge badge-neutral">⏱ {recipe.time} {lang === 'en' ? 'min' : 'мін'}</span>
+                    <span className="badge badge-neutral">⏱ {recipe.time} {lang === 'en' ? 'min' : 'мин'}</span>
                   </div>
                   <div className="recipe-card-meta mb-2">
                     {recipe.ingredients.slice(0, 4).join(', ')}{recipe.ingredients.length > 4 ? '...' : ''}
