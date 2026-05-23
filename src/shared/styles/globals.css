@@ -7,7 +7,7 @@
   --surface:#FCFAF6;
   --ink:#1C1815;
   --ink-2:#5A4F46;
-  --ink-3:#8B8278;
+  --ink-3:#6D6159;
   --line:#E4DED2;
   --line-2:#D6CFC1;
 
@@ -20,6 +20,8 @@
   --rust-soft:oklch(0.93 0.05 25);
   --amber:oklch(0.66 0.11 75);
   --amber-soft:oklch(0.94 0.05 75);
+  --amber-deep:oklch(0.40 0.14 75);
+  --ink-on-warn:oklch(0.18 0.06 75);
 
   --shadow-sm:0 1px 2px rgba(28,24,21,.04), 0 1px 1px rgba(28,24,21,.03);
   --shadow:0 1px 2px rgba(28,24,21,.04), 0 8px 24px -8px rgba(28,24,21,.08);
@@ -197,7 +199,7 @@ a{color:inherit;text-decoration:none}
   text-transform:uppercase;border-radius:999px;font-weight:500;
 }
 .badge-allergy,.badge-danger{background:var(--rust-soft);color:var(--rust)}
-.badge-dislike,.badge-warn{background:var(--amber-soft);color:var(--amber)}
+.badge-dislike,.badge-warn{background:var(--amber-soft);color:var(--amber-deep)}
 .badge-safe{background:var(--moss-soft);color:var(--moss)}
 .badge-neutral{background:var(--paper-2);color:var(--ink-2);border:1px solid var(--line)}
 .badge-primary,.badge-clay{background:var(--clay-soft);color:var(--clay-deep)}
@@ -211,7 +213,7 @@ a{color:inherit;text-decoration:none}
 .chip:hover{border-color:var(--ink-2);color:var(--ink)}
 .chip.selected{background:var(--ink);color:var(--paper);border-color:var(--ink)}
 .chip.sel-danger{background:var(--rust);color:var(--surface);border-color:var(--rust)}
-.chip.sel-warn{background:var(--amber);color:var(--surface);border-color:var(--amber)}
+.chip.sel-warn{background:var(--amber);color:var(--ink-on-warn);border-color:var(--amber)}
 
 /* ── Cards ───────────────────────────────────────────────── */
 .card{
@@ -474,7 +476,7 @@ a{color:inherit;text-decoration:none}
   display:inline-flex;align-items:center;gap:3px;
   background:var(--surface);border:1px solid var(--line);border-radius:999px;
   font-family:var(--mono);font-size:9px;letter-spacing:.4px;
-  padding:1px 6px 1px 4px;color:var(--amber);
+  padding:1px 6px 1px 4px;color:var(--amber-deep);
   pointer-events:none;line-height:16px;
   box-shadow:0 1px 3px color-mix(in oklch, var(--ink) 8%, transparent);
 }
@@ -740,16 +742,17 @@ a{color:inherit;text-decoration:none}
 .theme-cool{
   --paper:#F0F2EE;--paper-2:#E5E9E0;--surface:#FAFBF8;
   --line:#DDE2D6;--line-2:#CDD3C3;
-  --ink:#13201A;--ink-2:#3D4A41;--ink-3:#7C8779;
+  --ink:#13201A;--ink-2:#3D4A41;--ink-3:#60695C;
   --clay:oklch(0.52 0.10 165);--clay-soft:oklch(0.93 0.04 165);
   --clay-deep:oklch(0.38 0.10 165);
 }
 .theme-dark{
   --paper:#15110E;--paper-2:#1F1A14;--surface:#241D17;
   --line:#3A3025;--line-2:#4A3F33;
-  --ink:#F4ECDF;--ink-2:#B5A892;--ink-3:#7E7361;
+  --ink:#F4ECDF;--ink-2:#B5A892;--ink-3:#9A9080;
   --clay:oklch(0.72 0.13 38);--clay-soft:oklch(0.32 0.08 38);
   --clay-deep:oklch(0.80 0.12 38);
+  --amber-deep:oklch(0.72 0.14 75);
   --shadow:0 1px 2px rgba(0,0,0,.2), 0 8px 24px -8px rgba(0,0,0,.25);
   --shadow-lg:0 4px 12px rgba(0,0,0,.2), 0 24px 48px -16px rgba(0,0,0,.35);
 }
@@ -789,7 +792,7 @@ a{color:inherit;text-decoration:none}
 .hero-stat-num.italic{font-style:italic}
 .hero-stat-num.clay{color:var(--clay-deep)}
 .hero-stat-num.rust{color:var(--rust)}
-.hero-stat-num.amber{color:var(--amber)}
+.hero-stat-num.amber{color:var(--amber-deep)}
 .hero-stat-num.moss{color:var(--moss)}
 .hero-stat-label{font-family:var(--mono);font-size:10.5px;letter-spacing:1.2px;text-transform:uppercase;color:var(--ink-3)}
 
@@ -955,13 +958,13 @@ a{color:inherit;text-decoration:none}
 .modal-remove-actions{display:flex;flex-direction:column;gap:10px}
 
 /* ── Buttons / badges ────────────────────────────────────── */
-.btn-warn{background:var(--amber-soft);color:var(--amber)}
+.btn-warn{background:var(--amber-soft);color:var(--amber-deep)}
 .btn-danger-text{color:var(--danger)}
 .badge-btn{background:none;border:none;cursor:pointer;padding:0;opacity:0.6;font-size:11px;line-height:1;color:inherit}
 
 /* ── Chip colour variants (selected state) ───────────────── */
 .chip.selected.chip-allergy{background:transparent;color:var(--rust);border-color:var(--rust)}
-.chip.selected.chip-warn{background:transparent;color:var(--amber);border-color:var(--amber)}
+.chip.selected.chip-warn{background:transparent;color:var(--amber-deep);border-color:var(--amber)}
 
 /* ── Recipe detail ───────────────────────────────────────── */
 .author-link{background:none;border:none;cursor:pointer;font-weight:700;color:var(--clay-deep);padding:0;font-family:inherit;font-size:inherit}
@@ -1015,7 +1018,7 @@ a{color:inherit;text-decoration:none}
 .blocked-box{margin-bottom:12px;padding:8px 12px;border-radius:8px;background:var(--paper);border:1px solid var(--line);font-size:13px;font-weight:600}
 .blocked-label{color:var(--ink-2);margin-right:6px}
 .badge-allergic-item{background:var(--rust-soft);color:var(--rust);border:1px solid var(--rust);margin-right:4px}
-.badge-dislike-item{background:var(--amber-soft);color:var(--amber);border:1px solid var(--amber);margin-right:4px}
+.badge-dislike-item{background:var(--amber-soft);color:var(--amber-deep);border:1px solid var(--amber);margin-right:4px}
 .step-section{margin-top:10px}
 .step-section-label{font-size:12px;font-weight:700;color:var(--ink-2);margin-bottom:4px}
 .step-item{font-size:13px;font-weight:600;color:var(--ink);padding-left:4px;margin-bottom:2px}
@@ -1050,11 +1053,11 @@ a{color:inherit;text-decoration:none}
 .card-warn{margin-bottom:16px;border-color:var(--amber);border-width:2px}
 .card-mb{margin-bottom:16px}
 .section-title-allergy{color:var(--rust)}
-.section-title-warn{color:var(--amber)}
+.section-title-warn{color:var(--amber-deep)}
 .card-hint{font-size:13px;color:var(--ink-2);margin-bottom:12px;font-weight:600}
 .card-note{font-size:13px;color:var(--ink-2);font-style:italic}
 .card-summary{background:var(--paper);border-style:dashed}
 .card-summary-title{font-weight:700;font-size:14px;margin-bottom:8px}
 .card-summary-text{font-size:14px;color:var(--ink-2);font-weight:600;line-height:2}
 .count-allergy{color:var(--rust)}
-.count-warn{color:var(--amber)}
+.count-warn{color:var(--amber-deep)}
