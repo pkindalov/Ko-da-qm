@@ -5,23 +5,23 @@ import { useFavorites } from './useFavorites';
 import type { Recipe } from '../../../shared/types';
 import { createQueryWrapper } from '../../../test/queryWrapper';
 
-const { mockGetUser, mockSelect, mockInsert, mockEq, mockDelete, mockFrom } = vi.hoisted(() => {
+const { mockGetSession, mockSelect, mockInsert, mockEq, mockDelete, mockFrom } = vi.hoisted(() => {
   const mockSelect = vi.fn();
   const mockInsert = vi.fn();
   const mockEq = vi.fn();
   const mockDelete = vi.fn();
   const mockFrom = vi.fn();
-  const mockGetUser = vi.fn();
+  const mockGetSession = vi.fn();
 
   mockDelete.mockReturnValue({ eq: mockEq });
   mockFrom.mockReturnValue({ select: mockSelect, insert: mockInsert, delete: mockDelete });
 
-  return { mockGetUser, mockSelect, mockInsert, mockEq, mockDelete, mockFrom };
+  return { mockGetSession, mockSelect, mockInsert, mockEq, mockDelete, mockFrom };
 });
 
 vi.mock('../../../lib/supabase', () => ({
   supabase: {
-    auth: { getUser: mockGetUser },
+    auth: { getSession: mockGetSession },
     from: mockFrom,
   },
 }));
@@ -71,7 +71,7 @@ describe('useFavorites', () => {
   });
 
   it('returns empty state when no user is authenticated', async () => {
-    mockGetUser.mockResolvedValue({ data: { user: null } });
+    mockGetSession.mockResolvedValue({ data: { session: null } });
 
     const { result } = renderHook(() => useFavorites(), { wrapper: createQueryWrapper() });
     await act(async () => {});
@@ -82,7 +82,7 @@ describe('useFavorites', () => {
   });
 
   it('loads favorites and maps them to Recipe type on mount', async () => {
-    mockGetUser.mockResolvedValue({ data: { user: { id: 'user-1' } } });
+    mockGetSession.mockResolvedValue({ data: { session: { user: { id: 'user-1' } } } });
     mockSelect.mockResolvedValue({ data: [makeDbRow()], error: null });
 
     const { result } = renderHook(() => useFavorites(), { wrapper: createQueryWrapper() });
@@ -95,7 +95,7 @@ describe('useFavorites', () => {
   });
 
   it('returns empty state when query returns null data', async () => {
-    mockGetUser.mockResolvedValue({ data: { user: { id: 'user-1' } } });
+    mockGetSession.mockResolvedValue({ data: { session: { user: { id: 'user-1' } } } });
     mockSelect.mockResolvedValue({ data: null, error: null });
 
     const { result } = renderHook(() => useFavorites(), { wrapper: createQueryWrapper() });
@@ -106,7 +106,7 @@ describe('useFavorites', () => {
   });
 
   it('filters out rows where the joined recipe is null', async () => {
-    mockGetUser.mockResolvedValue({ data: { user: { id: 'user-1' } } });
+    mockGetSession.mockResolvedValue({ data: { session: { user: { id: 'user-1' } } } });
     mockSelect.mockResolvedValue({
       data: [{ recipe_id: 'deleted-id', recipes: null }],
       error: null,
@@ -118,7 +118,7 @@ describe('useFavorites', () => {
   });
 
   it('addFavorite — optimistically updates state and calls insert', async () => {
-    mockGetUser.mockResolvedValue({ data: { user: { id: 'user-1' } } });
+    mockGetSession.mockResolvedValue({ data: { session: { user: { id: 'user-1' } } } });
     mockSelect.mockResolvedValue({ data: [], error: null });
     mockInsert.mockResolvedValue({ error: null });
 
@@ -134,7 +134,7 @@ describe('useFavorites', () => {
   });
 
   it('removeFavorite — optimistically removes from state and calls delete', async () => {
-    mockGetUser.mockResolvedValue({ data: { user: { id: 'user-1' } } });
+    mockGetSession.mockResolvedValue({ data: { session: { user: { id: 'user-1' } } } });
     mockSelect.mockResolvedValue({ data: [makeDbRow()], error: null });
     mockEq.mockReturnValueOnce({ eq: mockEq }).mockResolvedValueOnce({ error: null });
 
@@ -151,7 +151,7 @@ describe('useFavorites', () => {
   });
 
   it('toggleFavorite adds when not yet favorited', async () => {
-    mockGetUser.mockResolvedValue({ data: { user: { id: 'user-1' } } });
+    mockGetSession.mockResolvedValue({ data: { session: { user: { id: 'user-1' } } } });
     mockSelect.mockResolvedValue({ data: [], error: null });
     mockInsert.mockResolvedValue({ error: null });
 
@@ -164,7 +164,7 @@ describe('useFavorites', () => {
   });
 
   it('toggleFavorite removes when already favorited', async () => {
-    mockGetUser.mockResolvedValue({ data: { user: { id: 'user-1' } } });
+    mockGetSession.mockResolvedValue({ data: { session: { user: { id: 'user-1' } } } });
     mockSelect.mockResolvedValue({ data: [makeDbRow()], error: null });
     mockEq.mockReturnValueOnce({ eq: mockEq }).mockResolvedValueOnce({ error: null });
 
@@ -176,7 +176,7 @@ describe('useFavorites', () => {
   });
 
   it('handles null optional fields in joined recipe row', async () => {
-    mockGetUser.mockResolvedValue({ data: { user: { id: 'user-1' } } });
+    mockGetSession.mockResolvedValue({ data: { session: { user: { id: 'user-1' } } } });
     mockSelect.mockResolvedValue({
       data: [makeDbRow({ name_en: null, author_name: null, author_email: null })],
       error: null,
@@ -190,7 +190,7 @@ describe('useFavorites', () => {
   });
 
   it('loads multiple favorites and maps all rows correctly', async () => {
-    mockGetUser.mockResolvedValue({ data: { user: { id: 'user-1' } } });
+    mockGetSession.mockResolvedValue({ data: { session: { user: { id: 'user-1' } } } });
     const row1 = makeDbRow();
     const row2 = { recipe_id: 'r2', recipes: { ...makeDbRow().recipes, id: 'r2', name: 'Waffles' } };
     mockSelect.mockResolvedValue({ data: [row1, row2], error: null });
@@ -203,7 +203,7 @@ describe('useFavorites', () => {
   });
 
   it('addFavorite is a no-op when user is null — state and DB unchanged', async () => {
-    mockGetUser.mockResolvedValue({ data: { user: null } });
+    mockGetSession.mockResolvedValue({ data: { session: null } });
 
     const { result } = renderHook(() => useFavorites(), { wrapper: createQueryWrapper() });
     await act(async () => {});
@@ -216,9 +216,9 @@ describe('useFavorites', () => {
   });
 
   it('removeFavorite is a no-op when user becomes null — state and DB unchanged', async () => {
-    mockGetUser
-      .mockResolvedValueOnce({ data: { user: { id: 'user-1' } } })
-      .mockResolvedValueOnce({ data: { user: null } });
+    mockGetSession
+      .mockResolvedValueOnce({ data: { session: { user: { id: 'user-1' } } } })
+      .mockResolvedValueOnce({ data: { session: null } });
     mockSelect.mockResolvedValue({ data: [makeDbRow()], error: null });
 
     const { result } = renderHook(() => useFavorites(), { wrapper: createQueryWrapper() });
@@ -231,7 +231,7 @@ describe('useFavorites', () => {
   });
 
   it('rapid double-toggle does not create duplicate state entries', async () => {
-    mockGetUser.mockResolvedValue({ data: { user: { id: 'user-1' } } });
+    mockGetSession.mockResolvedValue({ data: { session: { user: { id: 'user-1' } } } });
     mockSelect.mockResolvedValue({ data: [], error: null });
     mockInsert.mockResolvedValue({ error: null });
 
@@ -250,7 +250,7 @@ describe('useFavorites', () => {
   });
 
   it('addFavorite shows success toast when insert succeeds', async () => {
-    mockGetUser.mockResolvedValue({ data: { user: { id: 'user-1' } } });
+    mockGetSession.mockResolvedValue({ data: { session: { user: { id: 'user-1' } } } });
     mockSelect.mockResolvedValue({ data: [], error: null });
     mockInsert.mockResolvedValue({ error: null });
     vi.mocked(toast.success).mockClear();
@@ -265,7 +265,7 @@ describe('useFavorites', () => {
   });
 
   it('addFavorite shows error toast and does not show success toast when insert fails', async () => {
-    mockGetUser.mockResolvedValue({ data: { user: { id: 'user-1' } } });
+    mockGetSession.mockResolvedValue({ data: { session: { user: { id: 'user-1' } } } });
     mockSelect.mockResolvedValue({ data: [], error: null });
     mockInsert.mockResolvedValue({ error: { message: 'DB insert error' } });
     vi.mocked(toast.success).mockClear();
@@ -283,7 +283,7 @@ describe('useFavorites', () => {
   });
 
   it('removeFavorite shows success toast when delete succeeds', async () => {
-    mockGetUser.mockResolvedValue({ data: { user: { id: 'user-1' } } });
+    mockGetSession.mockResolvedValue({ data: { session: { user: { id: 'user-1' } } } });
     mockSelect.mockResolvedValue({ data: [makeDbRow()], error: null });
     mockEq.mockReturnValueOnce({ eq: mockEq }).mockResolvedValueOnce({ error: null });
     vi.mocked(toast.success).mockClear();
@@ -298,7 +298,7 @@ describe('useFavorites', () => {
   });
 
   it('removeFavorite shows error toast and does not show success toast when delete fails', async () => {
-    mockGetUser.mockResolvedValue({ data: { user: { id: 'user-1' } } });
+    mockGetSession.mockResolvedValue({ data: { session: { user: { id: 'user-1' } } } });
     mockSelect.mockResolvedValue({ data: [makeDbRow()], error: null });
     mockEq.mockReturnValueOnce({ eq: mockEq }).mockResolvedValueOnce({ error: { message: 'DB delete error' } });
     vi.mocked(toast.success).mockClear();

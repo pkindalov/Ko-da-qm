@@ -4,7 +4,7 @@ import { useAppData } from './useAppData';
 import type { Product } from '../types';
 import { DEFAULT_PRODUCTS } from '../constants/defaults';
 
-const { mockGetUser, mockGetSession, mockDelete, mockEq, mockNot, mockUpsert, mockFrom } =
+const { mockGetSession, mockDelete, mockEq, mockNot, mockUpsert, mockFrom } =
   vi.hoisted(() => {
     const mockNot = vi.fn().mockResolvedValue({ error: null });
     const mockEq = vi.fn();
@@ -12,15 +12,13 @@ const { mockGetUser, mockGetSession, mockDelete, mockEq, mockNot, mockUpsert, mo
     const mockDelete = vi.fn().mockReturnValue({ eq: mockEq });
     const mockUpsert = vi.fn().mockResolvedValue({ error: null });
     const mockFrom = vi.fn().mockReturnValue({ delete: mockDelete, upsert: mockUpsert });
-    const mockGetUser = vi.fn().mockResolvedValue({ data: { user: null } });
     const mockGetSession = vi.fn();
-    return { mockGetUser, mockGetSession, mockDelete, mockEq, mockNot, mockUpsert, mockFrom };
+    return { mockGetSession, mockDelete, mockEq, mockNot, mockUpsert, mockFrom };
   });
 
 vi.mock('../../lib/supabase', () => ({
   supabase: {
     auth: {
-      getUser: mockGetUser,
       getSession: mockGetSession,
     },
     from: mockFrom,
@@ -41,8 +39,9 @@ const makeUserProduct = (overrides: Partial<Product> = {}): Product => ({
 describe('useAppData – setProducts (remove)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockGetUser.mockResolvedValue({ data: { user: null } }); // loadAll no-op
-    mockGetSession.mockResolvedValue({ data: { session: { user: { id: USER_ID } } } });
+    mockGetSession
+      .mockResolvedValueOnce({ data: { session: null } }) // loadAll no-op
+      .mockResolvedValue({ data: { session: { user: { id: USER_ID } } } });
     mockNot.mockResolvedValue({ error: null });
     mockEq.mockReturnValue({ eq: mockEq, not: mockNot });
     mockDelete.mockReturnValue({ eq: mockEq });

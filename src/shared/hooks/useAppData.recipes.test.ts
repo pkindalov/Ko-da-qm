@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useAppData } from './useAppData';
 
-const { mockInsert, mockDelete, mockUpdate, mockEq, mockSelect, mockSingle, mockFrom, mockGetUser } = vi.hoisted(() => {
+const { mockInsert, mockDelete, mockUpdate, mockEq, mockSelect, mockSingle, mockFrom, mockGetSession } = vi.hoisted(() => {
   const mockSingle = vi.fn();
   const mockInsert = vi.fn();
   const mockDelete = vi.fn();
@@ -10,7 +10,7 @@ const { mockInsert, mockDelete, mockUpdate, mockEq, mockSelect, mockSingle, mock
   const mockEq = vi.fn();
   const mockSelect = vi.fn();
   const mockFrom = vi.fn();
-  const mockGetUser = vi.fn();
+  const mockGetSession = vi.fn();
 
   mockEq.mockReturnValue({ single: mockSingle, eq: mockEq });
   mockSelect.mockReturnValue({ eq: mockEq });
@@ -19,14 +19,13 @@ const { mockInsert, mockDelete, mockUpdate, mockEq, mockSelect, mockSingle, mock
   mockUpdate.mockReturnValue({ eq: mockEq });
   mockSingle.mockResolvedValue({ data: null, error: null });
 
-  return { mockInsert, mockDelete, mockUpdate, mockEq, mockSelect, mockSingle, mockFrom, mockGetUser };
+  return { mockInsert, mockDelete, mockUpdate, mockEq, mockSelect, mockSingle, mockFrom, mockGetSession };
 });
 
 vi.mock('../../lib/supabase', () => ({
   supabase: {
     auth: {
-      getUser: mockGetUser,
-      getSession: vi.fn().mockResolvedValue({ data: { session: null } }),
+      getSession: mockGetSession,
     },
     from: mockFrom,
   },
@@ -50,7 +49,7 @@ const makeRecipe = (overrides = {}) => ({
 });
 
 const setupLoadAllMocks = (profileData: object | null = { name: 'Alice', allergies: [], dislikes: [], dietary_prefs: [] }) => {
-  mockGetUser.mockResolvedValue({ data: { user: { id: 'user-1', user_metadata: {} } } });
+  mockGetSession.mockResolvedValue({ data: { session: { user: { id: 'user-1', user_metadata: {} } } } });
   mockFrom.mockImplementation((table: string) => {
     if (table === 'users') {
       return {
@@ -139,7 +138,7 @@ describe('useAppData – addRecipe', () => {
   });
 
   it('does not insert when no user is authenticated', async () => {
-    mockGetUser.mockResolvedValue({ data: { user: null } });
+    mockGetSession.mockResolvedValue({ data: { session: null } });
     mockFrom.mockImplementation(() => ({
       select: () => ({ eq: () => ({ single: () => Promise.resolve({ data: null, error: null }) }) }),
       insert: mockInsert,
@@ -150,7 +149,7 @@ describe('useAppData – addRecipe', () => {
     await act(async () => {});
 
     vi.clearAllMocks();
-    mockGetUser.mockResolvedValue({ data: { user: null } });
+    mockGetSession.mockResolvedValue({ data: { session: null } });
 
     await act(async () => { await result.current.addRecipe(makeRecipe()); });
 
@@ -240,7 +239,7 @@ describe('useAppData – loadAll recipe authorId', () => {
   });
 
   it('maps user_id to authorId when loading personal recipes', async () => {
-    mockGetUser.mockResolvedValue({ data: { user: { id: 'user-1', user_metadata: {} } } });
+    mockGetSession.mockResolvedValue({ data: { session: { user: { id: 'user-1', user_metadata: {} } } } });
     mockFrom.mockImplementation((table: string) => {
       if (table === 'users') {
         return {
@@ -275,7 +274,7 @@ describe('useAppData – loadAll recipe authorId', () => {
   });
 
   it('sets authorId to undefined when user_id is null', async () => {
-    mockGetUser.mockResolvedValue({ data: { user: { id: 'user-1', user_metadata: {} } } });
+    mockGetSession.mockResolvedValue({ data: { session: { user: { id: 'user-1', user_metadata: {} } } } });
     mockFrom.mockImplementation((table: string) => {
       if (table === 'users') {
         return {
@@ -317,7 +316,7 @@ describe('useAppData – loadAll recipe imageUrl', () => {
 
   it('loads imageUrl from image_url column when present', async () => {
     const imageUrl = 'https://www.themealdb.com/images/media/meals/abc.jpg';
-    mockGetUser.mockResolvedValue({ data: { user: { id: 'user-1', user_metadata: {} } } });
+    mockGetSession.mockResolvedValue({ data: { session: { user: { id: 'user-1', user_metadata: {} } } } });
     mockFrom.mockImplementation((table: string) => {
       if (table === 'users') {
         return {
@@ -352,7 +351,7 @@ describe('useAppData – loadAll recipe imageUrl', () => {
   });
 
   it('sets imageUrl to undefined when image_url is null in DB', async () => {
-    mockGetUser.mockResolvedValue({ data: { user: { id: 'user-1', user_metadata: {} } } });
+    mockGetSession.mockResolvedValue({ data: { session: { user: { id: 'user-1', user_metadata: {} } } } });
     mockFrom.mockImplementation((table: string) => {
       if (table === 'users') {
         return {

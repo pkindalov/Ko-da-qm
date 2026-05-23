@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useNotifications } from './useNotifications';
 
-const { mockGetUser, mockFrom, mockRemoveChannel, mockChannel, mockLimit, mockOrder, mockSelect, mockEq, mockIn, mockUpdate, mockDelete } = vi.hoisted(() => {
+const { mockGetSession, mockFrom, mockRemoveChannel, mockChannel, mockLimit, mockOrder, mockSelect, mockEq, mockIn, mockUpdate, mockDelete } = vi.hoisted(() => {
   const mockLimit = vi.fn();
   const mockOrder = vi.fn().mockReturnValue({ limit: mockLimit });
   const mockSelect = vi.fn().mockReturnValue({ order: mockOrder });
@@ -11,19 +11,19 @@ const { mockGetUser, mockFrom, mockRemoveChannel, mockChannel, mockLimit, mockOr
   const mockUpdate = vi.fn().mockReturnValue({ eq: mockEq, in: mockIn });
   const mockDelete = vi.fn().mockReturnValue({ eq: mockEq, in: mockIn });
   const mockFrom = vi.fn().mockReturnValue({ select: mockSelect, update: mockUpdate, delete: mockDelete });
-  const mockGetUser = vi.fn();
+  const mockGetSession = vi.fn();
   const mockRemoveChannel = vi.fn();
   const mockChannel = vi.fn().mockReturnValue({
     on: vi.fn().mockReturnThis(),
     subscribe: vi.fn().mockReturnThis(),
   });
 
-  return { mockGetUser, mockFrom, mockRemoveChannel, mockChannel, mockLimit, mockOrder, mockSelect, mockEq, mockIn, mockUpdate, mockDelete };
+  return { mockGetSession, mockFrom, mockRemoveChannel, mockChannel, mockLimit, mockOrder, mockSelect, mockEq, mockIn, mockUpdate, mockDelete };
 });
 
 vi.mock('../../../lib/supabase', () => ({
   supabase: {
-    auth: { getUser: mockGetUser },
+    auth: { getSession: mockGetSession },
     from: mockFrom,
     channel: mockChannel,
     removeChannel: mockRemoveChannel,
@@ -62,7 +62,7 @@ describe('useNotifications', () => {
   });
 
   it('stays empty and does not query when user is not authenticated', async () => {
-    mockGetUser.mockResolvedValue({ data: { user: null } });
+    mockGetSession.mockResolvedValue({ data: { session: null } });
 
     const { result } = renderHook(() => useNotifications('en'));
     await act(async () => {});
@@ -73,7 +73,7 @@ describe('useNotifications', () => {
   });
 
   it('loads and maps notification rows on mount', async () => {
-    mockGetUser.mockResolvedValue({ data: { user: { id: 'u1' } } });
+    mockGetSession.mockResolvedValue({ data: { session: { user: { id: 'u1' } } } });
     mockLimit.mockResolvedValue({ data: [makeRow()], error: null });
 
     const { result } = renderHook(() => useNotifications('en'));
@@ -93,7 +93,7 @@ describe('useNotifications', () => {
   });
 
   it('maps null actor to null actorName', async () => {
-    mockGetUser.mockResolvedValue({ data: { user: { id: 'u1' } } });
+    mockGetSession.mockResolvedValue({ data: { session: { user: { id: 'u1' } } } });
     mockLimit.mockResolvedValue({ data: [makeRow({ actor: null, actor_id: null })], error: null });
 
     const { result } = renderHook(() => useNotifications('en'));
@@ -104,7 +104,7 @@ describe('useNotifications', () => {
   });
 
   it('counts only unread notifications', async () => {
-    mockGetUser.mockResolvedValue({ data: { user: { id: 'u1' } } });
+    mockGetSession.mockResolvedValue({ data: { session: { user: { id: 'u1' } } } });
     mockLimit.mockResolvedValue({
       data: [makeRow({ id: 'n1', is_read: false }), makeRow({ id: 'n2', is_read: true })],
       error: null,
@@ -118,7 +118,7 @@ describe('useNotifications', () => {
   });
 
   it('markAsRead optimistically updates isRead then calls DB', async () => {
-    mockGetUser.mockResolvedValue({ data: { user: { id: 'u1' } } });
+    mockGetSession.mockResolvedValue({ data: { session: { user: { id: 'u1' } } } });
     mockLimit.mockResolvedValue({ data: [makeRow({ id: 'n1', is_read: false })], error: null });
     mockEq.mockResolvedValue({ error: null });
 
@@ -136,7 +136,7 @@ describe('useNotifications', () => {
   });
 
   it('markAsRead rolls back optimistic update on DB error', async () => {
-    mockGetUser.mockResolvedValue({ data: { user: { id: 'u1' } } });
+    mockGetSession.mockResolvedValue({ data: { session: { user: { id: 'u1' } } } });
     mockLimit.mockResolvedValue({ data: [makeRow({ id: 'n1', is_read: false })], error: null });
     mockEq.mockResolvedValue({ error: { message: 'DB error' } });
 
@@ -150,7 +150,7 @@ describe('useNotifications', () => {
   });
 
   it('markAllAsRead marks all unread and calls DB with their IDs', async () => {
-    mockGetUser.mockResolvedValue({ data: { user: { id: 'u1' } } });
+    mockGetSession.mockResolvedValue({ data: { session: { user: { id: 'u1' } } } });
     mockLimit.mockResolvedValue({
       data: [makeRow({ id: 'n1', is_read: false }), makeRow({ id: 'n2', is_read: false })],
       error: null,
@@ -167,7 +167,7 @@ describe('useNotifications', () => {
   });
 
   it('markAllAsRead is a no-op when there are no unread notifications', async () => {
-    mockGetUser.mockResolvedValue({ data: { user: { id: 'u1' } } });
+    mockGetSession.mockResolvedValue({ data: { session: { user: { id: 'u1' } } } });
     mockLimit.mockResolvedValue({ data: [makeRow({ id: 'n1', is_read: true })], error: null });
 
     const { result } = renderHook(() => useNotifications('en'));
@@ -179,7 +179,7 @@ describe('useNotifications', () => {
   });
 
   it('markAllAsRead rolls back optimistic update on DB error', async () => {
-    mockGetUser.mockResolvedValue({ data: { user: { id: 'u1' } } });
+    mockGetSession.mockResolvedValue({ data: { session: { user: { id: 'u1' } } } });
     mockLimit.mockResolvedValue({
       data: [makeRow({ id: 'n1', is_read: false }), makeRow({ id: 'n2', is_read: false })],
       error: null,
@@ -197,7 +197,7 @@ describe('useNotifications', () => {
   });
 
   it('loadNotifications logs error and does not update state on DB error', async () => {
-    mockGetUser.mockResolvedValue({ data: { user: { id: 'u1' } } });
+    mockGetSession.mockResolvedValue({ data: { session: { user: { id: 'u1' } } } });
     mockLimit.mockResolvedValue({ data: null, error: { message: 'DB error' } });
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
@@ -209,20 +209,20 @@ describe('useNotifications', () => {
     consoleSpy.mockRestore();
   });
 
-  it('does not crash when getUser rejects', async () => {
-    mockGetUser.mockRejectedValue(new Error('Network error'));
+  it('does not crash when getSession rejects', async () => {
+    mockGetSession.mockRejectedValue(new Error('Network error'));
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
     const { result } = renderHook(() => useNotifications('en'));
     await act(async () => {});
 
     expect(result.current.notifications).toEqual([]);
-    expect(consoleSpy).toHaveBeenCalledWith('getUser error:', expect.any(Error));
+    expect(consoleSpy).toHaveBeenCalledWith('getSession error:', expect.any(Error));
     consoleSpy.mockRestore();
   });
 
   it('subscribes to realtime channel for the authenticated user', async () => {
-    mockGetUser.mockResolvedValue({ data: { user: { id: 'u1' } } });
+    mockGetSession.mockResolvedValue({ data: { session: { user: { id: 'u1' } } } });
 
     renderHook(() => useNotifications('en'));
     await act(async () => {});
@@ -231,7 +231,7 @@ describe('useNotifications', () => {
   });
 
   it('removes the realtime channel on unmount', async () => {
-    mockGetUser.mockResolvedValue({ data: { user: { id: 'u1' } } });
+    mockGetSession.mockResolvedValue({ data: { session: { user: { id: 'u1' } } } });
 
     const { unmount } = renderHook(() => useNotifications('en'));
     await act(async () => {});
@@ -241,7 +241,7 @@ describe('useNotifications', () => {
   });
 
   it('markAsUnread optimistically updates isRead then calls DB', async () => {
-    mockGetUser.mockResolvedValue({ data: { user: { id: 'u1' } } });
+    mockGetSession.mockResolvedValue({ data: { session: { user: { id: 'u1' } } } });
     mockLimit.mockResolvedValue({ data: [makeRow({ id: 'n1', is_read: true })], error: null });
     mockEq.mockResolvedValue({ error: null });
 
@@ -259,7 +259,7 @@ describe('useNotifications', () => {
   });
 
   it('markAsUnread rolls back optimistic update on DB error', async () => {
-    mockGetUser.mockResolvedValue({ data: { user: { id: 'u1' } } });
+    mockGetSession.mockResolvedValue({ data: { session: { user: { id: 'u1' } } } });
     mockLimit.mockResolvedValue({ data: [makeRow({ id: 'n1', is_read: true })], error: null });
     mockEq.mockResolvedValue({ error: { message: 'DB error' } });
 
@@ -273,7 +273,7 @@ describe('useNotifications', () => {
   });
 
   it('markAllAsUnread marks all read and calls DB with their IDs', async () => {
-    mockGetUser.mockResolvedValue({ data: { user: { id: 'u1' } } });
+    mockGetSession.mockResolvedValue({ data: { session: { user: { id: 'u1' } } } });
     mockLimit.mockResolvedValue({
       data: [makeRow({ id: 'n1', is_read: true }), makeRow({ id: 'n2', is_read: true })],
       error: null,
@@ -290,7 +290,7 @@ describe('useNotifications', () => {
   });
 
   it('markAllAsUnread is a no-op when there are no read notifications', async () => {
-    mockGetUser.mockResolvedValue({ data: { user: { id: 'u1' } } });
+    mockGetSession.mockResolvedValue({ data: { session: { user: { id: 'u1' } } } });
     mockLimit.mockResolvedValue({ data: [makeRow({ id: 'n1', is_read: false })], error: null });
 
     const { result } = renderHook(() => useNotifications('en'));
@@ -302,7 +302,7 @@ describe('useNotifications', () => {
   });
 
   it('markAllAsUnread rolls back optimistic update on DB error', async () => {
-    mockGetUser.mockResolvedValue({ data: { user: { id: 'u1' } } });
+    mockGetSession.mockResolvedValue({ data: { session: { user: { id: 'u1' } } } });
     mockLimit.mockResolvedValue({
       data: [makeRow({ id: 'n1', is_read: true }), makeRow({ id: 'n2', is_read: true })],
       error: null,
@@ -320,7 +320,7 @@ describe('useNotifications', () => {
   });
 
   it('deleteNotification optimistically removes the item then calls DB', async () => {
-    mockGetUser.mockResolvedValue({ data: { user: { id: 'u1' } } });
+    mockGetSession.mockResolvedValue({ data: { session: { user: { id: 'u1' } } } });
     mockLimit.mockResolvedValue({ data: [makeRow({ id: 'n1' })], error: null });
     mockEq.mockResolvedValue({ error: null });
 
@@ -337,7 +337,7 @@ describe('useNotifications', () => {
   });
 
   it('deleteNotification re-fetches from DB on error instead of restoring a stale snapshot', async () => {
-    mockGetUser.mockResolvedValue({ data: { user: { id: 'u1' } } });
+    mockGetSession.mockResolvedValue({ data: { session: { user: { id: 'u1' } } } });
     mockLimit.mockResolvedValue({ data: [makeRow({ id: 'n1' })], error: null });
     mockEq.mockResolvedValue({ error: { message: 'DB error' } });
 
@@ -351,7 +351,7 @@ describe('useNotifications', () => {
   });
 
   it('deleteAllNotifications optimistically clears all items then calls DB', async () => {
-    mockGetUser.mockResolvedValue({ data: { user: { id: 'u1' } } });
+    mockGetSession.mockResolvedValue({ data: { session: { user: { id: 'u1' } } } });
     mockLimit.mockResolvedValue({
       data: [makeRow({ id: 'n1' }), makeRow({ id: 'n2' })],
       error: null,
@@ -369,7 +369,7 @@ describe('useNotifications', () => {
   });
 
   it('deleteAllNotifications is a no-op when there are no notifications', async () => {
-    mockGetUser.mockResolvedValue({ data: { user: { id: 'u1' } } });
+    mockGetSession.mockResolvedValue({ data: { session: { user: { id: 'u1' } } } });
     mockLimit.mockResolvedValue({ data: [], error: null });
 
     const { result } = renderHook(() => useNotifications('en'));
@@ -381,7 +381,7 @@ describe('useNotifications', () => {
   });
 
   it('deleteAllNotifications re-fetches from DB on error instead of restoring a stale snapshot', async () => {
-    mockGetUser.mockResolvedValue({ data: { user: { id: 'u1' } } });
+    mockGetSession.mockResolvedValue({ data: { session: { user: { id: 'u1' } } } });
     mockLimit.mockResolvedValue({
       data: [makeRow({ id: 'n1' }), makeRow({ id: 'n2' })],
       error: null,

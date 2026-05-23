@@ -6,7 +6,8 @@ import type { Recipe } from '../../../shared/types';
 const PUBLIC_RECIPES_LIMIT = 20;
 
 const fetchPublicRecipes = async (): Promise<Recipe[]> => {
-  const { data: { user } } = await supabase.auth.getUser();
+  const { data: { session } } = await supabase.auth.getSession();
+  const user = session?.user;
   if (!user) return [];
 
   const { data } = await supabase
@@ -20,11 +21,13 @@ const fetchPublicRecipes = async (): Promise<Recipe[]> => {
   return data?.map(mapRecipeRow) ?? [];
 };
 
-export const usePublicRecipes = () => {
-  const { data: publicRecipes = [], isPending: loading } = useQuery<Recipe[]>({
+export const usePublicRecipes = (options: { enabled?: boolean } = {}) => {
+  const { enabled = true } = options;
+  const { data: publicRecipes = [], isPending } = useQuery<Recipe[]>({
     queryKey: ['publicRecipes'],
     queryFn: fetchPublicRecipes,
+    enabled,
   });
 
-  return { publicRecipes, loading };
+  return { publicRecipes, loading: enabled && isPending };
 };

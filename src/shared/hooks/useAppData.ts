@@ -19,7 +19,8 @@ export const useAppData = (lang: Language = 'bg') => {
   const [products, setProductsState] = useState<Product[]>(DEFAULT_PRODUCTS);
 
   const loadAll = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { session } } = await supabase.auth.getSession();
+    const user = session?.user;
     if (!user) { setLoading(false); return; }
     setUserId(user.id);
     setUserEmail(user.email ?? '');
@@ -109,7 +110,8 @@ export const useAppData = (lang: Language = 'bg') => {
 
   const setProfile = useCallback(async (next: Profile) => {
     setProfileState(next);
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { session } } = await supabase.auth.getSession();
+    const user = session?.user;
     if (!user) return;
     const { error } = await supabase.from('users').upsert({
       id: user.id,
@@ -126,7 +128,8 @@ export const useAppData = (lang: Language = 'bg') => {
   }, []);
 
   const addFridgeItem = useCallback(async (newItem: Omit<FridgeItem, 'id'>) => {
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { session } } = await supabase.auth.getSession();
+    const user = session?.user;
     if (!user) return;
     const { data, error } = await supabase.from('fridge_items').insert({
       user_id: user.id,
@@ -145,14 +148,16 @@ export const useAppData = (lang: Language = 'bg') => {
 
   const removeFridgeItem = useCallback(async (id: string) => {
     setFridgeState(prev => prev.filter(fridgeItem => fridgeItem.id !== id));
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { session } } = await supabase.auth.getSession();
+    const user = session?.user;
     if (!user) return;
     await supabase.from('fridge_items').delete().eq('id', id).eq('user_id', user.id);
   }, []);
 
   const updateFridgeItem = useCallback(async (item: FridgeItem) => {
     setFridgeState(prev => prev.map(fridgeItem => fridgeItem.id === item.id ? item : fridgeItem));
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { session } } = await supabase.auth.getSession();
+    const user = session?.user;
     if (!user) return;
     const { error } = await supabase.from('fridge_items')
       .update({ name: item.name, emoji: item.emoji, category: item.category })
@@ -166,7 +171,8 @@ export const useAppData = (lang: Language = 'bg') => {
 
   const addRecipe = useCallback(async (recipe: Recipe) => {
     setRecipesState(prev => [...prev, recipe]);
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { session } } = await supabase.auth.getSession();
+    const user = session?.user;
     if (!user) return;
     const { error } = await supabase.from('recipes').insert({
       id: recipe.id,
@@ -196,14 +202,16 @@ export const useAppData = (lang: Language = 'bg') => {
 
   const removeRecipe = useCallback(async (id: string) => {
     setRecipesState(prev => prev.filter(existingRecipe => existingRecipe.id !== id));
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { session } } = await supabase.auth.getSession();
+    const user = session?.user;
     if (!user) return;
     await supabase.from('recipes').delete().eq('id', id).eq('user_id', user.id);
   }, []);
 
   const updateRecipe = useCallback(async (recipe: Recipe) => {
     setRecipesState(prev => prev.map(existingRecipe => existingRecipe.id === recipe.id ? recipe : existingRecipe));
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { session } } = await supabase.auth.getSession();
+    const user = session?.user;
     if (!user) return;
     const { error } = await supabase.from('recipes')
       .update({
@@ -268,7 +276,8 @@ export const useAppData = (lang: Language = 'bg') => {
   }, []);
 
   const addProduct = useCallback(async (newProduct: Omit<Product, 'id'>) => {
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { session } } = await supabase.auth.getSession();
+    const user = session?.user;
     if (!user) return;
     const { data, error } = await supabase.from('products').insert({
       user_id: user.id,

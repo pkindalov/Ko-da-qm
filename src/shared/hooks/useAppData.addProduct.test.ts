@@ -2,20 +2,19 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useAppData } from './useAppData';
 
-const { mockSingle, mockSelect, mockInsert, mockFrom, mockGetUser } = vi.hoisted(() => {
+const { mockSingle, mockSelect, mockInsert, mockFrom, mockGetSession } = vi.hoisted(() => {
   const mockSingle = vi.fn();
   const mockSelect = vi.fn(() => ({ single: mockSingle }));
   const mockInsert = vi.fn(() => ({ select: mockSelect }));
   const mockFrom = vi.fn(() => ({ insert: mockInsert }));
-  const mockGetUser = vi.fn();
-  return { mockSingle, mockSelect, mockInsert, mockFrom, mockGetUser };
+  const mockGetSession = vi.fn();
+  return { mockSingle, mockSelect, mockInsert, mockFrom, mockGetSession };
 });
 
 vi.mock('../../lib/supabase', () => ({
   supabase: {
     auth: {
-      getUser: mockGetUser,
-      getSession: vi.fn().mockResolvedValue({ data: { session: null } }),
+      getSession: mockGetSession,
     },
     from: mockFrom,
   },
@@ -25,7 +24,7 @@ describe('useAppData – addProduct', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     // loadAll runs on mount; returning no user short-circuits it
-    mockGetUser.mockResolvedValue({ data: { user: null } });
+    mockGetSession.mockResolvedValue({ data: { session: null } });
     mockSelect.mockReturnValue({ single: mockSingle });
     mockInsert.mockReturnValue({ select: mockSelect });
     mockFrom.mockReturnValue({ insert: mockInsert });
@@ -35,7 +34,7 @@ describe('useAppData – addProduct', () => {
     const { result } = renderHook(() => useAppData());
     await act(async () => {});
 
-    mockGetUser.mockResolvedValueOnce({ data: { user: { id: 'user-123' } } });
+    mockGetSession.mockResolvedValueOnce({ data: { session: { user: { id: 'user-123' } } } });
     mockSingle.mockResolvedValueOnce({ data: { id: 'new-uuid' }, error: null });
 
     const newProduct = {
@@ -85,7 +84,7 @@ describe('useAppData – addProduct', () => {
     const { result } = renderHook(() => useAppData());
     await act(async () => {});
 
-    mockGetUser.mockResolvedValueOnce({ data: { user: { id: 'user-123' } } });
+    mockGetSession.mockResolvedValueOnce({ data: { session: { user: { id: 'user-123' } } } });
     mockSingle.mockResolvedValueOnce({ data: null, error: { message: 'DB error' } });
 
     const initialProducts = result.current.products;
@@ -106,7 +105,7 @@ describe('useAppData – addProduct', () => {
     const { result } = renderHook(() => useAppData());
     await act(async () => {});
 
-    mockGetUser.mockResolvedValueOnce({ data: { user: { id: 'user-123' } } });
+    mockGetSession.mockResolvedValueOnce({ data: { session: { user: { id: 'user-123' } } } });
     mockSingle.mockResolvedValueOnce({ data: { id: 'new-uuid' }, error: null });
 
     await act(async () => {
@@ -127,7 +126,7 @@ describe('useAppData – addProduct', () => {
     const { result } = renderHook(() => useAppData());
     await act(async () => {}); // flush loadAll (null user → no-op)
 
-    mockGetUser.mockResolvedValue({ data: { user: { id: 'user-123' } } });
+    mockGetSession.mockResolvedValue({ data: { session: { user: { id: 'user-123' } } } });
     mockSingle
       .mockResolvedValueOnce({ data: { id: 'uuid-1' }, error: null })
       .mockResolvedValueOnce({ data: { id: 'uuid-2' }, error: null });

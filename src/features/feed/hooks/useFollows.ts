@@ -12,10 +12,10 @@ interface UseFollowsResult {
 
 const fetchCurrentUserId = async (): Promise<string> => {
   try {
-    const { data: { user } } = await supabase.auth.getUser();
-    return user?.id ?? '';
+    const { data: { session } } = await supabase.auth.getSession();
+    return session?.user?.id ?? '';
   } catch (err) {
-    console.error('useFollows getUser error:', err);
+    console.error('useFollows getSession error:', err);
     return '';
   }
 };

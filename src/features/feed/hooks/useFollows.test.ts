@@ -3,7 +3,7 @@ import { renderHook, act, waitFor } from '@testing-library/react';
 import { useFollows } from './useFollows';
 import { createQueryWrapper } from '../../../test/queryWrapper';
 
-const { mockGetUser, mockFrom, mockSelect, mockEq, mockInsert, mockDelete, mockDeleteEq1, mockDeleteEq2 } = vi.hoisted(() => {
+const { mockGetSession, mockFrom, mockSelect, mockEq, mockInsert, mockDelete, mockDeleteEq1, mockDeleteEq2 } = vi.hoisted(() => {
   const mockEq = vi.fn();
   // delete chain: .delete().eq(follower_id).eq(following_id) — two chained eqs
   const mockDeleteEq2 = vi.fn();
@@ -12,14 +12,14 @@ const { mockGetUser, mockFrom, mockSelect, mockEq, mockInsert, mockDelete, mockD
   const mockInsert = vi.fn();
   const mockDelete = vi.fn().mockReturnValue({ eq: mockDeleteEq1 });
   const mockFrom = vi.fn().mockReturnValue({ select: mockSelect, insert: mockInsert, delete: mockDelete });
-  const mockGetUser = vi.fn();
+  const mockGetSession = vi.fn();
 
-  return { mockGetUser, mockFrom, mockSelect, mockEq, mockInsert, mockDelete, mockDeleteEq1, mockDeleteEq2 };
+  return { mockGetSession, mockFrom, mockSelect, mockEq, mockInsert, mockDelete, mockDeleteEq1, mockDeleteEq2 };
 });
 
 vi.mock('../../../lib/supabase', () => ({
   supabase: {
-    auth: { getUser: mockGetUser },
+    auth: { getSession: mockGetSession },
     from: mockFrom,
   },
 }));
@@ -36,7 +36,7 @@ describe('useFollows', () => {
   });
 
   it('returns empty state and stops loading when no user is authenticated', async () => {
-    mockGetUser.mockResolvedValue({ data: { user: null } });
+    mockGetSession.mockResolvedValue({ data: { session: null } });
 
     const { result } = renderHook(() => useFollows('en'), { wrapper: createQueryWrapper() });
     await waitFor(() => expect(result.current.loading).toBe(false));
@@ -47,7 +47,7 @@ describe('useFollows', () => {
   });
 
   it('loads followingIds for the authenticated user', async () => {
-    mockGetUser.mockResolvedValue({ data: { user: { id: 'u1' } } });
+    mockGetSession.mockResolvedValue({ data: { session: { user: { id: 'u1' } } } });
     mockEq.mockResolvedValue({ data: [{ following_id: 'u2' }, { following_id: 'u3' }], error: null });
 
     const { result } = renderHook(() => useFollows('en'), { wrapper: createQueryWrapper() });
@@ -60,7 +60,7 @@ describe('useFollows', () => {
   });
 
   it('returns empty followingIds when DB returns empty array', async () => {
-    mockGetUser.mockResolvedValue({ data: { user: { id: 'u1' } } });
+    mockGetSession.mockResolvedValue({ data: { session: { user: { id: 'u1' } } } });
     mockEq.mockResolvedValue({ data: [], error: null });
 
     const { result } = renderHook(() => useFollows('en'), { wrapper: createQueryWrapper() });
@@ -70,7 +70,7 @@ describe('useFollows', () => {
   });
 
   it('logs error and keeps empty followingIds on DB load error', async () => {
-    mockGetUser.mockResolvedValue({ data: { user: { id: 'u1' } } });
+    mockGetSession.mockResolvedValue({ data: { session: { user: { id: 'u1' } } } });
     mockEq.mockResolvedValue({ data: null, error: { message: 'DB error' } });
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
@@ -82,20 +82,20 @@ describe('useFollows', () => {
     consoleSpy.mockRestore();
   });
 
-  it('does not crash when getUser rejects', async () => {
-    mockGetUser.mockRejectedValue(new Error('Network error'));
+  it('does not crash when getSession rejects', async () => {
+    mockGetSession.mockRejectedValue(new Error('Network error'));
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
     const { result } = renderHook(() => useFollows('en'), { wrapper: createQueryWrapper() });
     await waitFor(() => expect(result.current.loading).toBe(false));
 
     expect(result.current.followingIds).toEqual([]);
-    expect(consoleSpy).toHaveBeenCalledWith('useFollows getUser error:', expect.any(Error));
+    expect(consoleSpy).toHaveBeenCalledWith('useFollows getSession error:', expect.any(Error));
     consoleSpy.mockRestore();
   });
 
   it('toggleFollow adds a new follow optimistically', async () => {
-    mockGetUser.mockResolvedValue({ data: { user: { id: 'u1' } } });
+    mockGetSession.mockResolvedValue({ data: { session: { user: { id: 'u1' } } } });
     mockEq.mockResolvedValue({ data: [], error: null });
     mockInsert.mockResolvedValue({ error: null });
 
@@ -109,7 +109,7 @@ describe('useFollows', () => {
   });
 
   it('toggleFollow removes an existing follow optimistically', async () => {
-    mockGetUser.mockResolvedValue({ data: { user: { id: 'u1' } } });
+    mockGetSession.mockResolvedValue({ data: { session: { user: { id: 'u1' } } } });
     mockEq.mockResolvedValue({ data: [{ following_id: 'u2' }], error: null });
     mockDeleteEq2.mockResolvedValue({ error: null });
 
@@ -123,7 +123,7 @@ describe('useFollows', () => {
   });
 
   it('follow rolls back optimistic update on DB error', async () => {
-    mockGetUser.mockResolvedValue({ data: { user: { id: 'u1' } } });
+    mockGetSession.mockResolvedValue({ data: { session: { user: { id: 'u1' } } } });
     mockEq.mockResolvedValue({ data: [], error: null });
     mockInsert.mockResolvedValue({ error: { message: 'DB error' } });
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
@@ -138,7 +138,7 @@ describe('useFollows', () => {
   });
 
   it('unfollow rolls back optimistic update on DB error', async () => {
-    mockGetUser.mockResolvedValue({ data: { user: { id: 'u1' } } });
+    mockGetSession.mockResolvedValue({ data: { session: { user: { id: 'u1' } } } });
     mockEq.mockResolvedValue({ data: [{ following_id: 'u2' }], error: null });
     mockDeleteEq2.mockResolvedValue({ error: { message: 'DB error' } });
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
@@ -153,7 +153,7 @@ describe('useFollows', () => {
   });
 
   it('does not follow own user ID', async () => {
-    mockGetUser.mockResolvedValue({ data: { user: { id: 'u1' } } });
+    mockGetSession.mockResolvedValue({ data: { session: { user: { id: 'u1' } } } });
     mockEq.mockResolvedValue({ data: [], error: null });
 
     const { result } = renderHook(() => useFollows('en'), { wrapper: createQueryWrapper() });
@@ -166,7 +166,7 @@ describe('useFollows', () => {
   });
 
   it('does not add duplicate entries when following the same user twice', async () => {
-    mockGetUser.mockResolvedValue({ data: { user: { id: 'u1' } } });
+    mockGetSession.mockResolvedValue({ data: { session: { user: { id: 'u1' } } } });
     mockEq.mockResolvedValueOnce({ data: [], error: null });
     mockInsert.mockResolvedValue({ error: null });
 

@@ -4,11 +4,11 @@ import { useSaveGeminiRecipe } from './useSaveGeminiRecipe';
 import type { MatchedRecipe } from '../utils/matchFromFridge';
 import type { Recipe } from '../../../shared/types';
 
-const mockGetUser = vi.hoisted(() => vi.fn());
+const mockGetSession = vi.hoisted(() => vi.fn());
 
 vi.mock('../../../lib/supabase', () => ({
   supabase: {
-    auth: { getUser: mockGetUser },
+    auth: { getSession: mockGetSession },
   },
 }));
 
@@ -37,7 +37,7 @@ describe('useSaveGeminiRecipe', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    mockGetUser.mockResolvedValue({ data: { user: authenticatedUser } });
+    mockGetSession.mockResolvedValue({ data: { session: { user: authenticatedUser } } });
     mockAddRecipe = vi.fn();
     mockRemoveRecipe = vi.fn();
   });
@@ -134,7 +134,7 @@ describe('useSaveGeminiRecipe', () => {
   });
 
   it('sets saveError and returns false when not authenticated', async () => {
-    mockGetUser.mockResolvedValue({ data: { user: null } });
+    mockGetSession.mockResolvedValue({ data: { session: null } });
     const { result } = renderSaveHook();
 
     let success: boolean;
@@ -149,7 +149,7 @@ describe('useSaveGeminiRecipe', () => {
   });
 
   it('sets saveError and returns false when getUser throws', async () => {
-    mockGetUser.mockRejectedValue(new Error('Network error'));
+    mockGetSession.mockRejectedValue(new Error('Network error'));
     const { result } = renderSaveHook();
 
     let success: boolean;
@@ -162,8 +162,8 @@ describe('useSaveGeminiRecipe', () => {
   });
 
   it('clears saveError at the start of a new save attempt', async () => {
-    mockGetUser.mockResolvedValueOnce({ data: { user: null } });
-    mockGetUser.mockResolvedValueOnce({ data: { user: authenticatedUser } });
+    mockGetSession.mockResolvedValueOnce({ data: { session: null } });
+    mockGetSession.mockResolvedValueOnce({ data: { session: { user: authenticatedUser } } });
     const { result } = renderSaveHook();
 
     await act(async () => {
@@ -178,7 +178,7 @@ describe('useSaveGeminiRecipe', () => {
   });
 
   it('clearSaveError removes the error', async () => {
-    mockGetUser.mockResolvedValue({ data: { user: null } });
+    mockGetSession.mockResolvedValue({ data: { session: null } });
     const { result } = renderSaveHook();
 
     await act(async () => {
@@ -193,9 +193,9 @@ describe('useSaveGeminiRecipe', () => {
 
   it('savingId is set to geminiId during save and null after', async () => {
     let capturedSavingId: string | null = null;
-    mockGetUser.mockImplementationOnce(async () => {
+    mockGetSession.mockImplementationOnce(async () => {
       capturedSavingId = 'captured';
-      return { data: { user: authenticatedUser } };
+      return { data: { session: { user: authenticatedUser } } };
     });
 
     const { result } = renderSaveHook();

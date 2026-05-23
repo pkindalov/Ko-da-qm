@@ -4,13 +4,6 @@ import { toast } from 'sonner';
 import { Sidebar } from './layout/Sidebar';
 import { BottomNav } from './layout/BottomNav';
 import { TweaksPanel } from './layout/TweaksPanel';
-
-const HomeScreen = lazy(() => import('../features/home/components/HomeScreen').then(m => ({ default: m.HomeScreen })));
-const FeedScreen = lazy(() => import('../features/feed/components/FeedScreen').then(m => ({ default: m.FeedScreen })));
-const FridgeScreen = lazy(() => import('../features/fridge/components/FridgeScreen').then(m => ({ default: m.FridgeScreen })));
-const RecipesScreen = lazy(() => import('../features/recipes/components/RecipesScreen').then(m => ({ default: m.RecipesScreen })));
-const ProductsScreen = lazy(() => import('../features/products/components/ProductsScreen').then(m => ({ default: m.ProductsScreen })));
-const ProfileScreen = lazy(() => import('../features/profile/components/ProfileScreen').then(m => ({ default: m.ProfileScreen })));
 import { useLocalStorage } from '../shared/hooks/useLocalStorage';
 import { useAppData } from '../shared/hooks/useAppData';
 import { usePublicRecipes } from '../features/home/hooks/usePublicRecipes';
@@ -23,11 +16,18 @@ import { DEFAULT_TWEAKS } from '../shared/constants/defaults';
 import { supabase } from '../lib/supabase';
 import type { Tab } from '../shared/types';
 
+const HomeScreen = lazy(() => import('../features/home/components/HomeScreen').then(m => ({ default: m.HomeScreen })));
+const FeedScreen = lazy(() => import('../features/feed/components/FeedScreen').then(m => ({ default: m.FeedScreen })));
+const FridgeScreen = lazy(() => import('../features/fridge/components/FridgeScreen').then(m => ({ default: m.FridgeScreen })));
+const RecipesScreen = lazy(() => import('../features/recipes/components/RecipesScreen').then(m => ({ default: m.RecipesScreen })));
+const ProductsScreen = lazy(() => import('../features/products/components/ProductsScreen').then(m => ({ default: m.ProductsScreen })));
+const ProfileScreen = lazy(() => import('../features/profile/components/ProfileScreen').then(m => ({ default: m.ProfileScreen })));
+
 export const AppShell = () => {
   const [tab, setTab] = useLocalStorage<Tab>('kdq_tab', 'home');
   const [tweaks, setTweaks] = useLocalStorage('kdq_tweaks', DEFAULT_TWEAKS);
   const { loading, userId, userEmail, profile, setProfile, fridge, addFridgeItem, removeFridgeItem, updateFridgeItem, recipes, addRecipe, removeRecipe, updateRecipe, products, setProducts, addProduct, removeProduct } = useAppData(tweaks.lang);
-  const { publicRecipes } = usePublicRecipes();
+  const { publicRecipes } = usePublicRecipes({ enabled: tab === 'home' });
   const { favoriteIds, favoriteRecipes, toggleFavorite } = useFavorites(tweaks.lang);
   const navigate = useNavigate();
   const publicRecipeIds = useMemo(() => publicRecipes.map((recipe) => recipe.id), [publicRecipes]);

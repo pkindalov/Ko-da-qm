@@ -2,19 +2,18 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useAppData } from './useAppData';
 
-const { mockFridgeSelect, mockProductsSelect, mockFrom, mockGetUser } = vi.hoisted(() => {
+const { mockFridgeSelect, mockProductsSelect, mockFrom, mockGetSession } = vi.hoisted(() => {
   const mockFridgeSelect = vi.fn(() => ({ eq: () => Promise.resolve({ data: [], error: null }) }));
   const mockProductsSelect = vi.fn(() => ({ eq: () => Promise.resolve({ data: [], error: null }) }));
   const mockFrom = vi.fn();
-  const mockGetUser = vi.fn();
-  return { mockFridgeSelect, mockProductsSelect, mockFrom, mockGetUser };
+  const mockGetSession = vi.fn();
+  return { mockFridgeSelect, mockProductsSelect, mockFrom, mockGetSession };
 });
 
 vi.mock('../../lib/supabase', () => ({
   supabase: {
     auth: {
-      getUser: mockGetUser,
-      getSession: vi.fn().mockResolvedValue({ data: { session: null } }),
+      getSession: mockGetSession,
     },
     from: mockFrom,
   },
@@ -23,7 +22,7 @@ vi.mock('../../lib/supabase', () => ({
 describe('useAppData – loadAll select fields', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockGetUser.mockResolvedValue({ data: { user: { id: 'user-1', user_metadata: {} } } });
+    mockGetSession.mockResolvedValue({ data: { session: { user: { id: 'user-1', user_metadata: {} } } } });
     mockFridgeSelect.mockReturnValue({ eq: () => Promise.resolve({ data: [], error: null }) });
     mockProductsSelect.mockReturnValue({ eq: () => Promise.resolve({ data: [], error: null }) });
     mockFrom.mockImplementation((table: string) => {

@@ -12,7 +12,8 @@ interface FavoritesData {
 const EMPTY_FAVORITES: FavoritesData = { favoriteIds: [], favoriteRecipes: [] };
 
 const fetchFavorites = async (): Promise<FavoritesData> => {
-  const { data: { user } } = await supabase.auth.getUser();
+  const { data: { session } } = await supabase.auth.getSession();
+  const user = session?.user;
   if (!user) return EMPTY_FAVORITES;
 
   const { data } = await supabase.from('favorites').select('recipe_id, recipes(*)');
@@ -40,7 +41,8 @@ export const useFavorites = (lang: Language = 'bg') => {
 
   const addMutation = useMutation({
     mutationFn: async (recipe: Recipe) => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { session } } = await supabase.auth.getSession();
+      const user = session?.user;
       if (!user) throw new Error('Not authenticated');
       const { error } = await supabase.from('favorites').insert({ user_id: user.id, recipe_id: recipe.id });
       if (error) throw error;
@@ -69,7 +71,8 @@ export const useFavorites = (lang: Language = 'bg') => {
 
   const removeMutation = useMutation({
     mutationFn: async (recipeId: string) => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { session } } = await supabase.auth.getSession();
+      const user = session?.user;
       if (!user) throw new Error('Not authenticated');
       const { error } = await supabase.from('favorites').delete().eq('recipe_id', recipeId).eq('user_id', user.id);
       if (error) throw error;
