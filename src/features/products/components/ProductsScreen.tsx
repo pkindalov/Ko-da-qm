@@ -159,9 +159,9 @@ export const ProductsScreen = ({ products, setProducts, addProduct, lang }: Prod
             <div className="product-edit-mb-lg">
               <label className="input-label">{isEnglish ? 'My relationship with this food' : 'Моето отношение'}</label>
               <div className="chip-group">
-                <span className={`chip${editProduct.status === 'liked' ? ' selected' : ''}`} onClick={() => setEditProduct({ ...editProduct, status: 'liked' })}>✓ {isEnglish ? 'I like it' : 'Харесвам'}</span>
-                <span className={`chip${editProduct.status === 'disliked' ? ' sel-warn' : ''}`} onClick={() => setEditProduct({ ...editProduct, status: 'disliked' })}>✗ {isEnglish ? 'I dislike it' : 'Не харесвам'}</span>
-                <span className={`chip${editProduct.status === 'allergic' ? ' sel-danger' : ''}`} onClick={() => setEditProduct({ ...editProduct, status: 'allergic' })}>⚠ {isEnglish ? 'Allergic' : 'Алергия'}</span>
+                <span role="button" tabIndex={0} className={`chip${editProduct.status === 'liked' ? ' selected' : ''}`} onClick={() => setEditProduct({ ...editProduct, status: 'liked' })} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setEditProduct({ ...editProduct, status: 'liked' }); } }}>✓ {isEnglish ? 'I like it' : 'Харесвам'}</span>
+                <span role="button" tabIndex={0} className={`chip${editProduct.status === 'disliked' ? ' sel-warn' : ''}`} onClick={() => setEditProduct({ ...editProduct, status: 'disliked' })} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setEditProduct({ ...editProduct, status: 'disliked' }); } }}>✗ {isEnglish ? 'I dislike it' : 'Не харесвам'}</span>
+                <span role="button" tabIndex={0} className={`chip${editProduct.status === 'allergic' ? ' sel-danger' : ''}`} onClick={() => setEditProduct({ ...editProduct, status: 'allergic' })} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setEditProduct({ ...editProduct, status: 'allergic' }); } }}>⚠ {isEnglish ? 'Allergic' : 'Алергия'}</span>
               </div>
             </div>
             <div className="product-edit-actions">
@@ -203,9 +203,9 @@ export const ProductsScreen = ({ products, setProducts, addProduct, lang }: Prod
         <div className="product-edit-mb-lg">
           <label className="input-label">{isEnglish ? 'My relationship with this food' : 'Моето отношение'}</label>
           <div className="chip-group">
-            <span className={`chip${newProduct.status === 'liked' ? ' selected' : ''}`} onClick={() => setNewProduct({ ...newProduct, status: 'liked' })}>✓ {isEnglish ? 'I like it' : 'Харесвам'}</span>
-            <span className={`chip${newProduct.status === 'disliked' ? ' sel-warn' : ''}`} onClick={() => setNewProduct({ ...newProduct, status: 'disliked' })}>✗ {isEnglish ? 'I dislike it' : 'Не харесвам'}</span>
-            <span className={`chip${newProduct.status === 'allergic' ? ' sel-danger' : ''}`} onClick={() => setNewProduct({ ...newProduct, status: 'allergic' })}>⚠ {isEnglish ? 'Allergic' : 'Алергия'}</span>
+            <span role="button" tabIndex={0} className={`chip${newProduct.status === 'liked' ? ' selected' : ''}`} onClick={() => setNewProduct({ ...newProduct, status: 'liked' })} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setNewProduct({ ...newProduct, status: 'liked' }); } }}>✓ {isEnglish ? 'I like it' : 'Харесвам'}</span>
+            <span role="button" tabIndex={0} className={`chip${newProduct.status === 'disliked' ? ' sel-warn' : ''}`} onClick={() => setNewProduct({ ...newProduct, status: 'disliked' })} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setNewProduct({ ...newProduct, status: 'disliked' }); } }}>✗ {isEnglish ? 'I dislike it' : 'Не харесвам'}</span>
+            <span role="button" tabIndex={0} className={`chip${newProduct.status === 'allergic' ? ' sel-danger' : ''}`} onClick={() => setNewProduct({ ...newProduct, status: 'allergic' })} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setNewProduct({ ...newProduct, status: 'allergic' }); } }}>⚠ {isEnglish ? 'Allergic' : 'Алергия'}</span>
           </div>
         </div>
         <div className="product-edit-actions">
