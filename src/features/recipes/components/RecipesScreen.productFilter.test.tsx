@@ -201,7 +201,7 @@ describe('RecipesScreen – product filter', () => {
       await openAddModal(user);
       await user.type(screen.getByPlaceholderText('Филтрирай продукти...'), 'Домати');
       await user.click(screen.getByRole('button', { name: /Домати/ }));
-      const textarea = screen.getByPlaceholderText(/кашкавал/i);
+      const textarea = screen.getByLabelText(/съставки/i);
       expect(textarea).toHaveValue('Домати');
     });
   });

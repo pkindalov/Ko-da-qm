@@ -338,9 +338,13 @@ export const RecipesScreen = ({ recipes, addRecipe, removeRecipe, updateRecipe, 
           <input className="input-field" type="number" value={form.time} onChange={(e) => setForm({ ...form, time: e.target.value })} placeholder="15" />
         </div>
         <div className="recipe-form-mb">
-          <label className="input-label">{lang === 'en' ? 'Ingredients (one per line)' : 'Съставки (по един ред)'}</label>
-          <textarea className="input-field" rows={4} value={form.ingredients} onChange={(e) => setForm({ ...form, ingredients: e.target.value })}
-            placeholder={lang === 'en' ? '3 eggs\n50g cheese' : '3 яйца\n50г кашкавал'} />
+          <label className="input-label" htmlFor="recipe-form-ingredients">{lang === 'en' ? 'Ingredients (one per line)' : 'Съставки (по един ред)'}</label>
+          <textarea id="recipe-form-ingredients" className="input-field" rows={4} value={form.ingredients} onChange={(e) => setForm({ ...form, ingredients: e.target.value })}
+            placeholder={lang === 'en' ? '3 eggs\n230ml milk\n100g butter\n1 tsp salt' : '3 яйца\n230мл мляко\n100г масло\n1 ч.л. сол'} />
+          <p className="recipe-form-hint">
+            {lang === 'en'
+              ? 'Start each line with the quantity, then the ingredient — e.g. "3 eggs" or "100g butter". Avoid section headings like "For the dough:" — those break the shopping list.'
+              : 'Всеки ред започва с количеството, след това съставката — напр. "3 яйца" или "100г масло". Избягвай заглавия като "За тестото:" — те нарушават списъка за пазар.'}</p>
           {products.length > 0 && (
             <div className="mt-1">
               <div className="product-picker-hd">

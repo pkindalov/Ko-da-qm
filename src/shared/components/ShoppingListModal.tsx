@@ -15,11 +15,13 @@ const hasInFridge = (req: string, fridgeLow: string[]) => {
   return fridgeLow.some(f => f.includes(r) || r.includes(f));
 };
 
+const escapeRegex = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
 const findQty = (req: string, ingredients: string[]) => {
   const r = req.toLowerCase();
   const match = ingredients.find(s => s.toLowerCase().includes(r));
   if (!match) return '';
-  return match.replace(new RegExp(`\\s*${req}.*$`, 'i'), '').trim();
+  return match.replace(new RegExp(`\\s*${escapeRegex(req)}.*$`, 'i'), '').trim();
 };
 
 const findFullLine = (req: string, ingredients: string[]) =>
