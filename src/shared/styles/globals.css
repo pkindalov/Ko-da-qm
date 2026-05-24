@@ -604,6 +604,7 @@ a{color:inherit;text-decoration:none}
   text-align:center;margin-top:6px;
 }
 .auth-error{color:var(--rust);font-size:13px;margin-bottom:4px}
+.auth-field-error{color:var(--rust);font-size:12px;margin-top:4px}
 .auth-switch{margin-top:20px;text-align:center;font-size:13px;color:var(--ink-2)}
 .auth-switch a{color:var(--clay-deep);font-weight:500}
 .auth-divider{

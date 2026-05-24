@@ -179,6 +179,55 @@ describe('LoginScreen', () => {
     await waitFor(() => expect(screen.getByRole('button', { name: /влез с google/i })).toBeDisabled());
   });
 
+  it('shows error for empty email on submit', async () => {
+    const user = userEvent.setup();
+    await renderLogin();
+    await user.type(screen.getByPlaceholderText('••••••••'), 'secret123');
+    await user.click(screen.getByRole('button', { name: /вход/i }));
+    expect(screen.getByText('Имейлът е задължителен')).toBeInTheDocument();
+    expect(mockSignIn).not.toHaveBeenCalled();
+  });
+
+  it('shows error for invalid email format on submit', async () => {
+    const user = userEvent.setup();
+    await renderLogin();
+    await user.type(screen.getByPlaceholderText('you@example.com'), 'notanemail');
+    await user.type(screen.getByPlaceholderText('••••••••'), 'secret123');
+    await user.click(screen.getByRole('button', { name: /вход/i }));
+    expect(screen.getByText('Невалиден имейл адрес')).toBeInTheDocument();
+    expect(mockSignIn).not.toHaveBeenCalled();
+  });
+
+  it('shows error for empty password on submit', async () => {
+    const user = userEvent.setup();
+    await renderLogin();
+    await user.type(screen.getByPlaceholderText('you@example.com'), 'test@test.com');
+    await user.click(screen.getByRole('button', { name: /вход/i }));
+    expect(screen.getByText('Паролата е задължителна')).toBeInTheDocument();
+    expect(mockSignIn).not.toHaveBeenCalled();
+  });
+
+  it('clears email field error when user types in the email field', async () => {
+    const user = userEvent.setup();
+    await renderLogin();
+    await user.type(screen.getByPlaceholderText('you@example.com'), 'bad');
+    await user.type(screen.getByPlaceholderText('••••••••'), 'secret123');
+    await user.click(screen.getByRole('button', { name: /вход/i }));
+    expect(screen.getByText('Невалиден имейл адрес')).toBeInTheDocument();
+    await user.type(screen.getByPlaceholderText('you@example.com'), 'x');
+    expect(screen.queryByText('Невалиден имейл адрес')).not.toBeInTheDocument();
+  });
+
+  it('clears password field error when user types in the password field', async () => {
+    const user = userEvent.setup();
+    await renderLogin();
+    await user.type(screen.getByPlaceholderText('you@example.com'), 'test@test.com');
+    await user.click(screen.getByRole('button', { name: /вход/i }));
+    expect(screen.getByText('Паролата е задължителна')).toBeInTheDocument();
+    await user.type(screen.getByPlaceholderText('••••••••'), 'x');
+    expect(screen.queryByText('Паролата е задължителна')).not.toBeInTheDocument();
+  });
+
   it('clears a previous error when Google login is clicked', async () => {
     mockSignIn.mockResolvedValueOnce({ error: { message: 'Invalid login credentials' } });
     mockSignInWithOAuth.mockResolvedValue({ error: null });

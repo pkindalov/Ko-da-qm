@@ -221,6 +221,95 @@ describe('RegisterScreen', () => {
     await waitFor(() => expect(screen.getByRole('button', { name: /регистрирай се с google/i })).toBeDisabled());
   });
 
+  it('shows error when name is empty on submit', async () => {
+    const user = userEvent.setup();
+    await renderRegister();
+    await user.type(screen.getByPlaceholderText('you@example.com'), 'test@test.com');
+    const passwordFields = screen.getAllByPlaceholderText('••••••••');
+    await user.type(passwordFields[0], 'secret123');
+    await user.type(passwordFields[1], 'secret123');
+    await user.click(screen.getByRole('button', { name: 'Регистрирай се' }));
+    expect(screen.getByText('Името е задължително')).toBeInTheDocument();
+    expect(mockSignUp).not.toHaveBeenCalled();
+  });
+
+  it('shows error when name is whitespace-only on submit', async () => {
+    const user = userEvent.setup();
+    await renderRegister();
+    await user.type(screen.getByPlaceholderText('Иван Иванов'), '   ');
+    await user.type(screen.getByPlaceholderText('you@example.com'), 'test@test.com');
+    const passwordFields = screen.getAllByPlaceholderText('••••••••');
+    await user.type(passwordFields[0], 'secret123');
+    await user.type(passwordFields[1], 'secret123');
+    await user.click(screen.getByRole('button', { name: 'Регистрирай се' }));
+    expect(screen.getByText('Името е задължително')).toBeInTheDocument();
+    expect(mockSignUp).not.toHaveBeenCalled();
+  });
+
+  it('shows error when name is too short on submit', async () => {
+    const user = userEvent.setup();
+    await renderRegister();
+    await user.type(screen.getByPlaceholderText('Иван Иванов'), 'A');
+    await user.type(screen.getByPlaceholderText('you@example.com'), 'test@test.com');
+    const passwordFields = screen.getAllByPlaceholderText('••••••••');
+    await user.type(passwordFields[0], 'secret123');
+    await user.type(passwordFields[1], 'secret123');
+    await user.click(screen.getByRole('button', { name: 'Регистрирай се' }));
+    expect(screen.getByText('Името трябва да е поне 2 символа')).toBeInTheDocument();
+    expect(mockSignUp).not.toHaveBeenCalled();
+  });
+
+  it('shows error for invalid email format on submit', async () => {
+    const user = userEvent.setup();
+    await renderRegister();
+    await user.type(screen.getByPlaceholderText('Иван Иванов'), 'Иван');
+    await user.type(screen.getByPlaceholderText('you@example.com'), 'notanemail');
+    const passwordFields = screen.getAllByPlaceholderText('••••••••');
+    await user.type(passwordFields[0], 'secret123');
+    await user.type(passwordFields[1], 'secret123');
+    await user.click(screen.getByRole('button', { name: 'Регистрирай се' }));
+    expect(screen.getByText('Невалиден имейл адрес')).toBeInTheDocument();
+    expect(mockSignUp).not.toHaveBeenCalled();
+  });
+
+  it('shows error when password is too short on submit', async () => {
+    const user = userEvent.setup();
+    await renderRegister();
+    await user.type(screen.getByPlaceholderText('Иван Иванов'), 'Иван');
+    await user.type(screen.getByPlaceholderText('you@example.com'), 'test@test.com');
+    const passwordFields = screen.getAllByPlaceholderText('••••••••');
+    await user.type(passwordFields[0], 'short');
+    await user.type(passwordFields[1], 'short');
+    await user.click(screen.getByRole('button', { name: 'Регистрирай се' }));
+    expect(screen.getByText('Паролата трябва да е поне 8 символа')).toBeInTheDocument();
+    expect(mockSignUp).not.toHaveBeenCalled();
+  });
+
+  it('shows confirm error when only confirm field is empty on submit', async () => {
+    const user = userEvent.setup();
+    await renderRegister();
+    await user.type(screen.getByPlaceholderText('Иван Иванов'), 'Иван');
+    await user.type(screen.getByPlaceholderText('you@example.com'), 'test@test.com');
+    const passwordFields = screen.getAllByPlaceholderText('••••••••');
+    await user.type(passwordFields[0], 'secret123');
+    await user.click(screen.getByRole('button', { name: 'Регистрирай се' }));
+    expect(screen.getByText('Потвърдете паролата')).toBeInTheDocument();
+    expect(mockSignUp).not.toHaveBeenCalled();
+  });
+
+  it('clears name field error when user types in the name field', async () => {
+    const user = userEvent.setup();
+    await renderRegister();
+    await user.type(screen.getByPlaceholderText('you@example.com'), 'test@test.com');
+    const passwordFields = screen.getAllByPlaceholderText('••••••••');
+    await user.type(passwordFields[0], 'secret123');
+    await user.type(passwordFields[1], 'secret123');
+    await user.click(screen.getByRole('button', { name: 'Регистрирай се' }));
+    expect(screen.getByText('Името е задължително')).toBeInTheDocument();
+    await user.type(screen.getByPlaceholderText('Иван Иванов'), 'И');
+    expect(screen.queryByText('Името е задължително')).not.toBeInTheDocument();
+  });
+
   it('clears a previous error when Google register is clicked', async () => {
     mockSignUp.mockResolvedValueOnce({ data: { session: null, user: null }, error: { message: 'Email already in use' } });
     mockSignInWithOAuth.mockResolvedValue({ error: null });
