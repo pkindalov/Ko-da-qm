@@ -1,3 +1,4 @@
+import type { JSX } from 'react';
 import type { Tab, Language } from '../../shared/types';
 
 const HomeIcon = () => (
