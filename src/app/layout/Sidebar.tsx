@@ -1,20 +1,22 @@
+import type { JSX } from 'react';
 import type { Tab, Language, Profile, Notification } from '../../shared/types';
 import { NotificationBell } from '../../features/notifications/components/NotificationBell';
+import { HomeIcon, FeedIcon, FridgeIcon, RecipesIcon, ProductsIcon, ProfileIcon } from './NavIcons';
 
 interface NavItem {
   id: Tab;
-  glyph: string;
+  glyph: JSX.Element;
   label: string;
   labelEn: string;
 }
 
 const NAV: NavItem[] = [
-  { id: 'home',     glyph: '🏠', label: 'Начало',    labelEn: 'Home'     },
-  { id: 'feed',     glyph: '👥', label: 'Лента',     labelEn: 'Feed'     },
-  { id: 'fridge',   glyph: '🧊', label: 'Хладилник', labelEn: 'Fridge'   },
-  { id: 'recipes',  glyph: '📖', label: 'Рецепти',   labelEn: 'Recipes'  },
-  { id: 'products', glyph: '🥕', label: 'Продукти',  labelEn: 'Products' },
-  { id: 'profile',  glyph: '👤', label: 'Профил',    labelEn: 'Profile'  },
+  { id: 'home',     glyph: <HomeIcon />,     label: 'Начало',    labelEn: 'Home'     },
+  { id: 'feed',     glyph: <FeedIcon />,     label: 'Лента',     labelEn: 'Feed'     },
+  { id: 'fridge',   glyph: <FridgeIcon />,   label: 'Хладилник', labelEn: 'Fridge'   },
+  { id: 'recipes',  glyph: <RecipesIcon />,  label: 'Рецепти',   labelEn: 'Recipes'  },
+  { id: 'products', glyph: <ProductsIcon />, label: 'Продукти',  labelEn: 'Products' },
+  { id: 'profile',  glyph: <ProfileIcon />,  label: 'Профил',    labelEn: 'Profile'  },
 ];
 
 interface SidebarProps {
