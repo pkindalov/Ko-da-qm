@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import React from 'react';
+import type { ReactNode } from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { NotificationBell } from './NotificationBell';
 import type { Notification } from '../../../shared/types';
@@ -7,7 +7,7 @@ import type { Notification } from '../../../shared/types';
 vi.mock('sonner', () => ({ toast: vi.fn() }));
 
 vi.mock('react-router-dom', () => ({
-  Link: ({ children, to, onClick, className }: { children: React.ReactNode; to: string; onClick?: () => void; className?: string }) => (
+  Link: ({ children, to, onClick, className }: { children: ReactNode; to: string; onClick?: () => void; className?: string }) => (
     <a href={to} onClick={onClick} className={className}>{children}</a>
   ),
 }));

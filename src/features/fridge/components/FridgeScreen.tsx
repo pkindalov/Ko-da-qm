@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { toast } from 'sonner';
 import { InteractiveFridge } from './InteractiveFridge';
 import { Modal } from '../../../shared/components/Modal';

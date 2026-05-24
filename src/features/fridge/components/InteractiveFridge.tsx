@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useEffect } from 'react';
+import { useState, useMemo, useCallback, useEffect, type MouseEvent } from 'react';
 import type { FridgeItem, FridgeItemCategory, Language } from '../../../shared/types';
 import { CATEGORIES } from '../../../shared/constants/categories';
 import './InteractiveFridge.css';
@@ -55,7 +55,7 @@ const FridgeProduct = ({ item, onRemove, selected, onToggleSelect, status, onSta
   selected?: boolean;
   onToggleSelect?: (id: string) => void;
   status?: 'disliked' | 'allergic';
-  onStatusBadgeClick?: (e: React.MouseEvent, item: FridgeItem, status: 'disliked' | 'allergic') => void;
+  onStatusBadgeClick?: (e: MouseEvent, item: FridgeItem, status: 'disliked' | 'allergic') => void;
   lang: Language;
 }) => {
   const isEnglish = lang === 'en';
@@ -100,7 +100,7 @@ const FridgeShelf = ({ items, onRemove, onAddSlot, selectedIds, onToggleSelect, 
   shelfLabel?: string;
   max?: number;
   productStatusByName?: Map<string, 'disliked' | 'allergic'>;
-  onStatusBadgeClick?: (e: React.MouseEvent, item: FridgeItem, status: 'disliked' | 'allergic') => void;
+  onStatusBadgeClick?: (e: MouseEvent, item: FridgeItem, status: 'disliked' | 'allergic') => void;
   lang: Language;
 }) => (
   <div className="shelf">
@@ -140,7 +140,7 @@ export const InteractiveFridge = ({ items, onRemove, onAddSlot, lang, selectedId
     [byCategory]
   );
 
-  const handleStatusBadgeClick = useCallback((e: React.MouseEvent, item: FridgeItem, status: 'disliked' | 'allergic') => {
+  const handleStatusBadgeClick = useCallback((e: MouseEvent, item: FridgeItem, status: 'disliked' | 'allergic') => {
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
     setActivePopover({
       id: item.id,
