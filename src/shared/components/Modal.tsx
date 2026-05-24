@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useId, useRef } from 'react';
 
 interface ModalProps {
   open: boolean;
@@ -11,6 +11,7 @@ interface ModalProps {
 const FOCUSABLE_SELECTORS = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
 
 export const Modal = ({ open, onClose, title, children, contentClassName }: ModalProps) => {
+  const titleId = useId();
   const dialogRef = useRef<HTMLDivElement>(null);
   const onCloseRef = useRef(onClose);
   useEffect(() => { onCloseRef.current = onClose; });
@@ -60,12 +61,12 @@ export const Modal = ({ open, onClose, title, children, contentClassName }: Moda
         ref={dialogRef}
         role="dialog"
         aria-modal="true"
-        aria-labelledby={title ? 'modal-title' : undefined}
+        aria-labelledby={title ? titleId : undefined}
         className={`modal fade-in${contentClassName ? ` ${contentClassName}` : ''}`}
         onClick={(e) => e.stopPropagation()}
       >
         <button className="modal-close" onClick={onClose}>✕</button>
-        {title && <div id="modal-title" className="modal-title">{title}</div>}
+        {title && <div id={titleId} className="modal-title">{title}</div>}
         {children}
       </div>
     </div>
