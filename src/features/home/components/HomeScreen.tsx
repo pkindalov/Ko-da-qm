@@ -717,6 +717,7 @@ export const HomeScreen = ({ profile, recipes, fridge, publicRecipes, favoriteId
             dislikes={dislikes}
             lang={lang}
             isOwner={false}
+            fridge={fridge}
             showBackButton={false}
             onBack={() => setSelectedSafeRecipe(null)}
             onAuthorClick={selectedSafeRecipe.authorId && onNavigateToUser
@@ -738,6 +739,7 @@ export const HomeScreen = ({ profile, recipes, fridge, publicRecipes, favoriteId
             dislikes={dislikes}
             lang={lang}
             isOwner={false}
+            fridge={fridge}
             isFavorite={favoriteIds.includes(selectedRecipe.id)}
             showBackButton={false}
             onBack={() => setSelectedRecipe(null)}

@@ -9,7 +9,7 @@ import { searchDatabase } from '../../fridge/utils/matchFromFridge';
 import { isSafe, recipeRisk } from '../../../shared/utils/recipeUtils';
 import { recipeDisplayName } from '../../../shared/utils/recipeDisplayName';
 import { parseRecipeForm } from '../utils/recipeForm';
-import type { Recipe, Profile, Language, Product } from '../../../shared/types';
+import type { Recipe, Profile, Language, Product, FridgeItem } from '../../../shared/types';
 
 interface RecipesScreenProps {
   recipes: Recipe[];
@@ -23,6 +23,7 @@ interface RecipesScreenProps {
   profile: Profile;
   lang: Language;
   userEmail: string;
+  fridge?: FridgeItem[];
   openRecipeId?: string | null;
   onRecipeOpened?: () => void;
 }
@@ -39,7 +40,7 @@ interface RecipeFormState {
 const EMPTY_FORM: RecipeFormState = { name: '', emoji: '🍽', time: '', ingredients: '', steps: '', isPublic: false };
 const PAGE_SIZE = 5;
 
-export const RecipesScreen = ({ recipes, addRecipe, removeRecipe, updateRecipe, favoriteRecipes, favoriteIds, onToggleFavorite, products, profile, lang, userEmail, openRecipeId, onRecipeOpened }: RecipesScreenProps) => {
+export const RecipesScreen = ({ recipes, addRecipe, removeRecipe, updateRecipe, favoriteRecipes, favoriteIds, onToggleFavorite, products, profile, lang, userEmail, fridge, openRecipeId, onRecipeOpened }: RecipesScreenProps) => {
   const [detail, setDetail] = useState<string | null>(null);
 
   useEffect(() => {
@@ -168,6 +169,7 @@ export const RecipesScreen = ({ recipes, addRecipe, removeRecipe, updateRecipe, 
           dislikes={dislikes}
           lang={lang}
           isOwner={true}
+          fridge={fridge}
           onBack={() => setDetail(null)}
           onEdit={() => openEditModal(detailRecipe)}
           onDelete={() => { removeRecipe(detailRecipe.id); toast.success(lang === 'en' ? 'Recipe deleted' : 'Рецептата е изтрита'); setDetail(null); }}
@@ -183,6 +185,7 @@ export const RecipesScreen = ({ recipes, addRecipe, removeRecipe, updateRecipe, 
           dislikes={dislikes}
           lang={lang}
           isOwner={false}
+          fridge={fridge}
           isFavorite={favoriteIds.includes(favoriteDetail.id)}
           onBack={() => setFavoriteDetail(null)}
           onToggleFavorite={() => onToggleFavorite(favoriteDetail)}

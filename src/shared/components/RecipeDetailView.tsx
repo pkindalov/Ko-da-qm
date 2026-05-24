@@ -1,11 +1,12 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Badge } from './Badge';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 import { SaveTranslationModal } from './SaveTranslationModal';
+import { ShoppingListModal } from './ShoppingListModal';
 import { recipeRisk } from '../utils/recipeUtils';
 import { toast } from 'sonner';
 import { openGoogleTranslate } from '../utils/openGoogleTranslate';
-import type { Recipe, Language } from '../types';
+import type { Recipe, FridgeItem, Language } from '../types';
 
 interface RecipeDetailViewProps {
   recipe: Recipe;
@@ -13,6 +14,7 @@ interface RecipeDetailViewProps {
   dislikes: string[];
   lang: Language;
   isOwner: boolean;
+  fridge?: FridgeItem[];
   isFavorite?: boolean;
   favoriteCount?: number;
   showBackButton?: boolean;
@@ -30,6 +32,7 @@ export const RecipeDetailView = ({
   dislikes,
   lang,
   isOwner,
+  fridge,
   isFavorite = false,
   favoriteCount,
   showBackButton = true,
@@ -44,6 +47,16 @@ export const RecipeDetailView = ({
   const risk = recipeRisk(recipe, allergies, dislikes);
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const [saveTranslationOpen, setSaveTranslationOpen] = useState(false);
+  const [shopOpen, setShopOpen] = useState(false);
+
+  const missingCount = useMemo(() => {
+    if (fridge == null || recipe.requiredIngredients.length === 0) return 0;
+    const fridgeLow = fridge.map(f => f.name.toLowerCase());
+    return recipe.requiredIngredients.filter(req => {
+      const r = req.toLowerCase();
+      return !fridgeLow.some(f => f.includes(r) || r.includes(f));
+    }).length;
+  }, [fridge, recipe.requiredIngredients]);
   const hasTranslation = recipe.ingredientsTranslated != null && recipe.ingredientsTranslated.length > 0;
   const [showTranslated, setShowTranslated] = useState(lang === 'bg' && hasTranslation);
 
@@ -148,6 +161,16 @@ export const RecipeDetailView = ({
               💾 {hasTranslation ? 'Обнови превода' : 'Запази превод'}
             </button>
           )}
+          {fridge != null && recipe.requiredIngredients.length > 0 && (
+            <div className="detail-actions">
+              <button className="btn btn-secondary btn-sm" onClick={() => setShopOpen(true)}>
+                🛒 {isEnglish ? 'Shop missing' : 'Купи липсващите'}
+                {missingCount > 0
+                  ? <span className="shop-btn-badge">{missingCount}</span>
+                  : <span className="shop-btn-badge">✓</span>}
+              </button>
+            </div>
+          )}
           {isOwner && (onEdit || onDelete) && (
             <div className="detail-actions">
               {onEdit && (
@@ -217,6 +240,16 @@ export const RecipeDetailView = ({
           lang={lang}
           onConfirm={onSaveTranslation}
           onCancel={() => setSaveTranslationOpen(false)}
+        />
+      )}
+
+      {fridge != null && (
+        <ShoppingListModal
+          open={shopOpen}
+          onClose={() => setShopOpen(false)}
+          recipe={recipe}
+          fridge={fridge}
+          lang={lang}
         />
       )}
     </div>
