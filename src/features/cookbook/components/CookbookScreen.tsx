@@ -484,7 +484,7 @@ export const CookbookScreen = ({ recipes, favoriteIds, profile, lang }: Cookbook
                     max={80}
                     value={settings.recipeGap}
                     onChange={e => setSettings(s => ({ ...s, recipeGap: Number(e.target.value) }))}
-                    onBlur={e => updateSettings({ ...settings, recipeGap: Math.min(80, Math.max(0, Number(e.target.value) || 40)) })}
+                    onBlur={e => { const n = Number(e.target.value); updateSettings({ ...settings, recipeGap: Math.min(80, Math.max(0, e.target.value.trim() === '' || Number.isNaN(n) ? 40 : n)) }); }}
                   />
                   <span className="cb-size-unit">pt</span>
                 </div>
