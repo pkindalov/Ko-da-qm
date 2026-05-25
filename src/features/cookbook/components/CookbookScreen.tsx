@@ -38,6 +38,15 @@ export const CookbookScreen = ({ recipes, favoriteIds, profile, lang }: Cookbook
     setAuthor(profile.name || (L ? 'A quiet cook' : 'Тих готвач'));
   }, [profile.name, L]);
 
+  useEffect(() => {
+    setTitle(t => {
+      if (t === 'My Cookbook' || t === 'Моята готварска книга') {
+        return L ? 'My Cookbook' : 'Моята готварска книга';
+      }
+      return t;
+    });
+  }, [L]);
+
   const favSet = new Set(favoriteIds);
   const visibleRecipes = filter === 'favorites'
     ? recipes.filter(r => favSet.has(r.id))
@@ -264,13 +273,13 @@ export const CookbookScreen = ({ recipes, favoriteIds, profile, lang }: Cookbook
         </div>
       )}
 
-      {selected.length > 0 && (
+      {selectedRecipes.length > 0 && (
         <div className="cb-bar">
           <div className="cb-bar__count">
-            <b>{selected.length}</b>
+            <b>{selectedRecipes.length}</b>
             {L
-              ? selected.length === 1 ? 'recipe selected' : 'recipes selected'
-              : selected.length === 1 ? 'избрана рецепта' : 'избрани рецепти'}
+              ? selectedRecipes.length === 1 ? 'recipe selected' : 'recipes selected'
+              : selectedRecipes.length === 1 ? 'избрана рецепта' : 'избрани рецепти'}
           </div>
           <button className="cb-bar__btn-clear" onClick={clearSelection}>
             {L ? 'Clear' : 'Изчисти'}
@@ -278,7 +287,7 @@ export const CookbookScreen = ({ recipes, favoriteIds, profile, lang }: Cookbook
           <button
             className="cb-bar__btn-create"
             onClick={openEditor}
-            disabled={selected.length === 0}
+            disabled={selectedRecipes.length === 0}
           >
             {L ? 'Create a Recipe Book' : 'Създай готварска книга'}
             <span className="cb-bar__arrow" aria-hidden="true">→</span>

@@ -144,7 +144,7 @@ export const CookbookPDF = ({ title, author, intro, recipes, lang, settings = DE
         <View style={st.coverMeta}>
           <Text style={[st.coverMetaText, { fontFamily: mono }]}>{author}</Text>
           <Text style={[st.coverMetaText, { fontFamily: mono }]}> · </Text>
-          <Text style={[st.coverMetaText, { fontFamily: mono }]}>{recipes.length} {isEnglish ? 'recipes' : 'рецепти'}</Text>
+          <Text style={[st.coverMetaText, { fontFamily: mono }]}>{recipes.length} {isEnglish ? (recipes.length === 1 ? 'recipe' : 'recipes') : (recipes.length === 1 ? 'рецепта' : 'рецепти')}</Text>
           <Text style={[st.coverMetaText, { fontFamily: mono }]}> · </Text>
           <Text style={[st.coverMetaText, { fontFamily: mono }]}>{today}</Text>
         </View>
