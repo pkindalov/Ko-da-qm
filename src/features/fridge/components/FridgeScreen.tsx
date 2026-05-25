@@ -248,7 +248,7 @@ export const FridgeScreen = ({ fridge, addFridgeItem, removeFridgeItem, removePr
   const savedRecipeByName = new Map(recipes.map((recipe) => [recipe.name, recipe.id]));
 
   const matchingRecipes = recipes.filter((recipe) => {
-    const safe = !recipe.requiredIngredients?.some((ingredient) => blocked.some((blockedEntry) => ingredient.toLowerCase().includes(blockedEntry)));
+    const safe = !recipe.requiredIngredients?.some((ingredient) => blocked.some((blockedEntry) => ingredient.toLowerCase().includes(blockedEntry.toLowerCase())));
     const hasIngredients = recipe.requiredIngredients?.some((ingredient) =>
       fridge.some((fridgeItem) => fridgeItem.name.toLowerCase().includes(ingredient.toLowerCase()) || ingredient.toLowerCase().includes(fridgeItem.name.toLowerCase())),
     );
