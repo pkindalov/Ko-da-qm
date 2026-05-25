@@ -384,7 +384,7 @@ export const CookbookScreen = ({ recipes, favoriteIds, profile, lang }: Cookbook
                     max={18}
                     value={settings.bodySize}
                     onChange={e => setSettings(s => ({ ...s, bodySize: Number(e.target.value) }))}
-                    onBlur={e => updateSettings({ ...settings, bodySize: Math.min(18, Math.max(6, Number(e.target.value) || 11)) })}
+                    onBlur={e => { const n = Math.min(18, Math.max(6, Number(e.target.value) || 11)); if (n !== settings.bodySize) updateSettings({ ...settings, bodySize: n }); }}
                   />
                   <span className="cb-size-unit">pt</span>
                 </div>
@@ -409,7 +409,7 @@ export const CookbookScreen = ({ recipes, favoriteIds, profile, lang }: Cookbook
                     max={52}
                     value={settings.titleSize}
                     onChange={e => setSettings(s => ({ ...s, titleSize: Number(e.target.value) }))}
-                    onBlur={e => updateSettings({ ...settings, titleSize: Math.min(52, Math.max(14, Number(e.target.value) || 42)) })}
+                    onBlur={e => { const n = Math.min(52, Math.max(14, Number(e.target.value) || 42)); if (n !== settings.titleSize) updateSettings({ ...settings, titleSize: n }); }}
                   />
                   <span className="cb-size-unit">pt</span>
                 </div>
@@ -434,7 +434,7 @@ export const CookbookScreen = ({ recipes, favoriteIds, profile, lang }: Cookbook
                     max={80}
                     value={settings.pageMarginV}
                     onChange={e => setSettings(s => ({ ...s, pageMarginV: Number(e.target.value) }))}
-                    onBlur={e => updateSettings({ ...settings, pageMarginV: Math.min(80, Math.max(10, Number(e.target.value) || 54)) })}
+                    onBlur={e => { const n = Math.min(80, Math.max(10, Number(e.target.value) || 54)); if (n !== settings.pageMarginV) updateSettings({ ...settings, pageMarginV: n }); }}
                   />
                   <span className="cb-size-unit">pt</span>
                 </div>
@@ -459,7 +459,7 @@ export const CookbookScreen = ({ recipes, favoriteIds, profile, lang }: Cookbook
                     max={80}
                     value={settings.pageMarginH}
                     onChange={e => setSettings(s => ({ ...s, pageMarginH: Number(e.target.value) }))}
-                    onBlur={e => updateSettings({ ...settings, pageMarginH: Math.min(80, Math.max(10, Number(e.target.value) || 48)) })}
+                    onBlur={e => { const n = Math.min(80, Math.max(10, Number(e.target.value) || 48)); if (n !== settings.pageMarginH) updateSettings({ ...settings, pageMarginH: n }); }}
                   />
                   <span className="cb-size-unit">pt</span>
                 </div>
@@ -484,7 +484,7 @@ export const CookbookScreen = ({ recipes, favoriteIds, profile, lang }: Cookbook
                     max={80}
                     value={settings.recipeGap}
                     onChange={e => setSettings(s => ({ ...s, recipeGap: Number(e.target.value) }))}
-                    onBlur={e => { const n = Number(e.target.value); updateSettings({ ...settings, recipeGap: Math.min(80, Math.max(0, e.target.value.trim() === '' || Number.isNaN(n) ? 40 : n)) }); }}
+                    onBlur={e => { const raw = Number(e.target.value); const n = Math.min(80, Math.max(0, e.target.value.trim() === '' || Number.isNaN(raw) ? 40 : raw)); if (n !== settings.recipeGap) updateSettings({ ...settings, recipeGap: n }); }}
                   />
                   <span className="cb-size-unit">pt</span>
                 </div>
