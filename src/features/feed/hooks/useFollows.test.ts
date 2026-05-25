@@ -171,13 +171,16 @@ describe('useFollows', () => {
     mockInsert.mockResolvedValue({ error: null });
 
     const { result } = renderHook(() => useFollows('en'), { wrapper: createQueryWrapper() });
-    await act(async () => {});
+    await waitFor(() => expect(result.current.loading).toBe(false));
 
     await act(async () => { result.current.toggleFollow('u3'); });
+    // wait for the optimistic update to land before the second toggle
+    await waitFor(() => expect(result.current.followingIds).toContain('u3'));
+
     // second call: u3 is now in followingIds, so this toggles it off (unfollow)
     mockDeleteEq2.mockResolvedValue({ error: null });
     await act(async () => { result.current.toggleFollow('u3'); });
 
-    expect(result.current.followingIds.filter((id) => id === 'u3')).toHaveLength(0);
+    await waitFor(() => expect(result.current.followingIds.filter((id) => id === 'u3')).toHaveLength(0));
   });
 });
