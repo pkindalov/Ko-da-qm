@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import { pdf, PDFViewer } from '@react-pdf/renderer';
 import { useLocalStorage } from '../../../shared/hooks/useLocalStorage';
 import { recipeDisplayName } from '../../../shared/utils/recipeDisplayName';
@@ -141,6 +142,8 @@ export const CookbookScreen = ({ recipes, favoriteIds, profile, lang }: Cookbook
       a.click();
       a.remove();
       setTimeout(() => URL.revokeObjectURL(url), 60_000);
+    } catch {
+      toast.error(isEnglish ? 'Failed to generate PDF' : 'Грешка при генериране на PDF');
     } finally {
       setSaving(false);
     }
@@ -287,7 +290,6 @@ export const CookbookScreen = ({ recipes, favoriteIds, profile, lang }: Cookbook
           <button
             className="cb-bar__btn-create"
             onClick={openEditor}
-            disabled={selectedRecipes.length === 0}
           >
             {isEnglish ? 'Create a Recipe Book' : 'Създай готварска книга'}
             <span className="cb-bar__arrow" aria-hidden="true">→</span>
