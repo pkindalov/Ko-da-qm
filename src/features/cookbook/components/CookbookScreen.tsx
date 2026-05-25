@@ -253,7 +253,7 @@ export const CookbookScreen = ({ recipes, favoriteIds, profile, lang }: Cookbook
           <div>
             <label className="input-label">{L ? 'Book title' : 'Заглавие'}</label>
             <input
-              className="input"
+              className="input-field"
               value={title}
               onChange={e => setTitle(e.target.value)}
               placeholder={L ? 'My Cookbook' : 'Моята готварска книга'}
@@ -262,7 +262,7 @@ export const CookbookScreen = ({ recipes, favoriteIds, profile, lang }: Cookbook
           <div>
             <label className="input-label">{L ? 'Author' : 'Автор'}</label>
             <input
-              className="input"
+              className="input-field"
               value={author}
               onChange={e => setAuthor(e.target.value)}
               placeholder={L ? 'Your name' : 'Твоето име'}
@@ -275,7 +275,7 @@ export const CookbookScreen = ({ recipes, favoriteIds, profile, lang }: Cookbook
               {L ? 'A short dedication (optional)' : 'Кратко посвещение (по избор)'}
             </label>
             <input
-              className="input"
+              className="input-field"
               value={intro}
               onChange={e => setIntro(e.target.value)}
               placeholder={L ? 'Cooked from a small kitchen, with love.' : 'Готвено в малка кухня, с любов.'}
