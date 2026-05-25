@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
+import { pdf } from '@react-pdf/renderer';
 import { Modal } from '../../../shared/components/Modal';
 import { useLocalStorage } from '../../../shared/hooks/useLocalStorage';
-import { buildCookbookHTML } from '../utils/buildCookbookHTML';
 import { recipeDisplayName } from '../../../shared/utils/recipeDisplayName';
+import { CookbookPDF } from './CookbookPDF';
 import type { Recipe, Profile, Language } from '../../../shared/types';
 
 interface CookbookScreenProps {
@@ -56,28 +57,34 @@ export const CookbookScreen = ({ recipes, favoriteIds, profile, lang }: Cookbook
   const clearSelection = () => setSelected([]);
 
   const selectedRecipes = recipes.filter(r => selectedSet.has(r.id));
+  const [generating, setGenerating] = useState(false);
 
-  const createBook = () => {
-    const html = buildCookbookHTML({
-      title: title.trim() || (L ? 'My Cookbook' : 'Моята готварска книга'),
-      author: author.trim() || (L ? 'A quiet cook' : 'Тих готвач'),
-      intro: intro.trim(),
-      recipes: selectedRecipes,
-      lang,
-    });
-    const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const win = window.open(url, '_blank', 'noopener,noreferrer');
-    if (!win) {
+  const createBook = async () => {
+    setGenerating(true);
+    try {
+      const resolvedTitle = title.trim() || (L ? 'My Cookbook' : 'Моята готварска книга');
+      const resolvedAuthor = author.trim() || (L ? 'A quiet cook' : 'Тих готвач');
+      const blob = await pdf(
+        <CookbookPDF
+          title={resolvedTitle}
+          author={resolvedAuthor}
+          intro={intro.trim()}
+          recipes={selectedRecipes}
+          lang={lang}
+        />
+      ).toBlob();
+      const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `${(title || 'cookbook').replace(/[^\p{L}\p{N}_ -]/gu, '').trim() || 'cookbook'}.html`;
+      a.download = `${resolvedTitle.replace(/[^\p{L}\p{N}_ -]/gu, '').trim() || 'cookbook'}.pdf`;
       document.body.appendChild(a);
       a.click();
       a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 60_000);
+      setSetupOpen(false);
+    } finally {
+      setGenerating(false);
     }
-    setTimeout(() => URL.revokeObjectURL(url), 60_000);
-    setSetupOpen(false);
   };
 
   const favCount = recipes.filter(r => favSet.has(r.id)).length;
@@ -305,9 +312,11 @@ export const CookbookScreen = ({ recipes, favoriteIds, profile, lang }: Cookbook
           <button
             className="btn btn-primary"
             onClick={createBook}
-            disabled={selectedRecipes.length === 0}
+            disabled={selectedRecipes.length === 0 || generating}
           >
-            {L ? 'Open print view' : 'Отвори за печат'} <span aria-hidden="true">↗</span>
+            {generating
+              ? (L ? 'Generating…' : 'Генериране…')
+              : <>{L ? 'Save as PDF' : 'Запази като PDF'} <span aria-hidden="true">↓</span></>}
           </button>
           <button className="btn btn-ghost" onClick={() => setSetupOpen(false)}>
             {L ? 'Cancel' : 'Отказ'}

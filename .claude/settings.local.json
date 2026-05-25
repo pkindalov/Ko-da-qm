@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find /c/Users/User/Desktop/github/Ko-da-qm/node_modules/@fontsource/pt-serif/files -name \"pt-serif-all*\" -o -name \"pt-serif-cyrillic-ext*\" | sort 2>/dev/null && ls /c/Users/User/Desktop/github/Ko-da-qm/node_modules/@fontsource/pt-serif/*.css | head -8)",
+      "Read(//c/Users/User/Desktop/github/Ko-da-qm/node_modules/@fontsource/pt-serif/files/**)",
+      "Read(//c/Users/User/Desktop/github/Ko-da-qm/node_modules/@fontsource/pt-serif/**)"
+    ]
+  }
+}

@@ -11,6 +11,10 @@
     "test:ui": "vitest --ui"
   },
   "dependencies": {
+    "@fontsource/pt-mono": "^5.2.8",
+    "@fontsource/pt-sans": "^5.2.8",
+    "@fontsource/pt-serif": "^5.2.8",
+    "@react-pdf/renderer": "^4.5.1",
     "@supabase/supabase-js": "^2.45.4",
     "@tanstack/react-query": "^5.100.11",
     "react": "^19.2.6",
