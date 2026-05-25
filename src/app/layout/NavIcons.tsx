@@ -46,3 +46,12 @@ export const ProfileIcon = () => (
     <path d="M2.5 18.5c0-4 3.5-6.5 7.5-6.5s7.5 2.5 7.5 6.5" />
   </svg>
 );
+
+export const CookbookIcon = () => (
+  <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M5 2h9a1 1 0 011 1v14a1 1 0 01-1 1H5a1 1 0 01-1-1V3a1 1 0 011-1z" />
+    <path d="M4 15h12" />
+    <path d="M13 15v3" />
+    <path d="M7 6h6M7 9.5h4" />
+  </svg>
+);

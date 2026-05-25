@@ -22,6 +22,7 @@ const FridgeScreen = lazy(() => import('../features/fridge/components/FridgeScre
 const RecipesScreen = lazy(() => import('../features/recipes/components/RecipesScreen').then(m => ({ default: m.RecipesScreen })));
 const ProductsScreen = lazy(() => import('../features/products/components/ProductsScreen').then(m => ({ default: m.ProductsScreen })));
 const ProfileScreen = lazy(() => import('../features/profile/components/ProfileScreen').then(m => ({ default: m.ProfileScreen })));
+const CookbookScreen = lazy(() => import('../features/cookbook/components/CookbookScreen').then(m => ({ default: m.CookbookScreen })));
 
 export const AppShell = () => {
   const [tab, setTab] = useLocalStorage<Tab>('kdq_tab', 'home');
@@ -99,6 +100,7 @@ export const AppShell = () => {
     /></ErrorBoundary>,
     fridge: <ErrorBoundary><FridgeScreen fridge={fridge} addFridgeItem={addFridgeItem} removeFridgeItem={removeFridgeItem} removeProduct={removeProduct} addProduct={addProduct} addRecipe={addRecipe} removeRecipe={removeRecipe} updateRecipe={updateRecipe} profile={profile} recipes={recipes} products={products} lang={tweaks.lang} /></ErrorBoundary>,
     recipes: <ErrorBoundary><RecipesScreen recipes={recipes} addRecipe={addRecipe} removeRecipe={removeRecipe} updateRecipe={updateRecipe} favoriteRecipes={favoriteRecipes} favoriteIds={favoriteIds} onToggleFavorite={toggleFavorite} products={products} profile={profile} lang={tweaks.lang} userEmail={userEmail} fridge={fridge} openRecipeId={pendingOpenRecipeId} onRecipeOpened={handleRecipeOpened} /></ErrorBoundary>,
+    cookbook: <ErrorBoundary><CookbookScreen recipes={recipes} favoriteIds={favoriteIds} profile={profile} lang={tweaks.lang} /></ErrorBoundary>,
     products: <ErrorBoundary><ProductsScreen products={products} setProducts={setProducts} addProduct={addProduct} lang={tweaks.lang} /></ErrorBoundary>,
     profile: <ErrorBoundary><ProfileScreen profile={profile} setProfile={setProfile} products={products} lang={tweaks.lang} onLogout={handleLogout} onTweaksToggle={() => setTweaksOpen((o) => !o)} onNavigateToProducts={() => setTab('products')} onViewPublicProfile={userId ? () => navigate(`/user/${userId}`) : undefined} /></ErrorBoundary>,
   };

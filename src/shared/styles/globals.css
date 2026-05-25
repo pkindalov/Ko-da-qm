@@ -1101,3 +1101,70 @@ a{color:inherit;text-decoration:none}
 .shop-toast.show{opacity:1}
 .shop-btn-badge{font-family:var(--mono);font-size:10.5px;letter-spacing:.6px;background:var(--paper-2);color:var(--ink-2);padding:2px 8px;border-radius:999px}
 .count-warn{color:var(--amber-deep)}
+
+/* ── Cookbook ──────────────────────────────────────────────── */
+
+/* Tab switcher */
+.cb-tabs{display:inline-flex;background:var(--paper-2);border-radius:999px;padding:4px;gap:0}
+.cb-tab{padding:9px 18px;border-radius:999px;font-size:13px;font-weight:500;color:var(--ink-2);font-family:var(--sans);transition:all .14s;display:inline-flex;align-items:center;gap:8px;background:none;border:none;cursor:pointer}
+.cb-tab:hover{color:var(--ink)}
+.cb-tab.active{background:var(--surface);color:var(--ink);box-shadow:var(--shadow-sm)}
+.cb-tab .count{font-family:var(--mono);font-size:10.5px;letter-spacing:.5px;background:var(--paper-2);color:var(--ink-3);padding:1px 7px;border-radius:999px}
+.cb-tab.active .count{color:var(--ink-2)}
+
+/* Toolbar row */
+.cb-toolbar{display:flex;align-items:center;justify-content:space-between;gap:16px;margin:8px 0 24px;flex-wrap:wrap}
+.cb-toolbar-actions{display:flex;gap:8px;align-items:center}
+.cb-mini-btn{font-family:var(--mono);font-size:10.5px;letter-spacing:1px;text-transform:uppercase;color:var(--ink-2);padding:6px 10px;border-radius:var(--r-xs);background:none;border:none;cursor:pointer}
+.cb-mini-btn:hover{color:var(--ink);background:var(--paper-2)}
+
+/* Recipe selection cards */
+.cb-card{position:relative;cursor:pointer;transition:all .18s ease;background:var(--surface);border:1.5px solid var(--line);border-radius:var(--r-lg);overflow:hidden;display:flex;flex-direction:column}
+.cb-card:hover{transform:translateY(-2px);box-shadow:var(--shadow);border-color:var(--line-2)}
+.cb-card.selected{border-color:var(--ink);box-shadow:0 0 0 1px var(--ink),var(--shadow)}
+.cb-card.flagged{background:var(--rust-soft);border-color:color-mix(in oklch, var(--rust) 18%, transparent)}
+.cb-card .recipe-image-emoji{font-size:56px}
+.cb-card .recipe-body{padding:16px 18px 18px;gap:4px}
+.cb-card .recipe-name{font-size:21px;font-style:italic}
+.cb-card .recipe-meta{margin-top:2px}
+.cb-check{position:absolute;top:12px;left:12px;z-index:3;width:28px;height:28px;border-radius:50%;background:rgba(252,250,246,.92);backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);border:1.5px solid var(--line-2);display:flex;align-items:center;justify-content:center;font-family:var(--sans);font-size:13px;font-weight:700;color:transparent;transition:all .14s;pointer-events:none}
+.cb-check::before{content:"✓";line-height:1}
+.cb-card.selected .cb-check{background:var(--ink);border-color:var(--ink);color:var(--paper)}
+.cb-fav-tag{position:absolute;top:12px;right:12px;z-index:3;font-family:var(--mono);font-size:10px;letter-spacing:.8px;text-transform:uppercase;background:var(--clay-soft);color:var(--clay-deep);padding:4px 9px;border-radius:999px}
+
+/* Sticky selection action bar */
+@keyframes cbBarIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.cb-bar{position:sticky;bottom:18px;z-index:50;margin-top:32px;background:var(--ink);color:var(--paper);border-radius:999px;padding:10px 14px 10px 24px;display:flex;align-items:center;gap:14px;box-shadow:var(--shadow-lg);animation:cbBarIn .25s cubic-bezier(.2,.9,.3,1.1)}
+.cb-bar__count{font-family:var(--mono);font-size:11.5px;letter-spacing:1.2px;text-transform:uppercase;color:rgba(245,241,234,.7);flex:1}
+.cb-bar__count b{color:var(--paper);font-weight:500;font-family:var(--serif);font-style:italic;font-size:18px;letter-spacing:-.3px;margin-right:6px}
+.cb-bar__btn-create{background:var(--paper);color:var(--ink);padding:10px 18px;border-radius:999px;font-family:var(--sans);font-size:13.5px;font-weight:500;display:inline-flex;align-items:center;gap:10px;border:none;cursor:pointer}
+.cb-bar__btn-create:hover{background:var(--surface)}
+.cb-bar__btn-create:disabled{opacity:.55;cursor:not-allowed}
+.cb-bar__btn-clear{color:rgba(245,241,234,.7);padding:8px 12px;font-size:12.5px;background:none;border:none;cursor:pointer;border-radius:var(--r-xs)}
+.cb-bar__btn-clear:hover{color:var(--paper)}
+
+/* Cover preview in setup modal */
+.cb-cover{background:var(--paper);border:1px solid var(--line);border-radius:var(--r);padding:36px 32px;text-align:center;margin:6px 0 22px;position:relative;overflow:hidden}
+.cb-cover::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(135deg,transparent 0 16px,rgba(28,24,21,.025) 16px 17px);pointer-events:none}
+.cb-cover__eyebrow{font-family:var(--mono);font-size:10.5px;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink-3);margin-bottom:18px}
+.cb-cover__title{font-family:var(--serif);font-style:italic;font-size:46px;letter-spacing:-1.4px;line-height:1;color:var(--clay-deep);margin-bottom:10px}
+.cb-cover__author{font-family:var(--serif);font-size:18px;color:var(--ink);margin-bottom:24px}
+.cb-cover__meta{font-family:var(--mono);font-size:10.5px;letter-spacing:1.2px;text-transform:uppercase;color:var(--ink-3);display:flex;align-items:center;justify-content:center;gap:14px}
+.cb-cover__meta span+span::before{content:"·";margin-right:14px;color:var(--line-2)}
+
+/* Setup modal form */
+.cb-form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.cb-form-row.full{grid-template-columns:1fr}
+.cb-form-label{font-family:var(--mono);font-size:10.5px;letter-spacing:1px;text-transform:uppercase;color:var(--ink-3);margin:18px 0 14px}
+.cb-form-actions{display:flex;gap:10px;margin-top:24px}
+.cb-form-note{margin-top:12px;font-family:var(--mono);font-size:10.5px;letter-spacing:.8px;color:var(--ink-3);line-height:1.4}
+
+/* Included recipes list */
+.cb-recipe-list{max-height:180px;overflow-y:auto;border:1px solid var(--line);border-radius:var(--r-sm);background:var(--paper-2);padding:4px 12px}
+.cb-recipe-list__empty{padding:12px 0;color:var(--ink-3);font-size:13.5px}
+.cb-recipe-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line)}
+.cb-recipe-item:last-child{border-bottom:none}
+.cb-recipe-item__num{font-family:var(--mono);font-size:10.5px;letter-spacing:1px;color:var(--ink-3);min-width:24px}
+.cb-recipe-item__emoji{font-size:18px}
+.cb-recipe-item__name{flex:1;font-family:var(--serif);font-style:italic;font-size:17px;letter-spacing:-.3px}
+.cb-recipe-item__time{font-family:var(--mono);font-size:10.5px;letter-spacing:1px;text-transform:uppercase;color:var(--ink-3)}
