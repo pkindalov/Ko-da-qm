@@ -1,11 +1,11 @@
-import { useState, useEffect } from 'react';
-import { toast } from 'sonner';
-import { pdf, PDFViewer } from '@react-pdf/renderer';
+import { useState, lazy, Suspense } from 'react';
 import { useLocalStorage } from '../../../shared/hooks/useLocalStorage';
 import { recipeDisplayName } from '../../../shared/utils/recipeDisplayName';
-import { CookbookPDF, DEFAULT_SETTINGS } from './CookbookPDF';
-import type { CookbookSettings } from './CookbookPDF';
 import type { Recipe, Profile, Language } from '../../../shared/types';
+
+const CookbookEditorPanel = lazy(() =>
+  import('./CookbookEditorPanel').then(m => ({ default: m.CookbookEditorPanel }))
+);
 
 interface CookbookScreenProps {
   recipes: Recipe[];
@@ -14,39 +14,11 @@ interface CookbookScreenProps {
   lang: Language;
 }
 
-interface PdfSnapshot {
-  title: string;
-  author: string;
-  intro: string;
-  recipes: Recipe[];
-  settings: CookbookSettings;
-}
-
 export const CookbookScreen = ({ recipes, favoriteIds, profile, lang }: CookbookScreenProps) => {
   const isEnglish = lang === 'en';
   const [filter, setFilter] = useState<'all' | 'favorites'>('all');
   const [selected, setSelected] = useLocalStorage<string[]>('kdq_cookbook_sel_v1', []);
   const [editorOpen, setEditorOpen] = useState(false);
-  const [title, setTitle] = useState(isEnglish ? 'My Cookbook' : 'Моята готварска книга');
-  const [author, setAuthor] = useState(profile.name || (isEnglish ? 'A quiet cook' : 'Тих готвач'));
-  const [intro, setIntro] = useState('');
-  const [saving, setSaving] = useState(false);
-  const [settings, setSettings] = useState<CookbookSettings>(DEFAULT_SETTINGS);
-  const [pdfSnapshot, setPdfSnapshot] = useState<PdfSnapshot | null>(null);
-  const [settingsKey, setSettingsKey] = useState(0);
-
-  useEffect(() => {
-    setAuthor(profile.name || (isEnglish ? 'A quiet cook' : 'Тих готвач'));
-  }, [profile.name, isEnglish]);
-
-  useEffect(() => {
-    setTitle(t => {
-      if (t === 'My Cookbook' || t === 'Моята готварска книга') {
-        return isEnglish ? 'My Cookbook' : 'Моята готварска книга';
-      }
-      return t;
-    });
-  }, [isEnglish]);
 
   const favSet = new Set(favoriteIds);
   const visibleRecipes = filter === 'favorites'
@@ -79,76 +51,6 @@ export const CookbookScreen = ({ recipes, favoriteIds, profile, lang }: Cookbook
   const clearSelection = () => setSelected([]);
 
   const selectedRecipes = recipes.filter(r => selectedSet.has(r.id));
-
-  const buildSnapshot = (): PdfSnapshot => ({
-    title: title.trim() || (isEnglish ? 'My Cookbook' : 'Моята готварска книга'),
-    author: author.trim() || (isEnglish ? 'A quiet cook' : 'Тих готвач'),
-    intro: intro.trim(),
-    recipes: selectedRecipes,
-    settings,
-  });
-
-  const updateSettings = (next: CookbookSettings) => {
-    setSettings(next);
-    setPdfSnapshot(prev => prev ? { ...prev, settings: next } : null);
-    setSettingsKey(k => k + 1);
-  };
-
-  const openEditor = () => {
-    setPdfSnapshot(buildSnapshot());
-    setEditorOpen(true);
-  };
-
-  const removeFromBook = (id: string) => {
-    setSelected(selected.filter(sid => sid !== id));
-    setPdfSnapshot(prev => prev ? { ...prev, recipes: prev.recipes.filter(r => r.id !== id) } : null);
-  };
-
-  const flushTextToPdf = () => {
-    setPdfSnapshot(prev => prev ? {
-      ...prev,
-      title: title.trim() || (isEnglish ? 'My Cookbook' : 'Моята готварска книга'),
-      author: author.trim() || (isEnglish ? 'A quiet cook' : 'Тих готвач'),
-      intro: intro.trim(),
-    } : null);
-  };
-
-  useEffect(() => {
-    if (!editorOpen) return;
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setEditorOpen(false); };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [editorOpen]);
-
-  const saveBook = async () => {
-    setSaving(true);
-    const snap = buildSnapshot();
-    try {
-      const blob = await pdf(
-        <CookbookPDF
-          title={snap.title}
-          author={snap.author}
-          intro={snap.intro}
-          recipes={snap.recipes}
-          lang={lang}
-          settings={snap.settings}
-        />
-      ).toBlob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${snap.title.replace(/[^\p{L}\p{N}_ -]/gu, '').trim() || 'cookbook'}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      setTimeout(() => URL.revokeObjectURL(url), 60_000);
-    } catch {
-      toast.error(isEnglish ? 'Failed to generate PDF' : 'Грешка при генериране на PDF');
-    } finally {
-      setSaving(false);
-    }
-  };
-
   const favCount = recipes.filter(r => favSet.has(r.id)).length;
   const blocked = [...profile.allergies, ...profile.dislikes];
 
@@ -289,7 +191,7 @@ export const CookbookScreen = ({ recipes, favoriteIds, profile, lang }: Cookbook
           </button>
           <button
             className="cb-bar__btn-create"
-            onClick={openEditor}
+            onClick={() => setEditorOpen(true)}
           >
             {isEnglish ? 'Create a Recipe Book' : 'Създай готварска книга'}
             <span className="cb-bar__arrow" aria-hidden="true">→</span>
@@ -297,249 +199,16 @@ export const CookbookScreen = ({ recipes, favoriteIds, profile, lang }: Cookbook
         </div>
       )}
 
-      {editorOpen && pdfSnapshot !== null && (
-        <div className="cb-editor" role="dialog" aria-modal="true" aria-label={isEnglish ? 'Cookbook editor' : 'Редактор на книгата'}>
-          <div className="cb-editor__topbar">
-            <span className="cb-editor__book-name">{pdfSnapshot.title}</span>
-            <div className="cb-editor__topbar-actions">
-              <button
-                className="btn btn-primary"
-                onClick={saveBook}
-                disabled={saving || selectedRecipes.length === 0}
-              >
-                {saving
-                  ? (isEnglish ? 'Saving…' : 'Запазване…')
-                  : <>{isEnglish ? 'Save as PDF' : 'Запази като PDF'} <span aria-hidden="true">↓</span></>}
-              </button>
-              <button className="btn btn-ghost" onClick={() => setEditorOpen(false)}>
-                {isEnglish ? 'Close' : 'Затвори'}
-              </button>
-            </div>
-          </div>
-
-          <div className="cb-editor__body">
-            <div className="cb-editor__panel">
-              <div>
-                <label className="input-label">{isEnglish ? 'Book title' : 'Заглавие'}</label>
-                <input
-                  className="input-field"
-                  value={title}
-                  onChange={e => setTitle(e.target.value)}
-                  onBlur={flushTextToPdf}
-                  placeholder={isEnglish ? 'My Cookbook' : 'Моята готварска книга'}
-                />
-              </div>
-              <div>
-                <label className="input-label">{isEnglish ? 'Author' : 'Автор'}</label>
-                <input
-                  className="input-field"
-                  value={author}
-                  onChange={e => setAuthor(e.target.value)}
-                  onBlur={flushTextToPdf}
-                  placeholder={isEnglish ? 'Your name' : 'Твоето име'}
-                />
-              </div>
-              <div>
-                <label className="input-label">
-                  {isEnglish ? 'Dedication (optional)' : 'Посвещение (по избор)'}
-                </label>
-                <input
-                  className="input-field"
-                  value={intro}
-                  onChange={e => setIntro(e.target.value)}
-                  onBlur={flushTextToPdf}
-                  placeholder={isEnglish ? 'Cooked from a small kitchen, with love.' : 'Готвено в малка кухня, с любов.'}
-                />
-              </div>
-
-              <div>
-                <div className="cb-form-label">{isEnglish ? 'Body font' : 'Шрифт на текста'}</div>
-                <div className="cb-option-row">
-                  {(['sans', 'serif', 'mono'] as const).map(f => (
-                    <button
-                      key={f}
-                      className={`cb-option-btn${settings.bodyFont === f ? ' active' : ''}`}
-                      onClick={() => updateSettings({ ...settings, bodyFont: f })}
-                    >
-                      {f === 'sans' ? 'Sans' : f === 'serif' ? 'Serif' : 'Mono'}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <div className="cb-form-label">{isEnglish ? 'Body text size' : 'Размер на текст'}</div>
-                <div className="cb-option-row">
-                  {[9, 11, 13].map(n => (
-                    <button
-                      key={n}
-                      className={`cb-option-btn${settings.bodySize === n ? ' active' : ''}`}
-                      onClick={() => updateSettings({ ...settings, bodySize: n })}
-                    >
-                      {n}
-                    </button>
-                  ))}
-                  <input
-                    type="number"
-                    className="cb-size-input"
-                    min={6}
-                    max={18}
-                    value={settings.bodySize}
-                    onChange={e => setSettings(s => ({ ...s, bodySize: Number(e.target.value) }))}
-                    onBlur={e => { const raw = Number(e.target.value); const n = Math.min(18, Math.max(6, e.target.value.trim() === '' || Number.isNaN(raw) ? 11 : raw)); if (n !== settings.bodySize) updateSettings({ ...settings, bodySize: n }); }}
-                  />
-                  <span className="cb-size-unit">pt</span>
-                </div>
-              </div>
-
-              <div>
-                <div className="cb-form-label">{isEnglish ? 'Heading size' : 'Размер на заглавие'}</div>
-                <div className="cb-option-row">
-                  {[24, 32, 42].map(n => (
-                    <button
-                      key={n}
-                      className={`cb-option-btn${settings.titleSize === n ? ' active' : ''}`}
-                      onClick={() => updateSettings({ ...settings, titleSize: n })}
-                    >
-                      {n}
-                    </button>
-                  ))}
-                  <input
-                    type="number"
-                    className="cb-size-input"
-                    min={14}
-                    max={52}
-                    value={settings.titleSize}
-                    onChange={e => setSettings(s => ({ ...s, titleSize: Number(e.target.value) }))}
-                    onBlur={e => { const raw = Number(e.target.value); const n = Math.min(52, Math.max(14, e.target.value.trim() === '' || Number.isNaN(raw) ? 42 : raw)); if (n !== settings.titleSize) updateSettings({ ...settings, titleSize: n }); }}
-                  />
-                  <span className="cb-size-unit">pt</span>
-                </div>
-              </div>
-
-              <div>
-                <div className="cb-form-label">{isEnglish ? 'Top/bottom margin' : 'Поле горе/долу'}</div>
-                <div className="cb-option-row">
-                  {[20, 38, 54].map(n => (
-                    <button
-                      key={n}
-                      className={`cb-option-btn${settings.pageMarginV === n ? ' active' : ''}`}
-                      onClick={() => updateSettings({ ...settings, pageMarginV: n })}
-                    >
-                      {n}
-                    </button>
-                  ))}
-                  <input
-                    type="number"
-                    className="cb-size-input"
-                    min={10}
-                    max={80}
-                    value={settings.pageMarginV}
-                    onChange={e => setSettings(s => ({ ...s, pageMarginV: Number(e.target.value) }))}
-                    onBlur={e => { const raw = Number(e.target.value); const n = Math.min(80, Math.max(10, e.target.value.trim() === '' || Number.isNaN(raw) ? 54 : raw)); if (n !== settings.pageMarginV) updateSettings({ ...settings, pageMarginV: n }); }}
-                  />
-                  <span className="cb-size-unit">pt</span>
-                </div>
-              </div>
-
-              <div>
-                <div className="cb-form-label">{isEnglish ? 'Left/right margin' : 'Поле ляво/дясно'}</div>
-                <div className="cb-option-row">
-                  {[20, 36, 48].map(n => (
-                    <button
-                      key={n}
-                      className={`cb-option-btn${settings.pageMarginH === n ? ' active' : ''}`}
-                      onClick={() => updateSettings({ ...settings, pageMarginH: n })}
-                    >
-                      {n}
-                    </button>
-                  ))}
-                  <input
-                    type="number"
-                    className="cb-size-input"
-                    min={10}
-                    max={80}
-                    value={settings.pageMarginH}
-                    onChange={e => setSettings(s => ({ ...s, pageMarginH: Number(e.target.value) }))}
-                    onBlur={e => { const raw = Number(e.target.value); const n = Math.min(80, Math.max(10, e.target.value.trim() === '' || Number.isNaN(raw) ? 48 : raw)); if (n !== settings.pageMarginH) updateSettings({ ...settings, pageMarginH: n }); }}
-                  />
-                  <span className="cb-size-unit">pt</span>
-                </div>
-              </div>
-
-              <div>
-                <div className="cb-form-label">{isEnglish ? 'Gap between recipes' : 'Разстояние между рецепти'}</div>
-                <div className="cb-option-row">
-                  {[10, 24, 40].map(n => (
-                    <button
-                      key={n}
-                      className={`cb-option-btn${settings.recipeGap === n ? ' active' : ''}`}
-                      onClick={() => updateSettings({ ...settings, recipeGap: n })}
-                    >
-                      {n}
-                    </button>
-                  ))}
-                  <input
-                    type="number"
-                    className="cb-size-input"
-                    min={0}
-                    max={80}
-                    value={settings.recipeGap}
-                    onChange={e => setSettings(s => ({ ...s, recipeGap: Number(e.target.value) }))}
-                    onBlur={e => { const raw = Number(e.target.value); const n = Math.min(80, Math.max(0, e.target.value.trim() === '' || Number.isNaN(raw) ? 40 : raw)); if (n !== settings.recipeGap) updateSettings({ ...settings, recipeGap: n }); }}
-                  />
-                  <span className="cb-size-unit">pt</span>
-                </div>
-              </div>
-
-              <div>
-                <div className="cb-form-label">{isEnglish ? 'Recipes in this book' : 'Рецепти в книгата'}</div>
-                <div className="cb-editor__recipe-list">
-                  {selectedRecipes.length === 0 ? (
-                    <div className="cb-recipe-list__empty">
-                      {isEnglish ? 'No recipes selected.' : 'Няма избрани рецепти.'}
-                    </div>
-                  ) : (
-                    selectedRecipes.map((r, i) => (
-                      <div key={r.id} className="cb-recipe-item">
-                        <span className="cb-recipe-item__num">{String(i + 1).padStart(2, '0')}</span>
-                        <span className="cb-recipe-item__emoji">{r.emoji}</span>
-                        <span className="cb-recipe-item__name">{recipeDisplayName(r, lang)}</span>
-                        <span className="cb-recipe-item__time">{r.time}{isEnglish ? 'm' : 'мин'}</span>
-                        <button
-                          className="cb-recipe-item__remove"
-                          onClick={() => removeFromBook(r.id)}
-                          aria-label={isEnglish ? 'Remove from cookbook' : 'Премахни от книгата'}
-                        >
-                          ×
-                        </button>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
-
-              <p className="cb-form-note">
-                {isEnglish
-                  ? 'Preview updates when you remove a recipe or click away from a text field.'
-                  : 'Прегледът се обновява при премахване на рецепта или след излизане от текстово поле.'}
-              </p>
-            </div>
-
-            <div className="cb-editor__preview">
-              <PDFViewer key={settingsKey} width="100%" height="100%">
-                <CookbookPDF
-                  title={pdfSnapshot.title}
-                  author={pdfSnapshot.author}
-                  intro={pdfSnapshot.intro}
-                  recipes={pdfSnapshot.recipes}
-                  lang={lang}
-                  settings={pdfSnapshot.settings}
-                />
-              </PDFViewer>
-            </div>
-          </div>
-        </div>
+      {editorOpen && selectedRecipes.length > 0 && (
+        <Suspense fallback={null}>
+          <CookbookEditorPanel
+            initialRecipes={selectedRecipes}
+            lang={lang}
+            profile={profile}
+            onClose={() => setEditorOpen(false)}
+            onRemoveRecipe={id => setSelected(selected.filter(sid => sid !== id))}
+          />
+        </Suspense>
       )}
     </div>
   );

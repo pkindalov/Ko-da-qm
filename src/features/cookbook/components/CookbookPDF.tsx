@@ -1,5 +1,7 @@
 import { Document, Page, View, Text, StyleSheet, Font } from '@react-pdf/renderer';
 import type { Recipe, Language } from '../../../shared/types';
+import { DEFAULT_SETTINGS } from '../utils/cookbookTypes';
+import type { CookbookSettings } from '../utils/cookbookTypes';
 
 const FONTS = '/fonts';
 
@@ -26,23 +28,7 @@ Font.register({
   ],
 });
 
-export interface CookbookSettings {
-  bodyFont: 'sans' | 'serif' | 'mono';
-  bodySize: number;    // pt, 6–18
-  titleSize: number;   // pt, 14–52
-  pageMarginV: number; // pt, top/bottom, 10–80
-  pageMarginH: number; // pt, left/right, 10–80
-  recipeGap: number;   // pt, space between recipes, 0–80
-}
-
-export const DEFAULT_SETTINGS: CookbookSettings = {
-  bodyFont: 'sans',
-  bodySize: 11,
-  titleSize: 42,
-  pageMarginV: 54,
-  pageMarginH: 48,
-  recipeGap: 40,
-};
+export type { CookbookSettings } from '../utils/cookbookTypes';
 
 interface CookbookPDFProps {
   title: string;
