@@ -91,6 +91,23 @@ export const FlipbookModal = ({ recipes, lang, onClose }: FlipbookModalProps) =>
   goForwardRef.current = goForward;
   goBackwardRef.current = goBackward;
 
+  const touchStart = useRef<{ x: number; y: number } | null>(null);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStart.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (!touchStart.current) return;
+    const dx = e.changedTouches[0].clientX - touchStart.current.x;
+    const dy = e.changedTouches[0].clientY - touchStart.current.y;
+    touchStart.current = null;
+    // Only trigger if clearly horizontal (not a vertical scroll attempt)
+    if (Math.abs(dx) < 48 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
+    if (dx < 0) goForwardRef.current();
+    else goBackwardRef.current();
+  };
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'ArrowRight') goForwardRef.current();
@@ -263,7 +280,11 @@ export const FlipbookModal = ({ recipes, lang, onClose }: FlipbookModalProps) =>
           ✕
         </button>
 
-        <div className={`fbk-book${isMobile ? ' fbk-book--single' : ''}`}>
+        <div
+          className={`fbk-book${isMobile ? ' fbk-book--single' : ''}`}
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+        >
           <div className={`fbk-half fbk-half--left${showLeft < 0 ? ' fbk-half--blank' : ''}`}>
             {renderContent(showLeft)}
           </div>
