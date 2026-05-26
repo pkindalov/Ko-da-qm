@@ -30,6 +30,7 @@ export const FlipbookModal = ({ recipes, lang, onClose }: FlipbookModalProps) =>
   const [isMobile, setIsMobile] = useState(() => window.innerWidth <= 600);
   const [spread, setSpread] = useState(0);
   const [flipState, setFlipState] = useState<FlipState | null>(null);
+  const flipTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 600px)');
@@ -38,10 +39,14 @@ export const FlipbookModal = ({ recipes, lang, onClose }: FlipbookModalProps) =>
     return () => mq.removeEventListener('change', update);
   }, []);
 
-  // Reset when switching between single-page and two-page modes (device rotation)
+  // Reset when switching between single-page and two-page modes (device rotation).
+  // Also cancels any in-flight flip timer so it can't overwrite the reset spread,
+  // and serves as the unmount cleanup via the returned teardown function.
   useEffect(() => {
+    if (flipTimerRef.current !== null) clearTimeout(flipTimerRef.current);
     setSpread(0);
     setFlipState(null);
+    return () => { if (flipTimerRef.current !== null) clearTimeout(flipTimerRef.current); };
   }, [isMobile]);
 
   // Desktop: spread 0 = blank+cover, spread k = pages[2k-1]+pages[2k]
@@ -64,7 +69,8 @@ export const FlipbookModal = ({ recipes, lang, onClose }: FlipbookModalProps) =>
         setFlipState(prev => (prev ? { ...prev, active: true } : null)),
       ),
     );
-    setTimeout(() => {
+    flipTimerRef.current = setTimeout(() => {
+      flipTimerRef.current = null;
       setSpread(toSpread);
       setFlipState(null);
     }, 780);
@@ -80,7 +86,8 @@ export const FlipbookModal = ({ recipes, lang, onClose }: FlipbookModalProps) =>
         setFlipState(prev => (prev ? { ...prev, active: true } : null)),
       ),
     );
-    setTimeout(() => {
+    flipTimerRef.current = setTimeout(() => {
+      flipTimerRef.current = null;
       setSpread(toSpread);
       setFlipState(null);
     }, 780);
