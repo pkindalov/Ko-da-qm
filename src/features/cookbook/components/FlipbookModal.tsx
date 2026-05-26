@@ -108,17 +108,52 @@ export const FlipbookModal = ({ recipes, lang, onClose }: FlipbookModalProps) =>
     if (page.type === 'cover') {
       return (
         <div className="fbk__cover">
-          <div className="fbk__cover-border" />
-          <div className="fbk__cover-emoji">📖</div>
-          <div className="fbk__cover-title">
-            {isEnglish ? 'My Cookbook' : 'Моята книга'}
-          </div>
-          <div className="fbk__cover-rule" />
-          <div className="fbk__cover-sub">
-            {isEnglish ? 'Recipe Collection' : 'Сборник с рецепти'}
-          </div>
-          <div className="fbk__cover-count">
-            {recipes.length}&nbsp;{isEnglish ? 'recipes' : 'рецепти'}
+          {/* Double-rule frame */}
+          <div className="fbk__cover-frame" aria-hidden="true" />
+
+          {/* Corner tick marks */}
+          <div className="fbk__cover-corner fbk__cover-corner--tl" aria-hidden="true" />
+          <div className="fbk__cover-corner fbk__cover-corner--tr" aria-hidden="true" />
+          <div className="fbk__cover-corner fbk__cover-corner--bl" aria-hidden="true" />
+          <div className="fbk__cover-corner fbk__cover-corner--br" aria-hidden="true" />
+
+          <div className="fbk__cover-inner">
+            {/* Eyebrow with fading rules */}
+            <div className="fbk__cover-eyebrow">
+              <div className="fbk__cover-rule" />
+              <span>{isEnglish ? 'Recipe Collection' : 'Сборник рецепти'}</span>
+              <div className="fbk__cover-rule" />
+            </div>
+
+            {/* Botanical ornament */}
+            <svg className="fbk__cover-wreath" viewBox="0 0 120 36" fill="currentColor" aria-hidden="true">
+              <path d="M8,22 Q25,15 45,18" fill="none" stroke="currentColor" strokeWidth="0.8" opacity="0.45"/>
+              <ellipse cx="18" cy="16" rx="9" ry="3.5" transform="rotate(-22 18 16)" opacity="0.55"/>
+              <ellipse cx="30" cy="14" rx="8" ry="3" transform="rotate(-10 30 14)" opacity="0.5"/>
+              <ellipse cx="41" cy="15" rx="6" ry="2.5" transform="rotate(-4 41 15)" opacity="0.42"/>
+              <path d="M112,22 Q95,15 75,18" fill="none" stroke="currentColor" strokeWidth="0.8" opacity="0.45"/>
+              <ellipse cx="102" cy="16" rx="9" ry="3.5" transform="rotate(22 102 16)" opacity="0.55"/>
+              <ellipse cx="90" cy="14" rx="8" ry="3" transform="rotate(10 90 14)" opacity="0.5"/>
+              <ellipse cx="79" cy="15" rx="6" ry="2.5" transform="rotate(4 79 15)" opacity="0.42"/>
+              <path d="M60,9 L66,18 L60,27 L54,18 Z" opacity="0.9"/>
+            </svg>
+
+            {/* Title */}
+            <div className="fbk__cover-title">
+              {isEnglish ? 'My Cookbook' : 'Моята книга'}
+            </div>
+
+            {/* Divider rule with center diamond */}
+            <div className="fbk__cover-divider" aria-hidden="true">
+              <div className="fbk__cover-rule" />
+              <span className="fbk__cover-diamond">◆</span>
+              <div className="fbk__cover-rule" />
+            </div>
+
+            {/* Recipe count */}
+            <div className="fbk__cover-count">
+              {recipes.length}&thinsp;{isEnglish ? 'curated recipes' : 'подбрани рецепти'}
+            </div>
           </div>
         </div>
       );
