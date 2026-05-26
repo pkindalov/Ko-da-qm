@@ -185,28 +185,32 @@ export const CookbookScreen = ({ recipes, favoriteIds, profile, lang }: Cookbook
 
       {selectedRecipes.length > 0 && (
         <div className="cb-bar">
-          <div className="cb-bar__count">
-            <b>{selectedRecipes.length}</b>
-            {isEnglish
-              ? selectedRecipes.length === 1 ? 'recipe selected' : 'recipes selected'
-              : selectedRecipes.length === 1 ? 'избрана рецепта' : 'избрани рецепти'}
+          <div className="cb-bar__info">
+            <div className="cb-bar__count">
+              <b>{selectedRecipes.length}</b>
+              {isEnglish
+                ? selectedRecipes.length === 1 ? 'recipe selected' : 'recipes selected'
+                : selectedRecipes.length === 1 ? 'избрана рецепта' : 'избрани рецепти'}
+            </div>
+            <button className="cb-bar__btn-clear" onClick={clearSelection}>
+              {isEnglish ? 'Clear' : 'Изчисти'}
+            </button>
           </div>
-          <button className="cb-bar__btn-clear" onClick={clearSelection}>
-            {isEnglish ? 'Clear' : 'Изчисти'}
-          </button>
-          <button
-            className="cb-bar__btn-flipbook"
-            onClick={() => setFlipbookOpen(true)}
-          >
-            📖 {isEnglish ? 'Flipbook' : 'Флипбук'}
-          </button>
-          <button
-            className="cb-bar__btn-create"
-            onClick={() => setEditorOpen(true)}
-          >
-            {isEnglish ? 'Create a Recipe Book' : 'Създай готварска книга'}
-            <span className="cb-bar__arrow" aria-hidden="true">→</span>
-          </button>
+          <div className="cb-bar__btns">
+            <button
+              className="cb-bar__btn-flipbook"
+              onClick={() => setFlipbookOpen(true)}
+            >
+              📖 {isEnglish ? 'Flipbook' : 'Флипбук'}
+            </button>
+            <button
+              className="cb-bar__btn-create"
+              onClick={() => setEditorOpen(true)}
+            >
+              {isEnglish ? 'Create a Recipe Book' : 'Създай готварска книга'}
+              <span className="cb-bar__arrow" aria-hidden="true">→</span>
+            </button>
+          </div>
         </div>
       )}
 

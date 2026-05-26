@@ -27,12 +27,32 @@ export const FlipbookModal = ({ recipes, lang, onClose }: FlipbookModalProps) =>
     ...recipes.map((r, i) => ({ type: 'recipe' as const, recipe: r, index: i })),
   ];
 
-  const maxSpread = Math.floor(pages.length / 2) + 1;
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth <= 600);
   const [spread, setSpread] = useState(0);
   const [flipState, setFlipState] = useState<FlipState | null>(null);
 
-  const getLeftIdx = (s: number) => (s === 0 ? -1 : 2 * s - 1);
-  const getRightIdx = (s: number) => 2 * s;
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 600px)');
+    const update = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+    mq.addEventListener('change', update);
+    return () => mq.removeEventListener('change', update);
+  }, []);
+
+  // Reset when switching between single-page and two-page modes (device rotation)
+  useEffect(() => {
+    setSpread(0);
+    setFlipState(null);
+  }, [isMobile]);
+
+  // Desktop: spread 0 = blank+cover, spread k = pages[2k-1]+pages[2k]
+  // Mobile:  one page per spread, left always blank
+  const maxSpread = isMobile ? pages.length : Math.floor(pages.length / 2) + 1;
+
+  const getLeftIdx = (s: number) => {
+    if (isMobile) return -1;
+    return s === 0 ? -1 : 2 * s - 1;
+  };
+  const getRightIdx = (s: number) => (isMobile ? s : 2 * s);
 
   const goForward = () => {
     if (flipState !== null || spread >= maxSpread - 1) return;
@@ -113,6 +133,11 @@ export const FlipbookModal = ({ recipes, lang, onClose }: FlipbookModalProps) =>
       ? (recipe.stepsTranslated ?? recipe.steps)
       : recipe.steps;
 
+    // Show more content in single-page mobile mode
+    const maxIngredients = isMobile ? 10 : 7;
+    const maxSteps = isMobile ? 5 : 3;
+    const maxStepLen = isMobile ? 120 : 90;
+
     return (
       <div className="fbk__page">
         <div className="fbk__page-header">
@@ -133,12 +158,12 @@ export const FlipbookModal = ({ recipes, lang, onClose }: FlipbookModalProps) =>
           {isEnglish ? 'Ingredients' : 'Съставки'}
         </div>
         <ul className="fbk__ingredients">
-          {ingredients.slice(0, 7).map((ing, i) => (
+          {ingredients.slice(0, maxIngredients).map((ing, i) => (
             <li key={i}>{ing}</li>
           ))}
-          {ingredients.length > 7 && (
+          {ingredients.length > maxIngredients && (
             <li className="fbk__more">
-              +{ingredients.length - 7}&nbsp;{isEnglish ? 'more' : 'още'}
+              +{ingredients.length - maxIngredients}&nbsp;{isEnglish ? 'more' : 'още'}
             </li>
           )}
         </ul>
@@ -147,12 +172,12 @@ export const FlipbookModal = ({ recipes, lang, onClose }: FlipbookModalProps) =>
           {isEnglish ? 'Method' : 'Приготвяне'}
         </div>
         <ol className="fbk__steps">
-          {steps.slice(0, 3).map((step, i) => (
-            <li key={i}>{step.length > 90 ? step.slice(0, 90) + '…' : step}</li>
+          {steps.slice(0, maxSteps).map((step, i) => (
+            <li key={i}>{step.length > maxStepLen ? step.slice(0, maxStepLen) + '…' : step}</li>
           ))}
-          {steps.length > 3 && (
+          {steps.length > maxSteps && (
             <li className="fbk__more">
-              +{steps.length - 3}&nbsp;{isEnglish ? 'more steps' : 'още стъпки'}
+              +{steps.length - maxSteps}&nbsp;{isEnglish ? 'more steps' : 'още стъпки'}
             </li>
           )}
         </ol>
@@ -162,33 +187,31 @@ export const FlipbookModal = ({ recipes, lang, onClose }: FlipbookModalProps) =>
     );
   };
 
-  // Determine static layer indices
+  // Compute what to display in each layer
   let showLeft: number;
   let showRight: number;
+  let turningFront = -1;
+  let turningBack = -1;
 
   if (!flipState) {
     showLeft = getLeftIdx(spread);
     showRight = getRightIdx(spread);
+  } else if (isMobile) {
+    // Mobile: turning page is the current page flipping away; destination page is underneath
+    showLeft = -1;
+    showRight = getRightIdx(flipState.toSpread);
+    turningFront = getRightIdx(flipState.fromSpread);
+    turningBack = -1;
   } else if (flipState.dir === 'fwd') {
     showLeft = getLeftIdx(flipState.fromSpread);
     showRight = getRightIdx(flipState.toSpread);
+    turningFront = getRightIdx(flipState.fromSpread);
+    turningBack = getLeftIdx(flipState.toSpread);
   } else {
     showLeft = getLeftIdx(flipState.toSpread);
     showRight = getRightIdx(flipState.fromSpread);
-  }
-
-  // Turning page faces
-  let turningFront = -1;
-  let turningBack = -1;
-
-  if (flipState) {
-    if (flipState.dir === 'fwd') {
-      turningFront = getRightIdx(flipState.fromSpread);
-      turningBack = getLeftIdx(flipState.toSpread);
-    } else {
-      turningFront = getLeftIdx(flipState.fromSpread);
-      turningBack = getRightIdx(flipState.toSpread);
-    }
+    turningFront = getLeftIdx(flipState.fromSpread);
+    turningBack = getRightIdx(flipState.toSpread);
   }
 
   const canBack = spread > 0 && flipState === null;
@@ -205,21 +228,17 @@ export const FlipbookModal = ({ recipes, lang, onClose }: FlipbookModalProps) =>
           ✕
         </button>
 
-        <div className="fbk-book">
-          {/* Left static page */}
+        <div className={`fbk-book${isMobile ? ' fbk-book--single' : ''}`}>
           <div className={`fbk-half fbk-half--left${showLeft < 0 ? ' fbk-half--blank' : ''}`}>
             {renderContent(showLeft)}
           </div>
 
-          {/* Right static page */}
           <div className={`fbk-half fbk-half--right${showRight >= pages.length ? ' fbk-half--blank' : ''}`}>
             {renderContent(showRight)}
           </div>
 
-          {/* Spine */}
           <div className="fbk-spine" aria-hidden="true" />
 
-          {/* Turning page during animation */}
           {flipState && (
             <div
               className={`fbk-turn fbk-turn--${flipState.dir}${flipState.active ? ' fbk-turn--active' : ''}`}
@@ -254,7 +273,9 @@ export const FlipbookModal = ({ recipes, lang, onClose }: FlipbookModalProps) =>
         </div>
 
         <p className="fbk-hint">
-          {isEnglish ? '← → arrow keys to navigate · Esc to close' : '← → стрелки за навигация · Esc за затваряне'}
+          {isEnglish
+            ? '← → arrow keys to navigate · Esc to close'
+            : '← → стрелки за навигация · Esc за затваряне'}
         </p>
       </div>
     </div>
