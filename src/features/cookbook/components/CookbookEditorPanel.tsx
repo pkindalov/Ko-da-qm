@@ -35,6 +35,7 @@ export const CookbookEditorPanel = ({ initialRecipes, lang, profile, onClose, on
   const [settings, setSettings] = useState<CookbookSettings>(DEFAULT_SETTINGS);
   const [recipes, setRecipes] = useState<Recipe[]>(initialRecipes);
   const [settingsKey, setSettingsKey] = useState(0);
+  const [mobileTab, setMobileTab] = useState<'edit' | 'preview'>('edit');
   const [pdfSnapshot, setPdfSnapshot] = useState<PdfSnapshot>({
     title: defaultTitle,
     author: defaultAuthor,
@@ -125,7 +126,24 @@ export const CookbookEditorPanel = ({ initialRecipes, lang, profile, onClose, on
         </div>
       </div>
 
-      <div className="cb-editor__body">
+      <div className="cb-editor__tabs">
+        <div className="cb-tabs">
+          <button
+            className={`cb-tab${mobileTab === 'edit' ? ' active' : ''}`}
+            onClick={() => setMobileTab('edit')}
+          >
+            {isEnglish ? 'Edit' : 'Редакция'}
+          </button>
+          <button
+            className={`cb-tab${mobileTab === 'preview' ? ' active' : ''}`}
+            onClick={() => { flushTextToPdf(); setMobileTab('preview'); }}
+          >
+            {isEnglish ? 'Preview' : 'Преглед'}
+          </button>
+        </div>
+      </div>
+
+      <div className="cb-editor__body" data-mobile-tab={mobileTab}>
         <div className="cb-editor__panel">
           <div>
             <label className="input-label">{isEnglish ? 'Book title' : 'Заглавие'}</label>
