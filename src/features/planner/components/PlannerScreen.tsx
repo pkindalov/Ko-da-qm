@@ -340,7 +340,8 @@ export const PlannerScreen = ({ recipes, fridge, profile, lang, planner, setPlan
     [assignedIds, recipes],
   );
 
-  const mealsPlanned = assignedIds.length;
+  const mealsPlanned = assignedRecipes.length;
+  const uniqueRecipeCount = useMemo(() => new Set(assignedRecipes.map(r => r.id)).size, [assignedRecipes]);
 
   const fridgeNames = useMemo(() => fridge.map(f => f.name.toLowerCase()), [fridge]);
 
@@ -461,7 +462,7 @@ export const PlannerScreen = ({ recipes, fridge, profile, lang, planner, setPlan
           <div className="week-metric-label">{isEn ? 'Meals planned' : 'Планирани хранения'}</div>
         </div>
         <div className="week-metric">
-          <div className="week-metric-num italic">{new Set(assignedIds).size}</div>
+          <div className="week-metric-num italic">{uniqueRecipeCount}</div>
           <div className="week-metric-label">{isEn ? 'Unique recipes' : 'Уникални рецепти'}</div>
         </div>
         <div className="week-metric">
@@ -667,8 +668,8 @@ export const PlannerScreen = ({ recipes, fridge, profile, lang, planner, setPlan
                     ? 'Plan a meal first — the list will assemble itself.'
                     : 'Първо планирай — списъкът ще се сглоби сам.')
                 : (isEn
-                    ? `${mealsPlanned} meals across ${new Set(assignedIds).size} recipes call for ${missingCount + haveCount} ingredients.`
-                    : `${mealsPlanned} хранения от ${new Set(assignedIds).size} рецепти искат ${missingCount + haveCount} продукта.`)}
+                    ? `${mealsPlanned} meals across ${uniqueRecipeCount} recipes call for ${missingCount + haveCount} ingredients.`
+                    : `${mealsPlanned} хранения от ${uniqueRecipeCount} рецепти искат ${missingCount + haveCount} продукта.`)}
             </div>
             <div className="shopping-card-stats">
               <div className="shopping-card-stat">
