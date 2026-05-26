@@ -24,6 +24,7 @@ interface PdfSnapshot {
 }
 
 const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+const isAndroid = /Android/.test(navigator.userAgent);
 
 export const CookbookEditorPanel = ({ initialRecipes, lang, profile, onClose, onRemoveRecipe }: CookbookEditorPanelProps) => {
   const isEnglish = lang === 'en';
@@ -374,10 +375,10 @@ export const CookbookEditorPanel = ({ initialRecipes, lang, profile, onClose, on
                   {isEnglish ? 'Generating preview…' : 'Генериране на преглед…'}
                 </div>
               );
-              if (isIOS) return (
+              if (isIOS || isAndroid) return (
                 <div className="cb-editor__preview-fallback">
                   <p className="cb-editor__preview-fallback-text">
-                    {isEnglish ? 'Inline preview isn\'t supported on iOS.' : 'Вграденият преглед не се поддържа на iOS.'}
+                    {isEnglish ? 'Inline preview isn\'t supported on mobile.' : 'Вграденият преглед не се поддържа на мобилни устройства.'}
                   </p>
                   <a href={url} target="_blank" rel="noreferrer" className="btn btn-primary">
                     {isEnglish ? 'Open PDF in new tab' : 'Отвори PDF в нов таб'}
