@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
-import { pdf, PDFViewer } from '@react-pdf/renderer';
+import { pdf, BlobProvider } from '@react-pdf/renderer';
 import { recipeDisplayName } from '../../../shared/utils/recipeDisplayName';
 import { CookbookPDF } from './CookbookPDF';
 import { DEFAULT_SETTINGS } from '../utils/cookbookTypes';
@@ -22,6 +22,8 @@ interface PdfSnapshot {
   recipes: Recipe[];
   settings: CookbookSettings;
 }
+
+const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
 
 export const CookbookEditorPanel = ({ initialRecipes, lang, profile, onClose, onRemoveRecipe }: CookbookEditorPanelProps) => {
   const isEnglish = lang === 'en';
@@ -353,16 +355,38 @@ export const CookbookEditorPanel = ({ initialRecipes, lang, profile, onClose, on
         </div>
 
         <div className="cb-editor__preview">
-          <PDFViewer key={settingsKey} width="100%" height="100%">
-            <CookbookPDF
-              title={pdfSnapshot.title}
-              author={pdfSnapshot.author}
-              intro={pdfSnapshot.intro}
-              recipes={pdfSnapshot.recipes}
-              lang={lang}
-              settings={pdfSnapshot.settings}
-            />
-          </PDFViewer>
+          <BlobProvider
+            key={settingsKey}
+            document={
+              <CookbookPDF
+                title={pdfSnapshot.title}
+                author={pdfSnapshot.author}
+                intro={pdfSnapshot.intro}
+                recipes={pdfSnapshot.recipes}
+                lang={lang}
+                settings={pdfSnapshot.settings}
+              />
+            }
+          >
+            {({ url, loading }) => {
+              if (loading || !url) return (
+                <div className="cb-editor__preview-loading">
+                  {isEnglish ? 'Generating preview…' : 'Генериране на преглед…'}
+                </div>
+              );
+              if (isIOS) return (
+                <div className="cb-editor__preview-fallback">
+                  <p className="cb-editor__preview-fallback-text">
+                    {isEnglish ? 'Inline preview isn\'t supported on iOS.' : 'Вграденият преглед не се поддържа на iOS.'}
+                  </p>
+                  <a href={url} target="_blank" rel="noreferrer" className="btn btn-primary">
+                    {isEnglish ? 'Open PDF in new tab' : 'Отвори PDF в нов таб'}
+                  </a>
+                </div>
+              );
+              return <iframe src={url} width="100%" height="100%" title="PDF preview" />;
+            }}
+          </BlobProvider>
         </div>
       </div>
     </div>
