@@ -23,6 +23,7 @@ const RecipesScreen = lazy(() => import('../features/recipes/components/RecipesS
 const ProductsScreen = lazy(() => import('../features/products/components/ProductsScreen').then(m => ({ default: m.ProductsScreen })));
 const ProfileScreen = lazy(() => import('../features/profile/components/ProfileScreen').then(m => ({ default: m.ProfileScreen })));
 const CookbookScreen = lazy(() => import('../features/cookbook/components/CookbookScreen').then(m => ({ default: m.CookbookScreen })));
+const PlannerScreen = lazy(() => import('../features/planner/components/PlannerScreen').then(m => ({ default: m.PlannerScreen })));
 
 export const AppShell = () => {
   const [tab, setTab] = useLocalStorage<Tab>('kdq_tab', 'home');
@@ -34,6 +35,7 @@ export const AppShell = () => {
   const publicRecipeIds = useMemo(() => publicRecipes.map((recipe) => recipe.id), [publicRecipes]);
   const communityFavoriteCounts = useRecipeFavoriteCounts(publicRecipeIds);
   const { notifications, unreadCount, markAsRead, markAllAsRead, markAsUnread, markAllAsUnread, deleteNotification, deleteAllNotifications } = useNotifications(tweaks.lang);
+  const [planner, setPlanner] = useLocalStorage<Record<string, Record<string, string>>>('kdq_planner', {});
   const [tweaksOpen, setTweaksOpen] = useState(false);
   const [pendingOpenRecipeId, setPendingOpenRecipeId] = useState<string | null>(null);
 
@@ -103,6 +105,7 @@ export const AppShell = () => {
     cookbook: <ErrorBoundary><CookbookScreen recipes={recipes} favoriteIds={favoriteIds} profile={profile} lang={tweaks.lang} /></ErrorBoundary>,
     products: <ErrorBoundary><ProductsScreen products={products} setProducts={setProducts} addProduct={addProduct} lang={tweaks.lang} /></ErrorBoundary>,
     profile: <ErrorBoundary><ProfileScreen profile={profile} setProfile={setProfile} products={products} lang={tweaks.lang} onLogout={handleLogout} onTweaksToggle={() => setTweaksOpen((o) => !o)} onNavigateToProducts={() => setTab('products')} onViewPublicProfile={userId ? () => navigate(`/user/${userId}`) : undefined} /></ErrorBoundary>,
+    planner: <ErrorBoundary><PlannerScreen recipes={recipes} fridge={fridge} profile={profile} lang={tweaks.lang} planner={planner} setPlanner={setPlanner} onViewRecipe={(id) => { setTab('recipes'); setPendingOpenRecipeId(id); }} /></ErrorBoundary>,
   };
 
   return (

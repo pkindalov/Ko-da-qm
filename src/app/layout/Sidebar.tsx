@@ -1,7 +1,7 @@
 import type { JSX } from 'react';
 import type { Tab, Language, Profile, Notification } from '../../shared/types';
 import { NotificationBell } from '../../features/notifications/components/NotificationBell';
-import { HomeIcon, FeedIcon, FridgeIcon, RecipesIcon, CookbookIcon, ProductsIcon, ProfileIcon } from './NavIcons';
+import { HomeIcon, FeedIcon, FridgeIcon, RecipesIcon, CookbookIcon, ProductsIcon, ProfileIcon, PlannerIcon } from './NavIcons';
 
 interface NavItem {
   id: Tab;
@@ -18,6 +18,7 @@ const NAV: NavItem[] = [
   { id: 'cookbook', glyph: <CookbookIcon />, label: 'Готварска книга', labelEn: 'Cookbook' },
   { id: 'products', glyph: <ProductsIcon />, label: 'Продукти',       labelEn: 'Products' },
   { id: 'profile',  glyph: <ProfileIcon />,  label: 'Профил',         labelEn: 'Profile'  },
+  { id: 'planner',  glyph: <PlannerIcon />,  label: 'Планировчик',    labelEn: 'Planner'  },
 ];
 
 interface SidebarProps {

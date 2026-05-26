@@ -1,6 +1,6 @@
 import type { JSX } from 'react';
 import type { Tab, Language } from '../../shared/types';
-import { HomeIcon, FeedIcon, FridgeIcon, RecipesIcon, CookbookIcon, ProductsIcon, ProfileIcon } from './NavIcons';
+import { HomeIcon, FeedIcon, FridgeIcon, RecipesIcon, CookbookIcon, ProductsIcon, ProfileIcon, PlannerIcon } from './NavIcons';
 
 interface NavItem {
   id: Tab;
@@ -17,6 +17,7 @@ const NAV: NavItem[] = [
   { id: 'cookbook', icon: <CookbookIcon />, label: 'Книга',     labelEn: 'Cookbook' },
   { id: 'products', icon: <ProductsIcon />, label: 'Продукти',  labelEn: 'Products' },
   { id: 'profile',  icon: <ProfileIcon />,  label: 'Профил',    labelEn: 'Profile'  },
+  { id: 'planner',  icon: <PlannerIcon />,  label: 'Планировчик', labelEn: 'Planner'  },
 ];
 
 interface BottomNavProps {

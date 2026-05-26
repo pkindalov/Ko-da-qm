@@ -1,4 +1,4 @@
-export type Tab = 'home' | 'feed' | 'fridge' | 'recipes' | 'cookbook' | 'products' | 'profile';
+export type Tab = 'home' | 'feed' | 'fridge' | 'recipes' | 'cookbook' | 'products' | 'profile' | 'planner';
 
 export type Language = 'bg' | 'en';
 

@@ -55,3 +55,13 @@ export const CookbookIcon = () => (
     <path d="M7 6h6M7 9.5h4" />
   </svg>
 );
+
+export const PlannerIcon = () => (
+  <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="3" y="4" width="14" height="13" rx="1.5" />
+    <path d="M7 2v4M13 2v4" />
+    <path d="M3 8h14" />
+    <rect x="6" y="11" width="2.5" height="2.5" rx="0.5" />
+    <rect x="11" y="11" width="2.5" height="2.5" rx="0.5" />
+  </svg>
+);
