@@ -133,10 +133,10 @@ export const FlipbookModal = ({ recipes, lang, onClose }: FlipbookModalProps) =>
       ? (recipe.stepsTranslated ?? recipe.steps)
       : recipe.steps;
 
-    // Show more content in single-page mobile mode
-    const maxIngredients = isMobile ? 10 : 7;
-    const maxSteps = isMobile ? 5 : 3;
-    const maxStepLen = isMobile ? 120 : 90;
+    // Mobile is scrollable so show everything; desktop is fixed height so truncate
+    const maxIngredients = isMobile ? ingredients.length : 7;
+    const maxSteps = isMobile ? steps.length : 3;
+    const maxStepLen = isMobile ? Infinity : 90;
 
     return (
       <div className="fbk__page">
@@ -173,7 +173,7 @@ export const FlipbookModal = ({ recipes, lang, onClose }: FlipbookModalProps) =>
         </div>
         <ol className="fbk__steps">
           {steps.slice(0, maxSteps).map((step, i) => (
-            <li key={i}>{step.length > maxStepLen ? step.slice(0, maxStepLen) + '…' : step}</li>
+            <li key={i}>{maxStepLen !== Infinity && step.length > maxStepLen ? step.slice(0, maxStepLen) + '…' : step}</li>
           ))}
           {steps.length > maxSteps && (
             <li className="fbk__more">

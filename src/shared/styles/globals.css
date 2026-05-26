@@ -1287,8 +1287,16 @@ a{color:inherit;text-decoration:none}
   /* Larger text in single-page */
   .fbk__cover-title{font-size:1.6rem}
   .fbk__cover-emoji{font-size:3rem}
-  .fbk__page{padding:1.4rem 1.25rem}
+  .fbk__page{padding:1.4rem 1.25rem;overflow-y:auto;-webkit-overflow-scrolling:touch}
   .fbk__page-title{font-size:1.2rem}
   .fbk__ingredients li,.fbk__steps li{font-size:.76rem}
+  /* Unlock steps so all content is reachable via scroll */
+  .fbk__steps{overflow:visible;flex:unset}
+  /* Styled thin scrollbar */
+  .fbk__page::-webkit-scrollbar{width:3px}
+  .fbk__page::-webkit-scrollbar-track{background:transparent}
+  .fbk__page::-webkit-scrollbar-thumb{background:var(--clay-soft);border-radius:999px}
+  .fbk__page::-webkit-scrollbar-thumb:active{background:var(--clay)}
+  .fbk__page{scrollbar-width:thin;scrollbar-color:var(--clay-soft) transparent}
   .fbk-hint{display:none}
 }
