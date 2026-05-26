@@ -544,7 +544,7 @@ export const PlannerScreen = ({ recipes, fridge, profile, lang, planner, setPlan
                                 setDragId(recipe.id);
                                 setDragSourceSlot(slotKey);
                               }}
-                              onDragEnd={() => { setDragId(null); setDragSourceSlot(null); }}
+                              onDragEnd={() => { setDragId(null); setDragSourceSlot(null); setDropTarget(null); }}
                               onClick={() => onViewRecipe?.(recipe.id)}
                             >
                               <div className="meal-emoji">
@@ -629,7 +629,7 @@ export const PlannerScreen = ({ recipes, fridge, profile, lang, planner, setPlan
                     ].filter(Boolean).join(' ')}
                     draggable
                     onDragStart={e => { e.dataTransfer.setData('text/plain', r.id); setDragId(r.id); setDragSourceSlot(null); }}
-                    onDragEnd={() => { setDragId(null); setDragSourceSlot(null); }}
+                    onDragEnd={() => { setDragId(null); setDragSourceSlot(null); setDropTarget(null); }}
                   >
                     <div className="drawer-recipe-emoji">
                       <span className="drawer-recipe-emoji-char">{r.emoji}</span>
