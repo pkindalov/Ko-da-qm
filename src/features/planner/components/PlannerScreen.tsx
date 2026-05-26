@@ -308,6 +308,7 @@ export const PlannerScreen = ({ recipes, fridge, profile, lang, planner, setPlan
   }, [planner, weekKey, setPlanner]);
 
   const [dragId, setDragId] = useState<string | null>(null);
+  const [dragSourceSlot, setDragSourceSlot] = useState<string | null>(null);
   const [dropTarget, setDropTarget] = useState<string | null>(null);
   const [pickerOpen, setPickerOpen] = useState<PickerTarget | null>(null);
   const [shopOpen, setShopOpen] = useState(false);
@@ -511,9 +512,19 @@ export const PlannerScreen = ({ recipes, fridge, profile, lang, planner, setPlan
                         onDrop={e => {
                           e.preventDefault();
                           const id = e.dataTransfer.getData('text/plain') || dragId;
-                          if (id != null) setSlot(day.idx, meal.id, id);
+                          if (id != null) {
+                            if (dragSourceSlot != null && dragSourceSlot !== slotKey) {
+                              const next = { ...weekData };
+                              delete next[dragSourceSlot];
+                              next[slotKey] = id;
+                              setPlanner({ ...planner, [weekKey]: next });
+                            } else {
+                              setSlot(day.idx, meal.id, id);
+                            }
+                          }
                           setDropTarget(null);
                           setDragId(null);
+                          setDragSourceSlot(null);
                         }}
                       >
                         <div className="meal-slot-eyebrow">
@@ -530,8 +541,9 @@ export const PlannerScreen = ({ recipes, fridge, profile, lang, planner, setPlan
                               onDragStart={e => {
                                 e.dataTransfer.setData('text/plain', recipe.id);
                                 setDragId(recipe.id);
+                                setDragSourceSlot(slotKey);
                               }}
-                              onDragEnd={() => setDragId(null)}
+                              onDragEnd={() => { setDragId(null); setDragSourceSlot(null); }}
                               onClick={() => onViewRecipe?.(recipe.id)}
                             >
                               <div className="meal-emoji">
@@ -615,8 +627,8 @@ export const PlannerScreen = ({ recipes, fridge, profile, lang, planner, setPlan
                       dragId === r.id ? 'dragging' : '',
                     ].filter(Boolean).join(' ')}
                     draggable
-                    onDragStart={e => { e.dataTransfer.setData('text/plain', r.id); setDragId(r.id); }}
-                    onDragEnd={() => setDragId(null)}
+                    onDragStart={e => { e.dataTransfer.setData('text/plain', r.id); setDragId(r.id); setDragSourceSlot(null); }}
+                    onDragEnd={() => { setDragId(null); setDragSourceSlot(null); }}
                   >
                     <div className="drawer-recipe-emoji">
                       <span className="drawer-recipe-emoji-char">{r.emoji}</span>
