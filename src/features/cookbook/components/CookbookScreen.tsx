@@ -7,6 +7,10 @@ const CookbookEditorPanel = lazy(() =>
   import('./CookbookEditorPanel').then(m => ({ default: m.CookbookEditorPanel }))
 );
 
+const FlipbookModal = lazy(() =>
+  import('./FlipbookModal').then(m => ({ default: m.FlipbookModal }))
+);
+
 interface CookbookScreenProps {
   recipes: Recipe[];
   favoriteIds: string[];
@@ -19,6 +23,7 @@ export const CookbookScreen = ({ recipes, favoriteIds, profile, lang }: Cookbook
   const [filter, setFilter] = useState<'all' | 'favorites'>('all');
   const [selected, setSelected] = useLocalStorage<string[]>('kdq_cookbook_sel_v1', []);
   const [editorOpen, setEditorOpen] = useState(false);
+  const [flipbookOpen, setFlipbookOpen] = useState(false);
 
   const favSet = new Set(favoriteIds);
   const visibleRecipes = filter === 'favorites'
@@ -190,6 +195,12 @@ export const CookbookScreen = ({ recipes, favoriteIds, profile, lang }: Cookbook
             {isEnglish ? 'Clear' : 'Изчисти'}
           </button>
           <button
+            className="cb-bar__btn-flipbook"
+            onClick={() => setFlipbookOpen(true)}
+          >
+            📖 {isEnglish ? 'Flipbook' : 'Флипбук'}
+          </button>
+          <button
             className="cb-bar__btn-create"
             onClick={() => setEditorOpen(true)}
           >
@@ -197,6 +208,16 @@ export const CookbookScreen = ({ recipes, favoriteIds, profile, lang }: Cookbook
             <span className="cb-bar__arrow" aria-hidden="true">→</span>
           </button>
         </div>
+      )}
+
+      {flipbookOpen && selectedRecipes.length > 0 && (
+        <Suspense fallback={null}>
+          <FlipbookModal
+            recipes={selectedRecipes}
+            lang={lang}
+            onClose={() => setFlipbookOpen(false)}
+          />
+        </Suspense>
       )}
 
       {editorOpen && selectedRecipes.length > 0 && (
