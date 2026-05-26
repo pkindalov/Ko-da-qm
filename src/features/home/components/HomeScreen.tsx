@@ -293,7 +293,7 @@ export const HomeScreen = ({ profile, recipes, fridge, publicRecipes, favoriteId
             const name = recipeDisplayName(recipe, lang);
             const tag = recipe.tags?.[0] ?? (isEnglish ? 'recipe' : 'рецепта');
             return (
-              <div key={recipe.id} className={`recipe-card${risk === 'allergy' ? ' allergy' : ''}`} onClick={() => setTab('recipes')}>
+              <div key={recipe.id} className={`recipe-card${risk === 'allergy' ? ' allergy' : ''}`} onClick={() => setSelectedSafeRecipe(recipe)}>
                 <div className="recipe-image">
                   <div className="recipe-image-stripes" />
                   {recipe.imageUrl
