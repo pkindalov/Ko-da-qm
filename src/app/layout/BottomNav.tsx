@@ -1,9 +1,10 @@
 import type { JSX } from 'react';
 import type { Tab, Language } from '../../shared/types';
-import { HomeIcon, FeedIcon, FridgeIcon, RecipesIcon, ProfileIcon } from './NavIcons';
+import { HomeIcon, FeedIcon, FridgeIcon, RecipesIcon, CookbookIcon, ProductsIcon, PlannerIcon, ProfileIcon } from './NavIcons';
 
 interface NavChild {
   id: Tab;
+  icon: JSX.Element;
   label: string;
   labelEn: string;
 }
@@ -33,16 +34,16 @@ const NAV: NavEntry[] = [
   {
     type: 'group', id: 'cook',    icon: <RecipesIcon />, label: 'Готвене', labelEn: 'Cook',
     children: [
-      { id: 'recipes',  label: 'Рецепти',     labelEn: 'Recipes'  },
-      { id: 'cookbook', label: 'Книга',       labelEn: 'Cookbook' },
-      { id: 'planner',  label: 'Планировчик', labelEn: 'Planner'  },
+      { id: 'recipes',  icon: <RecipesIcon />,  label: 'Рецепти',     labelEn: 'Recipes'  },
+      { id: 'cookbook', icon: <CookbookIcon />, label: 'Книга',       labelEn: 'Cookbook' },
+      { id: 'planner',  icon: <PlannerIcon />,  label: 'Планировчик', labelEn: 'Planner'  },
     ],
   },
   {
     type: 'group', id: 'kitchen', icon: <FridgeIcon />,  label: 'Кухня',   labelEn: 'Kitchen',
     children: [
-      { id: 'fridge',   label: 'Хладилник', labelEn: 'Fridge'   },
-      { id: 'products', label: 'Продукти',  labelEn: 'Products' },
+      { id: 'fridge',   icon: <FridgeIcon />,   label: 'Хладилник', labelEn: 'Fridge'   },
+      { id: 'products', icon: <ProductsIcon />, label: 'Продукти',  labelEn: 'Products' },
     ],
   },
   { type: 'leaf',  id: 'profile', icon: <ProfileIcon />, label: 'Профил',  labelEn: 'Profile' },
@@ -98,6 +99,7 @@ export const BottomNav = ({ tab, setTab, lang }: BottomNavProps) => {
               className={`bn-subitem${tab === child.id ? ' active' : ''}`}
               onClick={() => setTab(child.id)}
             >
+              <span className="bn-subicon">{child.icon}</span>
               {isEnglish ? child.labelEn : child.label}
             </button>
           ))}
