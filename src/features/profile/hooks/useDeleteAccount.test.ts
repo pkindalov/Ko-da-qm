@@ -66,6 +66,13 @@ describe('useDeleteAccount', () => {
     expect(result.current.isDeleting).toBe(false);
   });
 
+  it('resets isDeleting to false after a successful call', async () => {
+    mockRpc.mockResolvedValue({ error: null });
+    const { result } = renderHook(() => useDeleteAccount('en'));
+    await act(async () => { await result.current.deleteAccount(); });
+    expect(result.current.isDeleting).toBe(false);
+  });
+
   it('sets isDeleting to true while the operation is in flight', async () => {
     let resolveRpc!: (val: unknown) => void;
     mockRpc.mockReturnValue(new Promise(res => { resolveRpc = res; }));
