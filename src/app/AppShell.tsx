@@ -17,6 +17,8 @@ import { DEFAULT_TWEAKS } from '../shared/constants/defaults';
 import { supabase } from '../lib/supabase';
 import type { Tab } from '../shared/types';
 
+const SUBNAV_TABS = new Set<Tab>(['recipes', 'cookbook', 'planner', 'fridge', 'products']);
+
 const HomeScreen = lazy(() => import('../features/home/components/HomeScreen').then(m => ({ default: m.HomeScreen })));
 const FeedScreen = lazy(() => import('../features/feed/components/FeedScreen').then(m => ({ default: m.FeedScreen })));
 const FridgeScreen = lazy(() => import('../features/fridge/components/FridgeScreen').then(m => ({ default: m.FridgeScreen })));
@@ -113,7 +115,7 @@ export const AppShell = () => {
   return (
     <div className={`app-shell ${themeClass}`}>
       <Sidebar tab={tab} setTab={setTab} lang={tweaks.lang} profile={profile} tweaksOpen={tweaksOpen} onTweaksToggle={() => setTweaksOpen((o) => !o)} onLangToggle={() => setTweaks({ ...tweaks, lang: tweaks.lang === 'bg' ? 'en' : 'bg' })} onLogout={handleLogout} onUserClick={userId ? () => navigate(`/user/${userId}`) : undefined} notifications={notifications} unreadCount={unreadCount} onMarkAsRead={markAsRead} onMarkAllAsRead={markAllAsRead} onMarkAsUnread={markAsUnread} onMarkAllAsUnread={markAllAsUnread} onDeleteNotification={deleteNotification} onDeleteAll={deleteAllNotifications} onEntityClick={handleEntityClick} />
-      <main className="main-content">
+      <main className={`main-content${SUBNAV_TABS.has(tab) ? ' main-has-subnav' : ''}`}>
         <div className="mobile-notif-bar">
           <NotificationBell notifications={notifications} unreadCount={unreadCount} onMarkAsRead={markAsRead} onMarkAllAsRead={markAllAsRead} onMarkAsUnread={markAsUnread} onMarkAllAsUnread={markAllAsUnread} onDeleteNotification={deleteNotification} onDeleteAll={deleteAllNotifications} onEntityClick={handleEntityClick} lang={tweaks.lang} />
         </div>
