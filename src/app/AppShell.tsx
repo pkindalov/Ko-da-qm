@@ -42,7 +42,7 @@ export const AppShell = () => {
   const publicRecipeIds = useMemo(() => publicRecipes.map((recipe) => recipe.id), [publicRecipes]);
   const communityFavoriteCounts = useRecipeFavoriteCounts(publicRecipeIds);
   const { notifications, unreadCount, markAsRead, markAllAsRead, markAsUnread, markAllAsUnread, deleteNotification, deleteAllNotifications } = useNotifications(tweaks.lang);
-  const { deleteAccount } = useDeleteAccount(tweaks.lang);
+  const { deleteAccount, isDeleting } = useDeleteAccount(tweaks.lang);
   const [planner, setPlanner] = useLocalStorage<Record<string, Record<string, string>>>('kdq_planner', {});
   const [tweaksOpen, setTweaksOpen] = useState(false);
   const [pendingOpenRecipeId, setPendingOpenRecipeId] = useState<string | null>(null);
@@ -114,7 +114,7 @@ export const AppShell = () => {
     recipes: <ErrorBoundary><RecipesScreen recipes={recipes} addRecipe={addRecipe} removeRecipe={removeRecipe} updateRecipe={updateRecipe} favoriteRecipes={favoriteRecipes} favoriteIds={favoriteIds} onToggleFavorite={toggleFavorite} products={products} profile={profile} lang={tweaks.lang} userEmail={userEmail} fridge={fridge} openRecipeId={pendingOpenRecipeId} onRecipeOpened={handleRecipeOpened} /></ErrorBoundary>,
     cookbook: <ErrorBoundary><CookbookScreen recipes={recipes} favoriteIds={favoriteIds} profile={profile} lang={tweaks.lang} /></ErrorBoundary>,
     products: <ErrorBoundary><ProductsScreen products={products} setProducts={setProducts} addProduct={addProduct} lang={tweaks.lang} /></ErrorBoundary>,
-    profile: <ErrorBoundary><ProfileScreen profile={profile} setProfile={setProfile} products={products} lang={tweaks.lang} onLogout={handleLogout} onDeleteAccount={deleteAccount} onTweaksToggle={() => setTweaksOpen((o) => !o)} onNavigateToProducts={() => setTab('products')} onViewPublicProfile={userId ? () => navigate(`/user/${userId}`) : undefined} /></ErrorBoundary>,
+    profile: <ErrorBoundary><ProfileScreen profile={profile} setProfile={setProfile} products={products} lang={tweaks.lang} onLogout={handleLogout} onDeleteAccount={deleteAccount} isDeleting={isDeleting} onTweaksToggle={() => setTweaksOpen((o) => !o)} onNavigateToProducts={() => setTab('products')} onViewPublicProfile={userId ? () => navigate(`/user/${userId}`) : undefined} /></ErrorBoundary>,
     planner: <ErrorBoundary><PlannerScreen recipes={recipes} fridge={fridge} profile={profile} lang={tweaks.lang} planner={planner} setPlanner={setPlanner} onViewRecipe={(id) => { setTab('recipes'); setPendingOpenRecipeId(id); }} /></ErrorBoundary>,
   };
 

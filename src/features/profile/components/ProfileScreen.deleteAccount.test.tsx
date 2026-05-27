@@ -39,6 +39,11 @@ describe('ProfileScreen – delete account button', () => {
     renderProfile({ lang: 'bg', onDeleteAccount: vi.fn() });
     expect(screen.getByRole('button', { name: /изтрий профила/i })).toBeInTheDocument();
   });
+
+  it('disables delete button when isDeleting is true', () => {
+    renderProfile({ onDeleteAccount: vi.fn(), isDeleting: true });
+    expect(screen.getByRole('button', { name: /delete account/i })).toBeDisabled();
+  });
 });
 
 describe('ProfileScreen – delete account confirmation modal', () => {

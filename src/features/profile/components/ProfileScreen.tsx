@@ -19,12 +19,13 @@ interface ProfileScreenProps {
   lang: Language;
   onLogout?: () => void;
   onDeleteAccount?: () => Promise<void>;
+  isDeleting?: boolean;
   onTweaksToggle?: () => void;
   onNavigateToProducts?: () => void;
   onViewPublicProfile?: () => void;
 }
 
-export const ProfileScreen = ({ profile, setProfile, products, lang, onLogout, onDeleteAccount, onTweaksToggle, onNavigateToProducts, onViewPublicProfile }: ProfileScreenProps) => {
+export const ProfileScreen = ({ profile, setProfile, products, lang, onLogout, onDeleteAccount, isDeleting, onTweaksToggle, onNavigateToProducts, onViewPublicProfile }: ProfileScreenProps) => {
   const isEnglish = lang === 'en';
   const [name, setName] = useState(profile.name);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
@@ -173,7 +174,7 @@ export const ProfileScreen = ({ profile, setProfile, products, lang, onLogout, o
       )}
 
       {onDeleteAccount && (
-        <button className="btn btn-danger delete-account-btn" onClick={() => setDeleteConfirmOpen(true)}>
+        <button className="btn btn-danger delete-account-btn" onClick={() => setDeleteConfirmOpen(true)} disabled={isDeleting}>
           🗑 {isEnglish ? 'Delete Account' : 'Изтрий профила'}
         </button>
       )}
