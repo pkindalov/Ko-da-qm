@@ -15,6 +15,7 @@ export const useDeleteAccount = (lang: Language) => {
       await supabase.auth.signOut();
     } catch {
       toast.error(isEnglish ? 'Failed to delete account' : 'Грешка при изтриване на профила');
+    } finally {
       setIsDeleting(false);
     }
   };
