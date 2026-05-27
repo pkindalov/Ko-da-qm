@@ -33,8 +33,7 @@ export const App = () => {
             <Route path="/login" element={<ErrorBoundary><LoginScreen /></ErrorBoundary>} />
             <Route path="/register" element={<ErrorBoundary><RegisterScreen /></ErrorBoundary>} />
             <Route path="/user/:id" element={<ProtectedRoute><ErrorBoundary><UserProfilePage /></ErrorBoundary></ProtectedRoute>} />
-            <Route path="/app" element={<Navigate to="/app/home" replace />} />
-            <Route path="/app/:tab" element={<ProtectedRoute><ErrorBoundary><AppShell /></ErrorBoundary></ProtectedRoute>} />
+            <Route path="/:tab" element={<ProtectedRoute><ErrorBoundary><AppShell /></ErrorBoundary></ProtectedRoute>} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </Suspense>

@@ -34,7 +34,7 @@ export const AppShell = () => {
   const navigate = useNavigate();
   const isValidTab = tabParam != null && VALID_TABS.has(tabParam);
   const tab: Tab = (isValidTab ? tabParam : 'home') as Tab;
-  const setTab = useCallback((newTab: Tab) => navigate(`/app/${newTab}`), [navigate]);
+  const setTab = useCallback((newTab: Tab) => navigate(`/${newTab}`), [navigate]);
   const [tweaks, setTweaks] = useLocalStorage('kdq_tweaks', DEFAULT_TWEAKS);
   const { loading, userId, userEmail, profile, setProfile, fridge, addFridgeItem, removeFridgeItem, updateFridgeItem, recipes, addRecipe, removeRecipe, updateRecipe, products, setProducts, addProduct, removeProduct } = useAppData(tweaks.lang);
   const { publicRecipes } = usePublicRecipes({ enabled: tab === 'home', userId });
@@ -78,7 +78,7 @@ export const AppShell = () => {
     );
   }
 
-  if (!isValidTab) return <Navigate to="/app/home" replace />;
+  if (!isValidTab) return <Navigate to="/home" replace />;
 
   const handleLogout = async () => {
     const { error } = await supabase.auth.signOut();
