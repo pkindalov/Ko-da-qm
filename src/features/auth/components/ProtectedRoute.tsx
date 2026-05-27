@@ -2,10 +2,9 @@ import { useState, useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
 import type { Session } from '@supabase/supabase-js';
 import { supabase } from '../../../lib/supabase';
-import { AppShell } from '../../../app/AppShell';
 
 interface ProtectedRouteProps {
-  children?: React.ReactNode;
+  children: React.ReactNode;
 }
 
 export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
@@ -21,5 +20,5 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
 
   if (session === undefined) return null;
   if (!session) return <Navigate to="/login" replace />;
-  return children ? <>{children}</> : <AppShell />;
+  return <>{children}</>;
 }

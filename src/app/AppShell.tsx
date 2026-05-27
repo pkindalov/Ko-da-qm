@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback, lazy, Suspense } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams, Navigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Sidebar } from './layout/Sidebar';
 import { BottomNav } from './layout/BottomNav';
@@ -18,6 +18,7 @@ import { supabase } from '../lib/supabase';
 import type { Tab } from '../shared/types';
 
 const SUBNAV_TABS = new Set<Tab>(['recipes', 'cookbook', 'planner', 'fridge', 'products']);
+const VALID_TABS = new Set<string>(['home', 'feed', 'fridge', 'recipes', 'cookbook', 'products', 'profile', 'planner']);
 
 const HomeScreen = lazy(() => import('../features/home/components/HomeScreen').then(m => ({ default: m.HomeScreen })));
 const FeedScreen = lazy(() => import('../features/feed/components/FeedScreen').then(m => ({ default: m.FeedScreen })));
@@ -29,12 +30,15 @@ const CookbookScreen = lazy(() => import('../features/cookbook/components/Cookbo
 const PlannerScreen = lazy(() => import('../features/planner/components/PlannerScreen').then(m => ({ default: m.PlannerScreen })));
 
 export const AppShell = () => {
-  const [tab, setTab] = useLocalStorage<Tab>('kdq_tab', 'home');
+  const { tab: tabParam } = useParams<{ tab: string }>();
+  const navigate = useNavigate();
+  const isValidTab = tabParam != null && VALID_TABS.has(tabParam);
+  const tab: Tab = (isValidTab ? tabParam : 'home') as Tab;
+  const setTab = useCallback((newTab: Tab) => navigate(`/app/${newTab}`), [navigate]);
   const [tweaks, setTweaks] = useLocalStorage('kdq_tweaks', DEFAULT_TWEAKS);
   const { loading, userId, userEmail, profile, setProfile, fridge, addFridgeItem, removeFridgeItem, updateFridgeItem, recipes, addRecipe, removeRecipe, updateRecipe, products, setProducts, addProduct, removeProduct } = useAppData(tweaks.lang);
   const { publicRecipes } = usePublicRecipes({ enabled: tab === 'home', userId });
   const { favoriteIds, favoriteRecipes, toggleFavorite } = useFavorites(tweaks.lang);
-  const navigate = useNavigate();
   const publicRecipeIds = useMemo(() => publicRecipes.map((recipe) => recipe.id), [publicRecipes]);
   const communityFavoriteCounts = useRecipeFavoriteCounts(publicRecipeIds);
   const { notifications, unreadCount, markAsRead, markAllAsRead, markAsUnread, markAllAsUnread, deleteNotification, deleteAllNotifications } = useNotifications(tweaks.lang);
@@ -73,6 +77,8 @@ export const AppShell = () => {
       </div>
     );
   }
+
+  if (!isValidTab) return <Navigate to="/app/home" replace />;
 
   const handleLogout = async () => {
     const { error } = await supabase.auth.signOut();

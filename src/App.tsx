@@ -1,11 +1,12 @@
 import { lazy, Suspense } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'sonner';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ProtectedRoute } from './features/auth/components/ProtectedRoute';
 import { ErrorBoundary } from './shared/components/ErrorBoundary';
 import './shared/styles/globals.css';
 
+const AppShell = lazy(() => import('./app/AppShell').then(m => ({ default: m.AppShell })));
 const LoginScreen = lazy(() => import('./features/auth/components/LoginScreen').then(m => ({ default: m.LoginScreen })));
 const RegisterScreen = lazy(() => import('./features/auth/components/RegisterScreen').then(m => ({ default: m.RegisterScreen })));
 const LandingPage = lazy(() => import('./features/landing/components/LandingPage').then(m => ({ default: m.LandingPage })));
@@ -32,7 +33,9 @@ export const App = () => {
             <Route path="/login" element={<ErrorBoundary><LoginScreen /></ErrorBoundary>} />
             <Route path="/register" element={<ErrorBoundary><RegisterScreen /></ErrorBoundary>} />
             <Route path="/user/:id" element={<ProtectedRoute><ErrorBoundary><UserProfilePage /></ErrorBoundary></ProtectedRoute>} />
-            <Route path="/*" element={<ProtectedRoute />} />
+            <Route path="/app" element={<Navigate to="/app/home" replace />} />
+            <Route path="/app/:tab" element={<ProtectedRoute><ErrorBoundary><AppShell /></ErrorBoundary></ProtectedRoute>} />
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </Suspense>
       </BrowserRouter>
