@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { ConfirmDeleteModal } from '../../../shared/components/ConfirmDeleteModal';
 import type { Profile, Product, Language } from '../../../shared/types';
 
 const DIETARY_PREFS = [
@@ -17,14 +18,16 @@ interface ProfileScreenProps {
   products: Product[];
   lang: Language;
   onLogout?: () => void;
+  onDeleteAccount?: () => Promise<void>;
   onTweaksToggle?: () => void;
   onNavigateToProducts?: () => void;
   onViewPublicProfile?: () => void;
 }
 
-export const ProfileScreen = ({ profile, setProfile, products, lang, onLogout, onTweaksToggle, onNavigateToProducts, onViewPublicProfile }: ProfileScreenProps) => {
+export const ProfileScreen = ({ profile, setProfile, products, lang, onLogout, onDeleteAccount, onTweaksToggle, onNavigateToProducts, onViewPublicProfile }: ProfileScreenProps) => {
   const isEnglish = lang === 'en';
   const [name, setName] = useState(profile.name);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
 
   const saveName = () => {
     if (name.trim() === profile.name) return;
@@ -168,6 +171,23 @@ export const ProfileScreen = ({ profile, setProfile, products, lang, onLogout, o
           🚪 {isEnglish ? 'Log out' : 'Изход'}
         </button>
       )}
+
+      {onDeleteAccount && (
+        <button className="btn btn-danger delete-account-btn" onClick={() => setDeleteConfirmOpen(true)}>
+          🗑 {isEnglish ? 'Delete Account' : 'Изтрий профила'}
+        </button>
+      )}
+
+      <ConfirmDeleteModal
+        open={deleteConfirmOpen}
+        itemName={isEnglish ? 'your account' : 'профила'}
+        lang={lang}
+        onConfirm={async () => {
+          setDeleteConfirmOpen(false);
+          await onDeleteAccount?.();
+        }}
+        onCancel={() => setDeleteConfirmOpen(false)}
+      />
     </div>
   );
 }

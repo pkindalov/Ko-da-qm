@@ -48,8 +48,8 @@ export const RegisterScreen = () => {
     }
     if (!password) {
       errors.password = "Паролата е задължителна";
-    } else if (password.length < 8) {
-      errors.password = "Паролата трябва да е поне 8 символа";
+    } else if (password.length < 6) {
+      errors.password = "Паролата трябва да е поне 6 символа";
     }
     if (!confirm) {
       errors.confirm = "Потвърдете паролата";

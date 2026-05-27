@@ -281,7 +281,7 @@ describe('RegisterScreen', () => {
     await user.type(passwordFields[0], 'short');
     await user.type(passwordFields[1], 'short');
     await user.click(screen.getByRole('button', { name: 'Регистрирай се' }));
-    expect(screen.getByText('Паролата трябва да е поне 8 символа')).toBeInTheDocument();
+    expect(screen.getByText('Паролата трябва да е поне 6 символа')).toBeInTheDocument();
     expect(mockSignUp).not.toHaveBeenCalled();
   });
 

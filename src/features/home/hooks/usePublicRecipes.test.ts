@@ -3,14 +3,13 @@ import { renderHook, act, waitFor } from '@testing-library/react';
 import { usePublicRecipes } from './usePublicRecipes';
 import { createQueryWrapper } from '../../../test/queryWrapper';
 
-const { mockGetSession, mockLimit, mockOrder, mockNeq, mockEq, mockSelect, mockFrom } = vi.hoisted(() => {
+const { mockLimit, mockOrder, mockNeq, mockEq, mockSelect, mockFrom } = vi.hoisted(() => {
   const mockLimit = vi.fn();
   const mockOrder = vi.fn();
   const mockNeq = vi.fn();
   const mockEq = vi.fn();
   const mockSelect = vi.fn();
   const mockFrom = vi.fn();
-  const mockGetSession = vi.fn();
 
   mockOrder.mockReturnValue({ limit: mockLimit });
   mockNeq.mockReturnValue({ order: mockOrder });
@@ -18,14 +17,11 @@ const { mockGetSession, mockLimit, mockOrder, mockNeq, mockEq, mockSelect, mockF
   mockSelect.mockReturnValue({ eq: mockEq });
   mockFrom.mockReturnValue({ select: mockSelect });
 
-  return { mockGetSession, mockLimit, mockOrder, mockNeq, mockEq, mockSelect, mockFrom };
+  return { mockLimit, mockOrder, mockNeq, mockEq, mockSelect, mockFrom };
 });
 
 vi.mock('../../../lib/supabase', () => ({
-  supabase: {
-    auth: { getSession: mockGetSession },
-    from: mockFrom,
-  },
+  supabase: { from: mockFrom },
 }));
 
 const makeDbRow = (overrides = {}) => ({
@@ -56,21 +52,19 @@ describe('usePublicRecipes', () => {
     mockFrom.mockReturnValue({ select: mockSelect });
   });
 
-  it('returns empty array and stops loading when no user is authenticated', async () => {
-    mockGetSession.mockResolvedValue({ data: { session: null } });
-
+  it('returns empty array and does not fetch when no userId is provided', async () => {
     const { result } = renderHook(() => usePublicRecipes(), { wrapper: createQueryWrapper() });
-    await waitFor(() => expect(result.current.loading).toBe(false));
+    await act(async () => {});
 
     expect(result.current.publicRecipes).toEqual([]);
+    expect(result.current.loading).toBe(false);
     expect(mockFrom).not.toHaveBeenCalled();
   });
 
   it('fetches public recipes from other users and maps them to Recipe type', async () => {
-    mockGetSession.mockResolvedValue({ data: { session: { user: { id: 'user-1' } } } });
     mockLimit.mockResolvedValue({ data: [makeDbRow()], error: null });
 
-    const { result } = renderHook(() => usePublicRecipes(), { wrapper: createQueryWrapper() });
+    const { result } = renderHook(() => usePublicRecipes({ userId: 'user-1' }), { wrapper: createQueryWrapper() });
     await waitFor(() => expect(result.current.loading).toBe(false));
 
     expect(mockFrom).toHaveBeenCalledWith('recipes');
@@ -98,10 +92,9 @@ describe('usePublicRecipes', () => {
   });
 
   it('selects only the required recipe fields – no wildcard', async () => {
-    mockGetSession.mockResolvedValue({ data: { session: { user: { id: 'user-1' } } } });
     mockLimit.mockResolvedValue({ data: [], error: null });
 
-    renderHook(() => usePublicRecipes(), { wrapper: createQueryWrapper() });
+    renderHook(() => usePublicRecipes({ userId: 'user-1' }), { wrapper: createQueryWrapper() });
     await act(async () => {});
 
     expect(mockSelect).toHaveBeenCalledWith(
@@ -110,23 +103,21 @@ describe('usePublicRecipes', () => {
   });
 
   it('returns empty array when query returns null data', async () => {
-    mockGetSession.mockResolvedValue({ data: { session: { user: { id: 'user-1' } } } });
     mockLimit.mockResolvedValue({ data: null, error: null });
 
-    const { result } = renderHook(() => usePublicRecipes(), { wrapper: createQueryWrapper() });
+    const { result } = renderHook(() => usePublicRecipes({ userId: 'user-1' }), { wrapper: createQueryWrapper() });
     await waitFor(() => expect(result.current.loading).toBe(false));
 
     expect(result.current.publicRecipes).toEqual([]);
   });
 
   it('handles null optional fields gracefully', async () => {
-    mockGetSession.mockResolvedValue({ data: { session: { user: { id: 'user-1' } } } });
     mockLimit.mockResolvedValue({
       data: [makeDbRow({ name_en: null, author_name: null, author_email: null })],
       error: null,
     });
 
-    const { result } = renderHook(() => usePublicRecipes(), { wrapper: createQueryWrapper() });
+    const { result } = renderHook(() => usePublicRecipes({ userId: 'user-1' }), { wrapper: createQueryWrapper() });
     await waitFor(() => expect(result.current.loading).toBe(false));
 
     expect(result.current.publicRecipes[0].nameEn).toBeUndefined();
@@ -135,11 +126,10 @@ describe('usePublicRecipes', () => {
   });
 
   it('does not fetch and loading is false when enabled is false', () => {
-    const { result } = renderHook(() => usePublicRecipes({ enabled: false }), { wrapper: createQueryWrapper() });
+    const { result } = renderHook(() => usePublicRecipes({ enabled: false, userId: 'user-1' }), { wrapper: createQueryWrapper() });
 
     expect(result.current.publicRecipes).toEqual([]);
     expect(result.current.loading).toBe(false);
-    expect(mockGetSession).not.toHaveBeenCalled();
     expect(mockFrom).not.toHaveBeenCalled();
   });
 });
