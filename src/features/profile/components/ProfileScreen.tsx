@@ -161,22 +161,38 @@ export const ProfileScreen = ({ profile, setProfile, products, lang, onLogout, o
         </div>
       </div>
 
-      {onTweaksToggle && (
-        <button className="btn btn-ghost settings-btn-mobile" onClick={onTweaksToggle}>
-          ⚙ {isEnglish ? 'Settings' : 'Настройки'}
-        </button>
-      )}
-
-      {onLogout && (
-        <button className="btn btn-danger logout-btn-mobile" onClick={onLogout}>
-          🚪 {isEnglish ? 'Log out' : 'Изход'}
-        </button>
+      {(onTweaksToggle || onLogout) && (
+        <div className="card card-mb profile-actions">
+          <div className="section-title">{isEnglish ? 'ACCOUNT' : 'АКАУНТ'}</div>
+          {onTweaksToggle && (
+            <button className="btn btn-ghost btn-full profile-actions__btn" onClick={onTweaksToggle}>
+              ⚙ {isEnglish ? 'Settings' : 'Настройки'}
+            </button>
+          )}
+          {onLogout && (
+            <button className="btn btn-secondary btn-full profile-actions__btn" onClick={onLogout}>
+              🚪 {isEnglish ? 'Log out' : 'Изход'}
+            </button>
+          )}
+        </div>
       )}
 
       {onDeleteAccount && (
-        <button className="btn btn-danger delete-account-btn" onClick={() => setDeleteConfirmOpen(true)} disabled={isDeleting}>
-          🗑 {isEnglish ? 'Delete Account' : 'Изтрий профила'}
-        </button>
+        <div className="card card-danger">
+          <div className="section-title section-title-danger">⚠ {isEnglish ? 'DANGER ZONE' : 'ОПАСНА ЗОНА'}</div>
+          <p className="card-hint">
+            {isEnglish
+              ? 'This will permanently delete your account and all your data. This action cannot be undone.'
+              : 'Това ще изтрие завинаги профила ти и всички данни. Действието е необратимо.'}
+          </p>
+          <button
+            className="btn btn-danger btn-full"
+            onClick={() => setDeleteConfirmOpen(true)}
+            disabled={isDeleting}
+          >
+            🗑 {isEnglish ? 'Delete Account' : 'Изтрий профила'}
+          </button>
+        </div>
       )}
 
       <ConfirmDeleteModal

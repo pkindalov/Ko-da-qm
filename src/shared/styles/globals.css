@@ -190,8 +190,8 @@ a{color:inherit;text-decoration:none}
   color:var(--clay);transition:transform .15s;flex-shrink:0;
 }
 .btn-favorite:hover,.btn-heart:hover{transform:scale(1.25)}
-.logout-btn-mobile{display:none}
-.settings-btn-mobile{display:none}
+.profile-actions{display:none;margin-bottom:16px}
+.profile-actions__btn{margin-top:8px}
 
 /* ── Badges & chips ──────────────────────────────────────── */
 .badge{
@@ -888,8 +888,7 @@ a{color:inherit;text-decoration:none}
   .main-has-subnav{padding-bottom:140px;}
   .page-title{font-size:30px}
   .tweaks-panel{bottom:90px;right:8px;left:8px;width:auto}
-  .settings-btn-mobile{display:flex;width:100%;margin-top:24px}
-  .logout-btn-mobile{display:flex;width:100%;margin-top:12px}
+  .profile-actions{display:block}
   .product-row{flex-wrap:wrap;gap:8px}
   .product-row-tags{width:100%}
 }
@@ -1068,9 +1067,11 @@ a{color:inherit;text-decoration:none}
 /* ── Profile screen ──────────────────────────────────────── */
 .card-allergy{margin-bottom:16px;border-color:var(--rust);border-width:2px}
 .card-warn{margin-bottom:16px;border-color:var(--amber);border-width:2px}
+.card-danger{margin-bottom:16px;border-color:var(--rust);border-width:2px;background:var(--rust-soft)}
 .card-mb{margin-bottom:16px}
 .section-title-allergy{color:var(--rust)}
 .section-title-warn{color:var(--amber-deep)}
+.section-title-danger{color:var(--rust)}
 .card-hint{font-size:13px;color:var(--ink-2);margin-bottom:12px;font-weight:600}
 .card-note{font-size:13px;color:var(--ink-2);font-style:italic}
 .card-summary{background:var(--paper);border-style:dashed}
