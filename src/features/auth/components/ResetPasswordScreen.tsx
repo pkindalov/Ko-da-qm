@@ -20,9 +20,11 @@ export const ResetPasswordScreen = () => {
 
     // Supabase processes the recovery token from the URL hash during page load,
     // which can fire PASSWORD_RECOVERY before this component mounts and subscribes.
-    // Checking getSession() catches that case.
+    // Checking getSession() catches that case, but we also require the hash to
+    // contain "type=recovery" so a regular logged-in user visiting this URL
+    // directly doesn't accidentally land on the form.
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!cancelled && session) setStage('ready');
+      if (!cancelled && session && window.location.hash.includes('type=recovery')) setStage('ready');
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
