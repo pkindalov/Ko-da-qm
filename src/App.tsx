@@ -9,6 +9,7 @@ import './shared/styles/globals.css';
 const AppShell = lazy(() => import('./app/AppShell').then(m => ({ default: m.AppShell })));
 const LoginScreen = lazy(() => import('./features/auth/components/LoginScreen').then(m => ({ default: m.LoginScreen })));
 const RegisterScreen = lazy(() => import('./features/auth/components/RegisterScreen').then(m => ({ default: m.RegisterScreen })));
+const ResetPasswordScreen = lazy(() => import('./features/auth/components/ResetPasswordScreen').then(m => ({ default: m.ResetPasswordScreen })));
 const LandingPage = lazy(() => import('./features/landing/components/LandingPage').then(m => ({ default: m.LandingPage })));
 const UserProfilePage = lazy(() => import('./features/userProfile/components/UserProfilePage').then(m => ({ default: m.UserProfilePage })));
 
@@ -32,6 +33,7 @@ export const App = () => {
             <Route path="/" element={<ErrorBoundary><LandingPage /></ErrorBoundary>} />
             <Route path="/login" element={<ErrorBoundary><LoginScreen /></ErrorBoundary>} />
             <Route path="/register" element={<ErrorBoundary><RegisterScreen /></ErrorBoundary>} />
+            <Route path="/reset-password" element={<ErrorBoundary><ResetPasswordScreen /></ErrorBoundary>} />
             <Route path="/user/:id" element={<ProtectedRoute><ErrorBoundary><UserProfilePage /></ErrorBoundary></ProtectedRoute>} />
             <Route path="/:tab" element={<ProtectedRoute><ErrorBoundary><AppShell /></ErrorBoundary></ProtectedRoute>} />
             <Route path="*" element={<Navigate to="/" replace />} />

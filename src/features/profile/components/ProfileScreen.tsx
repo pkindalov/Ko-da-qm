@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import { ConfirmDeleteModal } from '../../../shared/components/ConfirmDeleteModal';
 import { ConfirmDisableModal } from '../../../shared/components/ConfirmDisableModal';
+import { ChangePasswordModal } from '../../../shared/components/ChangePasswordModal';
 import type { Profile, Product, Language } from '../../../shared/types';
 
 const DIETARY_PREFS = [
@@ -23,16 +24,19 @@ interface ProfileScreenProps {
   isDeleting?: boolean;
   onDisableAccount?: () => Promise<void>;
   isDisabling?: boolean;
+  onChangePassword?: (password: string) => Promise<boolean>;
+  isChangingPassword?: boolean;
   onTweaksToggle?: () => void;
   onNavigateToProducts?: () => void;
   onViewPublicProfile?: () => void;
 }
 
-export const ProfileScreen = ({ profile, setProfile, products, lang, onLogout, onDeleteAccount, isDeleting, onDisableAccount, isDisabling, onTweaksToggle, onNavigateToProducts, onViewPublicProfile }: ProfileScreenProps) => {
+export const ProfileScreen = ({ profile, setProfile, products, lang, onLogout, onDeleteAccount, isDeleting, onDisableAccount, isDisabling, onChangePassword, isChangingPassword, onTweaksToggle, onNavigateToProducts, onViewPublicProfile }: ProfileScreenProps) => {
   const isEnglish = lang === 'en';
   const [name, setName] = useState(profile.name);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [disableConfirmOpen, setDisableConfirmOpen] = useState(false);
+  const [changePasswordOpen, setChangePasswordOpen] = useState(false);
 
   const saveName = () => {
     if (name.trim() === profile.name) return;
@@ -165,6 +169,15 @@ export const ProfileScreen = ({ profile, setProfile, products, lang, onLogout, o
         </div>
       </div>
 
+      {onChangePassword && (
+        <div className="card card-mb">
+          <div className="section-title">{isEnglish ? 'SECURITY' : 'СИГУРНОСТ'}</div>
+          <button className="btn btn-ghost btn-full profile-actions__btn" onClick={() => setChangePasswordOpen(true)}>
+            🔑 {isEnglish ? 'Change Password' : 'Смяна на парола'}
+          </button>
+        </div>
+      )}
+
       {(onTweaksToggle || onLogout) && (
         <div className="card card-mb profile-actions">
           <div className="section-title">{isEnglish ? 'ACCOUNT' : 'АКАУНТ'}</div>
@@ -248,6 +261,15 @@ export const ProfileScreen = ({ profile, setProfile, products, lang, onLogout, o
         }}
         onCancel={() => setDisableConfirmOpen(false)}
       />
+      {onChangePassword && (
+        <ChangePasswordModal
+          open={changePasswordOpen}
+          lang={lang}
+          onSave={onChangePassword}
+          isSaving={isChangingPassword ?? false}
+          onClose={() => setChangePasswordOpen(false)}
+        />
+      )}
     </div>
   );
 }
