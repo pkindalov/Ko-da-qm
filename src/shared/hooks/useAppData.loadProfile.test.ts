@@ -149,6 +149,43 @@ describe('useAppData – loadProfile', () => {
     expect(result.current.loading).toBe(false);
   });
 
+  it('calls update({ disabled_at: null }) when the profile has disabled_at set', async () => {
+    mockGetSession.mockResolvedValue({ data: { session: { user: { id: 'user-1', user_metadata: {} } } } });
+
+    const mockUpdateEq = vi.fn().mockResolvedValue({ error: null });
+    const mockUpdate = vi.fn().mockReturnValue({ eq: mockUpdateEq });
+
+    mockSingle.mockResolvedValue({ data: { name: 'Test', allergies: [], dislikes: [], dietary_prefs: [], disabled_at: '2024-01-01T00:00:00Z' }, error: null });
+    mockEq.mockReturnValue({ single: mockSingle });
+    mockSelect.mockReturnValue({ eq: mockEq });
+    mockFrom.mockImplementation((table: string) => {
+      if (table === 'users') return { select: mockSelect, insert: mockInsert, update: mockUpdate };
+      return { select: () => ({ eq: () => ({ data: [], error: null }) }) };
+    });
+
+    renderHook(() => useAppData());
+    await act(async () => {});
+
+    expect(mockUpdate).toHaveBeenCalledWith({ disabled_at: null });
+    expect(mockUpdateEq).toHaveBeenCalledWith('id', 'user-1');
+  });
+
+  it('does not call update when disabled_at is null', async () => {
+    mockGetSession.mockResolvedValue({ data: { session: { user: { id: 'user-1', user_metadata: {} } } } });
+
+    const mockUpdate = vi.fn();
+    makeFromChain({ name: 'Test', allergies: [], dislikes: [], dietary_prefs: [], disabled_at: null });
+    mockFrom.mockImplementation((table: string) => {
+      if (table === 'users') return { select: mockSelect, insert: mockInsert, update: mockUpdate };
+      return { select: () => ({ eq: () => ({ data: [], error: null }) }) };
+    });
+
+    renderHook(() => useAppData());
+    await act(async () => {});
+
+    expect(mockUpdate).not.toHaveBeenCalled();
+  });
+
   it('selects only the required user profile fields – no wildcard', async () => {
     mockGetSession.mockResolvedValue({ data: { session: { user: { id: 'user-1', user_metadata: {} } } } });
     makeFromChain({ name: 'Test', allergies: [], dislikes: [], dietary_prefs: [] });

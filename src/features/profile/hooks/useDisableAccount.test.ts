@@ -36,6 +36,14 @@ describe('useDisableAccount', () => {
     expect(mockSignOut).toHaveBeenCalled();
   });
 
+  it('shows error toast when signOut returns an error', async () => {
+    mockRpc.mockResolvedValue({ error: null });
+    mockSignOut.mockResolvedValue({ error: { message: 'sign out failed' } });
+    const { result } = renderHook(() => useDisableAccount('en'));
+    await act(async () => { await result.current.disableAccount(); });
+    expect(toast.error).toHaveBeenCalledWith('Failed to disable account');
+  });
+
   it('shows english error toast and skips signOut when RPC returns an error', async () => {
     mockRpc.mockResolvedValue({ error: { message: 'disable failed' } });
     const { result } = renderHook(() => useDisableAccount('en'));

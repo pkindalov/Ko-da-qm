@@ -12,7 +12,8 @@ export const useDisableAccount = (lang: Language) => {
     try {
       const { error } = await supabase.rpc('disable_user');
       if (error) throw error;
-      await supabase.auth.signOut();
+      const { error: signOutError } = await supabase.auth.signOut();
+      if (signOutError) throw signOutError;
     } catch {
       toast.error(isEnglish ? 'Failed to disable account' : 'Грешка при деактивиране на профила');
     } finally {
