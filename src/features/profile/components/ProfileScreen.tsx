@@ -156,7 +156,7 @@ export const ProfileScreen = ({ profile, setProfile, products, lang, onLogout, o
         </div>
       </div>
 
-      <div className="card card-summary">
+      <div className="card card-summary card-mb">
         <div className="card-summary-title">📊 {isEnglish ? 'Summary' : 'Обобщение'}</div>
         <div className="card-summary-text">
           {isEnglish ? 'Allergies' : 'Алергии'}: <strong className="count-allergy">{allergicProducts.length}</strong><br />
@@ -182,39 +182,49 @@ export const ProfileScreen = ({ profile, setProfile, products, lang, onLogout, o
       )}
 
       {(onDeleteAccount || onDisableAccount) && (
-        <div className="card card-danger">
+        <div className="card card-mb danger-zone">
           <div className="section-title section-title-danger">⚠ {isEnglish ? 'DANGER ZONE' : 'ОПАСНА ЗОНА'}</div>
           {onDisableAccount && (
-            <>
-              <p className="card-hint">
-                {isEnglish
-                  ? 'Temporarily disable your account. You can reactivate it at any time by logging in again.'
-                  : 'Временно деактивирай акаунта си. Можеш да го активираш отново, като влезеш в системата.'}
-              </p>
+            <div className="danger-zone__row">
+              <div className="danger-zone__body">
+                <div className="danger-zone__label">
+                  {isEnglish ? 'Disable Account' : 'Деактивирай профила'}
+                </div>
+                <p className="danger-zone__desc">
+                  {isEnglish
+                    ? 'Temporarily pause your account. Log in again to reactivate.'
+                    : 'Временно спри акаунта. Влез отново за да го активираш.'}
+                </p>
+              </div>
               <button
-                className="btn btn-secondary btn-full"
+                className="btn btn-secondary btn-sm"
                 onClick={() => setDisableConfirmOpen(true)}
                 disabled={isDisabling}
               >
-                ⏸ {isEnglish ? 'Disable Account' : 'Деактивирай профила'}
+                {isEnglish ? 'Disable Account' : 'Деактивирай профила'}
               </button>
-            </>
+            </div>
           )}
           {onDeleteAccount && (
-            <>
-              <p className="card-hint">
-                {isEnglish
-                  ? 'Permanently delete your account and all your data. This action cannot be undone.'
-                  : 'Изтрий завинаги профила и всички данни. Действието е необратимо.'}
-              </p>
+            <div className="danger-zone__row">
+              <div className="danger-zone__body">
+                <div className="danger-zone__label danger-zone__label--rust">
+                  {isEnglish ? 'Delete Account' : 'Изтрий профила'}
+                </div>
+                <p className="danger-zone__desc">
+                  {isEnglish
+                    ? 'Permanently delete your account and all data. This cannot be undone.'
+                    : 'Изтрий завинаги профила и всички данни. Необратимо.'}
+                </p>
+              </div>
               <button
-                className="btn btn-danger btn-full"
+                className="btn btn-danger btn-sm"
                 onClick={() => setDeleteConfirmOpen(true)}
                 disabled={isDeleting}
               >
-                🗑 {isEnglish ? 'Delete Account' : 'Изтрий профила'}
+                {isEnglish ? 'Delete Account' : 'Изтрий профила'}
               </button>
-            </>
+            </div>
           )}
         </div>
       )}
