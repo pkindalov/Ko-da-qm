@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { ConfirmDeleteModal } from '../../../shared/components/ConfirmDeleteModal';
+import { ConfirmDisableModal } from '../../../shared/components/ConfirmDisableModal';
 import type { Profile, Product, Language } from '../../../shared/types';
 
 const DIETARY_PREFS = [
@@ -20,15 +21,18 @@ interface ProfileScreenProps {
   onLogout?: () => void;
   onDeleteAccount?: () => Promise<void>;
   isDeleting?: boolean;
+  onDisableAccount?: () => Promise<void>;
+  isDisabling?: boolean;
   onTweaksToggle?: () => void;
   onNavigateToProducts?: () => void;
   onViewPublicProfile?: () => void;
 }
 
-export const ProfileScreen = ({ profile, setProfile, products, lang, onLogout, onDeleteAccount, isDeleting, onTweaksToggle, onNavigateToProducts, onViewPublicProfile }: ProfileScreenProps) => {
+export const ProfileScreen = ({ profile, setProfile, products, lang, onLogout, onDeleteAccount, isDeleting, onDisableAccount, isDisabling, onTweaksToggle, onNavigateToProducts, onViewPublicProfile }: ProfileScreenProps) => {
   const isEnglish = lang === 'en';
   const [name, setName] = useState(profile.name);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [disableConfirmOpen, setDisableConfirmOpen] = useState(false);
 
   const saveName = () => {
     if (name.trim() === profile.name) return;
@@ -177,21 +181,41 @@ export const ProfileScreen = ({ profile, setProfile, products, lang, onLogout, o
         </div>
       )}
 
-      {onDeleteAccount && (
+      {(onDeleteAccount || onDisableAccount) && (
         <div className="card card-danger">
           <div className="section-title section-title-danger">⚠ {isEnglish ? 'DANGER ZONE' : 'ОПАСНА ЗОНА'}</div>
-          <p className="card-hint">
-            {isEnglish
-              ? 'This will permanently delete your account and all your data. This action cannot be undone.'
-              : 'Това ще изтрие завинаги профила ти и всички данни. Действието е необратимо.'}
-          </p>
-          <button
-            className="btn btn-danger btn-full"
-            onClick={() => setDeleteConfirmOpen(true)}
-            disabled={isDeleting}
-          >
-            🗑 {isEnglish ? 'Delete Account' : 'Изтрий профила'}
-          </button>
+          {onDisableAccount && (
+            <>
+              <p className="card-hint">
+                {isEnglish
+                  ? 'Temporarily disable your account. You can reactivate it at any time by logging in again.'
+                  : 'Временно деактивирай акаунта си. Можеш да го активираш отново, като влезеш в системата.'}
+              </p>
+              <button
+                className="btn btn-secondary btn-full"
+                onClick={() => setDisableConfirmOpen(true)}
+                disabled={isDisabling}
+              >
+                ⏸ {isEnglish ? 'Disable Account' : 'Деактивирай профила'}
+              </button>
+            </>
+          )}
+          {onDeleteAccount && (
+            <>
+              <p className="card-hint">
+                {isEnglish
+                  ? 'Permanently delete your account and all your data. This action cannot be undone.'
+                  : 'Изтрий завинаги профила и всички данни. Действието е необратимо.'}
+              </p>
+              <button
+                className="btn btn-danger btn-full"
+                onClick={() => setDeleteConfirmOpen(true)}
+                disabled={isDeleting}
+              >
+                🗑 {isEnglish ? 'Delete Account' : 'Изтрий профила'}
+              </button>
+            </>
+          )}
         </div>
       )}
 
@@ -204,6 +228,15 @@ export const ProfileScreen = ({ profile, setProfile, products, lang, onLogout, o
           await onDeleteAccount?.();
         }}
         onCancel={() => setDeleteConfirmOpen(false)}
+      />
+      <ConfirmDisableModal
+        open={disableConfirmOpen}
+        lang={lang}
+        onConfirm={async () => {
+          setDisableConfirmOpen(false);
+          await onDisableAccount?.();
+        }}
+        onCancel={() => setDisableConfirmOpen(false)}
       />
     </div>
   );

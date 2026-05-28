@@ -156,6 +156,6 @@ describe('useAppData – loadProfile', () => {
     renderHook(() => useAppData());
     await act(async () => {});
 
-    expect(mockSelect).toHaveBeenCalledWith('name, allergies, dislikes, dietary_prefs');
+    expect(mockSelect).toHaveBeenCalledWith('name, allergies, dislikes, dietary_prefs, disabled_at');
   });
 });

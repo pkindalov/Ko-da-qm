@@ -11,6 +11,7 @@ import { useFavorites } from '../features/recipes/hooks/useFavorites';
 import { useRecipeFavoriteCounts } from '../features/userProfile/hooks/useRecipeFavoriteCounts';
 import { useNotifications } from '../features/notifications/hooks/useNotifications';
 import { useDeleteAccount } from '../features/profile/hooks/useDeleteAccount';
+import { useDisableAccount } from '../features/profile/hooks/useDisableAccount';
 import { NotificationBell } from '../features/notifications/components/NotificationBell';
 import { ErrorBoundary } from '../shared/components/ErrorBoundary';
 import { DEFAULT_TWEAKS } from '../shared/constants/defaults';
@@ -43,6 +44,7 @@ export const AppShell = () => {
   const communityFavoriteCounts = useRecipeFavoriteCounts(publicRecipeIds);
   const { notifications, unreadCount, markAsRead, markAllAsRead, markAsUnread, markAllAsUnread, deleteNotification, deleteAllNotifications } = useNotifications(tweaks.lang);
   const { deleteAccount, isDeleting } = useDeleteAccount(tweaks.lang);
+  const { disableAccount, isDisabling } = useDisableAccount(tweaks.lang);
   const [planner, setPlanner] = useLocalStorage<Record<string, Record<string, string>>>('kdq_planner', {});
   const [tweaksOpen, setTweaksOpen] = useState(false);
   const [pendingOpenRecipeId, setPendingOpenRecipeId] = useState<string | null>(null);
@@ -114,7 +116,7 @@ export const AppShell = () => {
     recipes: <ErrorBoundary><RecipesScreen recipes={recipes} addRecipe={addRecipe} removeRecipe={removeRecipe} updateRecipe={updateRecipe} favoriteRecipes={favoriteRecipes} favoriteIds={favoriteIds} onToggleFavorite={toggleFavorite} products={products} profile={profile} lang={tweaks.lang} userEmail={userEmail} fridge={fridge} openRecipeId={pendingOpenRecipeId} onRecipeOpened={handleRecipeOpened} /></ErrorBoundary>,
     cookbook: <ErrorBoundary><CookbookScreen recipes={recipes} favoriteIds={favoriteIds} profile={profile} lang={tweaks.lang} /></ErrorBoundary>,
     products: <ErrorBoundary><ProductsScreen products={products} setProducts={setProducts} addProduct={addProduct} lang={tweaks.lang} /></ErrorBoundary>,
-    profile: <ErrorBoundary><ProfileScreen profile={profile} setProfile={setProfile} products={products} lang={tweaks.lang} onLogout={handleLogout} onDeleteAccount={deleteAccount} isDeleting={isDeleting} onTweaksToggle={() => setTweaksOpen((o) => !o)} onNavigateToProducts={() => setTab('products')} onViewPublicProfile={userId ? () => navigate(`/user/${userId}`) : undefined} /></ErrorBoundary>,
+    profile: <ErrorBoundary><ProfileScreen profile={profile} setProfile={setProfile} products={products} lang={tweaks.lang} onLogout={handleLogout} onDeleteAccount={deleteAccount} isDeleting={isDeleting} onDisableAccount={disableAccount} isDisabling={isDisabling} onTweaksToggle={() => setTweaksOpen((o) => !o)} onNavigateToProducts={() => setTab('products')} onViewPublicProfile={userId ? () => navigate(`/user/${userId}`) : undefined} /></ErrorBoundary>,
     planner: <ErrorBoundary><PlannerScreen recipes={recipes} fridge={fridge} profile={profile} lang={tweaks.lang} planner={planner} setPlanner={setPlanner} onViewRecipe={(id) => { setTab('recipes'); setPendingOpenRecipeId(id); }} /></ErrorBoundary>,
   };
 

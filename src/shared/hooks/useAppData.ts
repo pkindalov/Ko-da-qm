@@ -26,13 +26,16 @@ export const useAppData = (lang: Language = 'bg') => {
     setUserEmail(user.email ?? '');
 
     const [profileRes, fridgeRes, recipesRes, productsRes] = await Promise.all([
-      supabase.from('users').select('name, allergies, dislikes, dietary_prefs').eq('id', user.id).single(),
+      supabase.from('users').select('name, allergies, dislikes, dietary_prefs, disabled_at').eq('id', user.id).single(),
       supabase.from('fridge_items').select('id, name, emoji, category').eq('user_id', user.id),
       supabase.from('recipes').select('id, user_id, name, name_en, name_translated, emoji, image_url, ingredients, steps, ingredients_translated, steps_translated, time, tags, required_ingredients, is_ai, is_public, author_name, author_email').eq('user_id', user.id),
       supabase.from('products').select('id, name, name_en, category, status, emoji').eq('user_id', user.id),
     ]);
 
     if (profileRes.data) {
+      if (profileRes.data.disabled_at) {
+        await supabase.from('users').update({ disabled_at: null }).eq('id', user.id);
+      }
       setProfileState({
         name: profileRes.data.name,
         allergies: profileRes.data.allergies ?? [],
