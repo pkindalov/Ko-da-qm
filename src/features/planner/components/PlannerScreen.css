@@ -21,10 +21,18 @@
   color: var(--ink);
 }
 
-.week-metric-num.italic { font-style: italic; }
-.week-metric-num.clay   { color: var(--clay-deep); }
-.week-metric-num.moss   { color: var(--moss); }
-.week-metric-num.amber  { color: var(--amber); }
+.week-metric-num.italic {
+  font-style: italic;
+}
+.week-metric-num.clay {
+  color: var(--clay-deep);
+}
+.week-metric-num.moss {
+  color: var(--moss);
+}
+.week-metric-num.amber {
+  color: var(--amber);
+}
 
 .week-metric-fraction {
   color: var(--ink-3);
@@ -44,7 +52,7 @@
 
 /* ── Planner layout ─────────────────────────────────────────── */
 .planner-stage {
-  display: grid;
+  /* display: grid; */
   grid-template-columns: 1fr 340px;
   gap: 36px;
   align-items: start;
@@ -427,9 +435,16 @@
   scrollbar-color: var(--line-2) transparent;
 }
 
-.drawer-list::-webkit-scrollbar { width: 8px; }
-.drawer-list::-webkit-scrollbar-track { background: transparent; }
-.drawer-list::-webkit-scrollbar-thumb { background: var(--line-2); border-radius: 4px; }
+.drawer-list::-webkit-scrollbar {
+  width: 8px;
+}
+.drawer-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+.drawer-list::-webkit-scrollbar-thumb {
+  background: var(--line-2);
+  border-radius: 4px;
+}
 
 .drawer-recipe {
   display: flex;
@@ -641,7 +656,9 @@
   font-family: var(--sans);
   position: relative;
   z-index: 1;
-  transition: background 0.15s, color 0.15s;
+  transition:
+    background 0.15s,
+    color 0.15s;
 }
 
 .shopping-card-btn:hover:not(:disabled) {
@@ -871,9 +888,11 @@
 .planner-head-right {
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
-  gap: 10px;
+  align-items: flex-start;
+  gap: 0.5rem;
   flex-shrink: 0;
+  flex-wrap: wrap;
+  margin: 1rem 0;
 }
 
 .planner-head-btns {
@@ -881,11 +900,29 @@
   gap: 8px;
 }
 
-/* ── Utilities ──────────────────────────────────────────────── */
-.planner-btn-dimmed { opacity: 0.55; }
+.topbar {
+  flex-wrap: wrap;
+}
 
-.picker-modal  { max-width: 560px; }
-.shopping-modal { max-width: 620px; }
+/* ── Utilities ──────────────────────────────────────────────── */
+.planner-btn-dimmed {
+  opacity: 0.55;
+}
+
+.picker-modal {
+  max-width: 560px;
+}
+.shopping-modal {
+  max-width: 620px;
+}
+
+.page-head {
+  flex-wrap: wrap;
+}
+
+.page-head .h-title {
+  margin: 11px 0;
+}
 
 /* ── Responsive ─────────────────────────────────────────────── */
 @media (max-width: 1180px) {
