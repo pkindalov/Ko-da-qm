@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Badge } from '../../../shared/components/Badge';
 import { EmptyState } from '../../../shared/components/EmptyState';
 import { Modal } from '../../../shared/components/Modal';
+import './FeedScreen.css';
 import { RecipeDetailView } from '../../../shared/components/RecipeDetailView';
 import { recipeRisk } from '../../../shared/utils/recipeUtils';
 import { recipeDisplayName } from '../../../shared/utils/recipeDisplayName';

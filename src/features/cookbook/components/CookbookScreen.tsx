@@ -2,6 +2,7 @@ import { useState, lazy, Suspense } from 'react';
 import { useLocalStorage } from '../../../shared/hooks/useLocalStorage';
 import { recipeDisplayName } from '../../../shared/utils/recipeDisplayName';
 import type { Recipe, Profile, Language } from '../../../shared/types';
+import './CookbookScreen.css';
 
 const CookbookEditorPanel = lazy(() =>
   import('./CookbookEditorPanel').then(m => ({ default: m.CookbookEditorPanel }))

@@ -1,0 +1,49 @@
+.recipe-form-row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.recipe-form-name {
+  flex: 1;
+}
+.recipe-form-emoji-wrap {
+  width: 80px;
+}
+.input-center {
+  text-align: center;
+  font-size: 20px;
+}
+.recipe-form-mb {
+  margin-bottom: 12px;
+}
+.recipe-form-mb-lg {
+  margin-bottom: 20px;
+}
+.product-picker-hd {
+  font-size: 12px;
+  color: var(--ink-2);
+  font-weight: 600;
+  margin-bottom: 6px;
+  display: flex;
+  justify-content: space-between;
+}
+.product-picker-count {
+  font-weight: 400;
+}
+.product-filter-input {
+  margin-bottom: 6px;
+  font-size: 13px;
+}
+.recipe-form-actions {
+  display: flex;
+  gap: 10px;
+}
+.recipe-form-toggle {
+  margin-bottom: 20px;
+}
+.recipe-form-hint {
+  font-size: 12px;
+  color: var(--ink-3);
+  margin-top: 6px;
+  line-height: 1.5;
+}

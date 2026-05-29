@@ -1,0 +1,23 @@
+.feed-loading {
+  padding: 24px;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink-3);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+.feed-discover-actions {
+  text-align: center;
+  margin-top: 16px;
+}
+.feed-recipe-count {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--ink-3);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+}
+.feed-recipe-badge {
+  margin-top: 6px;
+}

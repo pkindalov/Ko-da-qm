@@ -3,6 +3,7 @@ import { toast } from 'sonner';
 import { ConfirmDeleteModal } from '../../../shared/components/ConfirmDeleteModal';
 import { ConfirmDisableModal } from '../../../shared/components/ConfirmDisableModal';
 import { ChangePasswordModal } from '../../../shared/components/ChangePasswordModal';
+import './ProfileScreen.css';
 import type { Profile, Product, Language } from '../../../shared/types';
 
 const DIETARY_PREFS = [

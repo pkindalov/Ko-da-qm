@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { supabase } from '../../../lib/supabase';
+import './auth.css';
 
 const MIN_PASSWORD_LENGTH = 6;
 

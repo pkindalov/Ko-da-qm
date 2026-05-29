@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Modal } from '../../../shared/components/Modal';
 import { RecipeDetailView } from '../../../shared/components/RecipeDetailView';
 import { EmptyState } from '../../../shared/components/EmptyState';
+import './UserProfilePage.css';
 import { Badge } from '../../../shared/components/Badge';
 import { useLocalStorage } from '../../../shared/hooks/useLocalStorage';
 import { useUserProfile } from '../hooks/useUserProfile';

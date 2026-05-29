@@ -3,6 +3,7 @@ import { Badge } from './Badge';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 import { SaveTranslationModal } from './SaveTranslationModal';
 import { ShoppingListModal } from './ShoppingListModal';
+import './RecipeDetailView.css';
 import { recipeRisk } from '../utils/recipeUtils';
 import { toast } from 'sonner';
 import { openGoogleTranslate } from '../utils/openGoogleTranslate';

@@ -1,6 +1,7 @@
 import type { JSX } from 'react';
 import type { Tab, Language } from '../../shared/types';
 import { HomeIcon, FeedIcon, FridgeIcon, RecipesIcon, CookbookIcon, ProductsIcon, PlannerIcon, ProfileIcon } from './NavIcons';
+import './BottomNav.css';
 
 interface NavChild {
   id: Tab;

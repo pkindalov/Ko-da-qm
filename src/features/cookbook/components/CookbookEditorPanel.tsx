@@ -3,6 +3,7 @@ import { toast } from 'sonner';
 import { pdf, BlobProvider } from '@react-pdf/renderer';
 import { recipeDisplayName } from '../../../shared/utils/recipeDisplayName';
 import { CookbookPDF } from './CookbookPDF';
+import './CookbookScreen.css';
 import { DEFAULT_SETTINGS } from '../utils/cookbookTypes';
 import type { CookbookSettings } from '../utils/cookbookTypes';
 import type { Recipe, Profile, Language } from '../../../shared/types';

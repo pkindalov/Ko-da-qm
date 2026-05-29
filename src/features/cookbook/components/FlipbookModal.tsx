@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import type { Recipe, Language } from '../../../shared/types';
 import { recipeDisplayName } from '../../../shared/utils/recipeDisplayName';
+import './FlipbookModal.css';
 
 interface FlipbookModalProps {
   recipes: Recipe[];

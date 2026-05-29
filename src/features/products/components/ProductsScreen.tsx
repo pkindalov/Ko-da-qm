@@ -3,6 +3,7 @@ import { toast } from 'sonner';
 import { Modal } from '../../../shared/components/Modal';
 import { Badge } from '../../../shared/components/Badge';
 import { ConfirmDeleteModal } from '../../../shared/components/ConfirmDeleteModal';
+import './ProductsScreen.css';
 import { EmptyState } from '../../../shared/components/EmptyState';
 import { CATEGORIES } from '../../../shared/constants/categories';
 import { filterProducts } from '../utils/productFilters';

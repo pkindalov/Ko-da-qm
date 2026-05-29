@@ -1,4 +1,5 @@
 import type { Tweaks } from '../../shared/types';
+import './TweaksPanel.css';
 
 interface TweaksPanelProps {
   open: boolean;

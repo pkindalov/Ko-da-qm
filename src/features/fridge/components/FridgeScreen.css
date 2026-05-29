@@ -1,0 +1,144 @@
+.fridge-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  border: 1px solid var(--line);
+}
+.fridge-emoji {
+  font-size: 22px;
+}
+.fridge-name {
+  font-size: 14px;
+  font-weight: 500;
+  flex: 1;
+}
+.fridge-search-desc {
+  font-size: 14px;
+  color: var(--ink-2);
+  margin-bottom: 14px;
+}
+.fridge-search-desc--compact {
+  margin-bottom: 6px;
+}
+.fridge-pin-hint {
+  font-size: 13px;
+  color: var(--ink-2);
+  margin-bottom: 14px;
+}
+.fridge-pin-clear-btn {
+  background: none;
+  border: none;
+  color: var(--clay);
+  cursor: pointer;
+  font-weight: 500;
+  padding: 0;
+  font: inherit;
+  font-size: 13px;
+}
+.fridge-toggle {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 1.4px;
+  color: var(--ink-3);
+  text-transform: uppercase;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  font-weight: 400;
+  margin-top: 6px;
+}
+.suggestion-card {
+  border-left: 3px solid var(--primary);
+}
+.suggestion-card-ai {
+  border-left: 3px solid var(--secondary);
+}
+.suggestion-meta {
+  font-size: 13px;
+  color: var(--ink-2);
+  font-weight: 600;
+}
+.suggestion-name {
+  font-weight: 800;
+  font-size: 15px;
+}
+.suggestion-badge-ai {
+  font-size: 11px;
+}
+.suggestion-ings {
+  margin-top: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.badge-in-fridge {
+  background: var(--moss-soft);
+  color: var(--moss);
+  border: 1px solid var(--moss-soft);
+}
+.badge-missing {
+  background: var(--paper);
+  color: var(--ink-2);
+  border: 1px solid var(--line);
+}
+.blocked-box {
+  margin-bottom: 12px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  font-size: 13px;
+  font-weight: 600;
+}
+.blocked-label {
+  color: var(--ink-2);
+  margin-right: 6px;
+}
+.badge-allergic-item {
+  background: var(--rust-soft);
+  color: var(--rust);
+  border: 1px solid var(--rust);
+  margin-right: 4px;
+}
+.badge-dislike-item {
+  background: var(--amber-soft);
+  color: var(--amber-deep);
+  border: 1px solid var(--amber);
+  margin-right: 4px;
+}
+.step-section {
+  margin-top: 10px;
+}
+.step-section-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ink-2);
+  margin-bottom: 4px;
+}
+.step-item {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+  padding-left: 4px;
+  margin-bottom: 2px;
+}
+.suggestion-wrap {
+  margin-top: 16px;
+}
+.suggestion-actions {
+  margin-top: 10px;
+}
+.suggestion-action-row {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.suggestions-footer {
+  margin-top: 8px;
+  display: flex;
+  gap: 8px;
+}

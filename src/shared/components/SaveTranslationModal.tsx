@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Modal } from './Modal';
 import { parseTranslatedRecipe } from '../utils/parseTranslatedRecipe';
 import type { Language } from '../types';
+import './SaveTranslationModal.css';
 
 interface SaveTranslationModalProps {
   open: boolean;

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Modal } from './Modal';
 import type { Recipe, FridgeItem, Language } from '../types';
+import './ShoppingListModal.css';
 
 interface ShoppingListModalProps {
   open: boolean;

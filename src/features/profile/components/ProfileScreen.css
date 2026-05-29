@@ -1,0 +1,104 @@
+.profile-follow-btn {
+  margin-top: 12px;
+}
+.profile-actions {
+  display: none;
+  margin-bottom: 16px;
+}
+.profile-actions__btn {
+  margin-top: 8px;
+}
+.card-allergy {
+  margin-bottom: 16px;
+  border-color: var(--rust);
+  border-width: 2px;
+}
+.card-warn {
+  margin-bottom: 16px;
+  border-color: var(--amber);
+  border-width: 2px;
+}
+.card-danger {
+  margin-bottom: 16px;
+  border-color: var(--rust);
+  border-width: 2px;
+  background: var(--rust-soft);
+}
+.danger-zone {
+  border-color: color-mix(in oklch, var(--rust) 30%, var(--line));
+}
+.danger-zone__row {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  justify-content: space-between;
+}
+.danger-zone__row + .danger-zone__row {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+.danger-zone__body {
+  flex: 1;
+  min-width: 0;
+}
+.danger-zone__label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: 3px;
+}
+.danger-zone__label--rust {
+  color: var(--rust);
+}
+.danger-zone__desc {
+  font-size: 13px;
+  color: var(--ink-2);
+  line-height: 1.5;
+}
+.card-mb {
+  margin-bottom: 16px;
+}
+.section-title-allergy {
+  color: var(--rust);
+}
+.section-title-warn {
+  color: var(--amber-deep);
+}
+.section-title-danger {
+  color: var(--rust);
+}
+.card-hint {
+  font-size: 13px;
+  color: var(--ink-2);
+  margin-bottom: 12px;
+  font-weight: 600;
+}
+.card-note {
+  font-size: 13px;
+  color: var(--ink-2);
+  font-style: italic;
+}
+.card-summary {
+  background: var(--paper);
+  border-style: dashed;
+}
+.card-summary-title {
+  font-weight: 700;
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+.card-summary-text {
+  font-size: 14px;
+  color: var(--ink-2);
+  font-weight: 600;
+  line-height: 2;
+}
+.count-allergy {
+  color: var(--rust);
+}
+@media (max-width: 767px) {
+  .profile-actions {
+    display: block;
+  }
+}

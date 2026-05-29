@@ -3,6 +3,7 @@ import { toast } from 'sonner';
 import { InteractiveFridge } from './InteractiveFridge';
 import { Modal } from '../../../shared/components/Modal';
 import { Badge } from '../../../shared/components/Badge';
+import './FridgeScreen.css';
 import { ConfirmDeleteModal } from '../../../shared/components/ConfirmDeleteModal';
 import { EmptyState } from '../../../shared/components/EmptyState';
 import { matchFromFridge, type MatchedRecipe } from '../utils/matchFromFridge';

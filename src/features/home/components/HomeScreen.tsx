@@ -3,6 +3,7 @@ import { Badge } from '../../../shared/components/Badge';
 import { ConfirmDeleteModal } from '../../../shared/components/ConfirmDeleteModal';
 import { EmptyState } from '../../../shared/components/EmptyState';
 import { Modal } from '../../../shared/components/Modal';
+import './HomeScreen.css';
 import { RecipeDetailView } from '../../../shared/components/RecipeDetailView';
 import { isSafe, recipeRisk } from '../../../shared/utils/recipeUtils';
 import { recipeDisplayName } from '../../../shared/utils/recipeDisplayName';

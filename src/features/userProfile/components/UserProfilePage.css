@@ -1,0 +1,18 @@
+.user-profile-page {
+  min-height: 100dvh;
+  background: var(--paper);
+}
+.user-profile-loading {
+  min-height: 100dvh;
+  background: var(--paper);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.user-profile-content {
+  max-width: 900px;
+  margin: 0 auto;
+}
+.eyebrow-mb {
+  margin-bottom: 12px;
+}

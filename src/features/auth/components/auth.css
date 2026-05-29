@@ -1,0 +1,99 @@
+.auth-page {
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: var(--paper);
+}
+.auth-card {
+  background: var(--surface);
+  border-radius: var(--r-lg);
+  border: 1px solid var(--line);
+  padding: 40px;
+  width: 100%;
+  max-width: 400px;
+  box-shadow: var(--shadow-lg);
+}
+.auth-logo {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 28px;
+  letter-spacing: -1px;
+  color: var(--ink);
+  text-align: center;
+}
+.auth-sub {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  text-align: center;
+  margin-top: 6px;
+}
+.auth-error {
+  color: var(--rust);
+  font-size: 13px;
+  margin-bottom: 4px;
+}
+.auth-field-error {
+  color: var(--rust);
+  font-size: 12px;
+  margin-top: 4px;
+}
+.auth-switch {
+  margin-top: 20px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--ink-2);
+}
+.auth-switch a {
+  color: var(--clay-deep);
+  font-weight: 500;
+}
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.5px;
+  color: var(--ink-3);
+  margin: 8px 0;
+  text-transform: uppercase;
+}
+.auth-divider::before,
+.auth-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--line);
+}
+.btn-google {
+  background: var(--surface);
+  color: var(--ink);
+  border-color: var(--line-2);
+}
+.btn-google:hover {
+  border-color: var(--ink-2);
+  background: var(--paper-2);
+}
+.btn-facebook {
+  background: var(--clay);
+  color: var(--surface);
+  border-color: transparent;
+}
+.btn-facebook:hover {
+  background: var(--clay-deep);
+}
+.auth-form {
+  margin-top: 24px;
+}
+.auth-confirm-text {
+  text-align: center;
+  margin-top: 16px;
+}
+.auth-confirm-link {
+  margin-top: 24px;
+}
