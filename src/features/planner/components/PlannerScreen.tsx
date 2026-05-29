@@ -251,12 +251,19 @@ export interface PlannerScreenProps {
   onViewRecipe?: (id: string) => void;
 }
 
-export const PlannerScreen = ({ recipes, fridge, products, addRecipe, profile, lang, planner, setPlanner, onViewRecipe }: PlannerScreenProps) => {
+export const PlannerScreen = ({ recipes, fridge, products = [], addRecipe, profile, lang, planner, setPlanner, onViewRecipe }: PlannerScreenProps) => {
   const isEn = lang === 'en';
 
-  const blocked = useMemo(
-    () => [...profile.allergies, ...profile.dislikes],
-    [profile.allergies, profile.dislikes],
+  const blocked = useMemo(() => [
+    ...profile.allergies,
+    ...profile.dislikes,
+    ...products.filter(p => p.status === 'allergic').flatMap(p => p.nameEn ? [p.name, p.nameEn] : [p.name]),
+    ...products.filter(p => p.status === 'disliked').flatMap(p => p.nameEn ? [p.name, p.nameEn] : [p.name]),
+  ], [profile.allergies, profile.dislikes, products]);
+
+  const liked = useMemo(() =>
+    products.filter(p => p.status === 'liked').flatMap(p => p.nameEn ? [p.name, p.nameEn] : [p.name]),
+    [products],
   );
 
   const [weekOffset, setWeekOffset] = useState(0);
@@ -316,7 +323,7 @@ export const PlannerScreen = ({ recipes, fridge, products, addRecipe, profile, l
     if (recipes.length === 0) return;
     setPlanningLoading(true);
     try {
-      const plan = await planWithGemini(recipes, fridge, products, blocked, profile.dietaryPrefs, lang, addRecipe);
+      const plan = await planWithGemini(recipes, fridge, products, blocked, liked, profile.dietaryPrefs, lang, addRecipe);
       if (Object.keys(plan).length > 0) {
         setPlanner({ ...planner, [weekKey]: plan });
       }

@@ -20,6 +20,7 @@ const buildPrompt = (
   availableIngredients: string[],
   existingRecipes: string[],
   blocked: string[],
+  liked: string[],
   dietaryPrefs: string[],
   lang: string,
 ): string => {
@@ -31,7 +32,10 @@ const buildPrompt = (
     ? `User's saved recipes (reuse these exact names when they fit well): ${existingRecipes.slice(0, 30).join(', ')}.`
     : '';
   const blockedNote = blocked.length > 0
-    ? `IMPORTANT — do NOT suggest recipes containing: ${blocked.join(', ')}.`
+    ? `IMPORTANT — do NOT suggest recipes containing any of these (allergies/dislikes): ${blocked.join(', ')}.`
+    : '';
+  const likedNote = liked.length > 0
+    ? `User enjoys these foods — try to feature them where natural: ${liked.join(', ')}.`
     : '';
   const prefsNote = dietaryPrefs.length > 0
     ? `Dietary preferences: ${dietaryPrefs.join(', ')}.`
@@ -41,6 +45,7 @@ const buildPrompt = (
 ${ingredientsNote}
 ${existingNote}
 ${blockedNote}
+${likedNote}
 ${prefsNote}
 
 Generate 6-10 unique recipes. Assign each of the 21 meal slots (days 0=Mon … 6=Sun) to one of those recipes.
@@ -86,6 +91,7 @@ Deno.serve(async (req: Request) => {
       availableIngredients = [],
       existingRecipes = [],
       blocked = [],
+      liked = [],
       dietaryPrefs = [],
       lang = 'en',
     } = await req.json();
@@ -95,7 +101,7 @@ Deno.serve(async (req: Request) => {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        contents: [{ parts: [{ text: buildPrompt(availableIngredients, existingRecipes, blocked, dietaryPrefs, lang) }] }],
+        contents: [{ parts: [{ text: buildPrompt(availableIngredients, existingRecipes, blocked, liked, dietaryPrefs, lang) }] }],
         generationConfig: { temperature: 0.8, maxOutputTokens: 3000 },
       }),
     });

@@ -22,19 +22,21 @@ export const planWithGemini = async (
   fridge: FridgeItem[],
   products: Product[],
   blocked: string[],
+  liked: string[],
   dietaryPrefs: string[],
   lang: Language,
   addRecipe: (recipe: Recipe) => void,
 ): Promise<Record<string, string>> => {
+  const blockedLower = blocked.map(b => b.toLowerCase());
   const availableIngredients = [
     ...fridge.map(f => f.name),
-    ...products.map(p => p.name),
-  ].filter((name, i, arr) => arr.indexOf(name) === i);
+    ...products.filter(p => p.status !== 'allergic' && p.status !== 'disliked').map(p => p.name),
+  ].filter((name, i, arr) => arr.indexOf(name) === i && !blockedLower.includes(name.toLowerCase()));
 
   const existingNames = existingRecipes.map(r => r.name);
 
   const { data, error } = await supabase.functions.invoke('gemini-planner', {
-    body: { availableIngredients, existingRecipes: existingNames, blocked, dietaryPrefs, lang },
+    body: { availableIngredients, existingRecipes: existingNames, blocked, liked, dietaryPrefs, lang },
   });
 
   if (error != null || typeof data !== 'object' || data === null || Array.isArray(data)) return {};
