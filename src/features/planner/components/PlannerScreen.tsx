@@ -1,6 +1,7 @@
 import { useState, useMemo, useCallback } from 'react';
 import { Modal } from '../../../shared/components/Modal';
 import type { Recipe, FridgeItem, Profile, Language } from '../../../shared/types';
+import { planWithGemini } from '../utils/planWithGemini';
 import './PlannerScreen.css';
 
 type PlannerData = Record<string, Record<string, string>>;
@@ -307,6 +308,21 @@ export const PlannerScreen = ({ recipes, fridge, profile, lang, planner, setPlan
     setPlanner({ ...planner, [weekKey]: {} });
   }, [planner, weekKey, setPlanner]);
 
+  const [planningLoading, setPlanningLoading] = useState(false);
+
+  const handlePlanWithGemini = useCallback(async () => {
+    if (recipes.length === 0) return;
+    setPlanningLoading(true);
+    try {
+      const plan = await planWithGemini(recipes, blocked, profile.dietaryPrefs, lang);
+      if (Object.keys(plan).length > 0) {
+        setPlanner({ ...planner, [weekKey]: plan });
+      }
+    } finally {
+      setPlanningLoading(false);
+    }
+  }, [recipes, blocked, profile.dietaryPrefs, lang, planner, weekKey, setPlanner]);
+
   const [dragId, setDragId] = useState<string | null>(null);
   const [dragSourceSlot, setDragSourceSlot] = useState<string | null>(null);
   const [dropTarget, setDropTarget] = useState<string | null>(null);
@@ -440,9 +456,20 @@ export const PlannerScreen = ({ recipes, fridge, profile, lang, planner, setPlan
           <span className="label">{weekRange}</span>
           <div className="planner-head-btns">
             {mealsPlanned === 0 && recipes.length > 0 && (
-              <button className="btn btn-secondary btn-xs" onClick={handleSampleWeek}>
-                {isEn ? 'Try a sample week' : 'Пробвай примерна седмица'}
-              </button>
+              <>
+                <button className="btn btn-secondary btn-xs" onClick={handleSampleWeek}>
+                  {isEn ? 'Try a sample week' : 'Пробвай примерна седмица'}
+                </button>
+                <button
+                  className="btn btn-secondary btn-xs"
+                  onClick={handlePlanWithGemini}
+                  disabled={planningLoading}
+                >
+                  {planningLoading
+                    ? <><span className="spinner" />{isEn ? 'Planning…' : 'Планира…'}</>
+                    : `✨ ${isEn ? 'Plan with Gemini' : 'Планирай с Gemini'}`}
+                </button>
+              </>
             )}
             {mealsPlanned > 0 && (
               <button className="btn btn-ghost btn-xs" onClick={clearWeek}>
