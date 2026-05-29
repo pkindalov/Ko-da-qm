@@ -25,9 +25,8 @@ export const planWithGemini = async (
   liked: string[],
   dietaryPrefs: string[],
   lang: Language,
-  addRecipe: (recipe: Recipe) => void,
   scheduledNames: string[] = [],
-): Promise<Record<string, string>> => {
+): Promise<{ plan: Record<string, string>; newRecipes: Recipe[] }> => {
   const blockedLower = blocked.map(b => b.toLowerCase());
   const availableIngredients = [
     ...fridge.map(f => f.name),
@@ -40,13 +39,14 @@ export const planWithGemini = async (
     body: { availableIngredients, existingRecipes: existingNames, blocked, liked, dietaryPrefs, lang, scheduledNames },
   });
 
-  if (error != null || typeof data !== 'object' || data === null || Array.isArray(data)) return {};
+  if (error != null || typeof data !== 'object' || data === null || Array.isArray(data)) return { plan: {}, newRecipes: [] };
 
   const { recipes: generated, plan } = data as GeminiPlanResponse;
-  if (!Array.isArray(generated) || typeof plan !== 'object' || plan === null) return {};
+  if (!Array.isArray(generated) || typeof plan !== 'object' || plan === null) return { plan: {}, newRecipes: [] };
 
   // Map generated recipe index → final recipe ID
   const indexToId = new Map<number, string>();
+  const newRecipes: Recipe[] = [];
 
   for (let i = 0; i < generated.length; i++) {
     const gen = generated[i];
@@ -74,7 +74,7 @@ export const planWithGemini = async (
         isAI: true,
         isPublic: false,
       };
-      addRecipe(newRecipe);
+      newRecipes.push(newRecipe);
       indexToId.set(i, newRecipe.id);
     }
   }
@@ -87,5 +87,5 @@ export const planWithGemini = async (
       result[slot] = id;
     }
   }
-  return result;
+  return { plan: result, newRecipes };
 };

@@ -19,6 +19,7 @@ const makeRecipe = (overrides: Partial<Recipe> = {}): Recipe => ({
   tags: [],
   isAI: false,
   isPublic: false,
+  authorEmail: 'test@test.com',
   ...overrides,
 });
 
@@ -47,11 +48,11 @@ const renderPlanner = (overrides: Partial<PlannerScreenProps> = {}) =>
       recipes={[]}
       fridge={[]}
       products={[]}
-      addRecipe={vi.fn()}
       profile={defaultProfile}
       lang="en"
       planner={{}}
       setPlanner={vi.fn()}
+      favoriteRecipes={[]}
       {...overrides}
     />,
   );
@@ -495,6 +496,35 @@ describe('PlannerScreen – drawer search and filter', () => {
     });
     await user.type(screen.getByPlaceholderText(/^Search…$/i), 'omelette');
     expect(screen.getByText('Omelette')).toBeInTheDocument();
+  });
+});
+
+// ── Favorites & Gemini button ──────────────────────────────────────────────────
+
+describe('PlannerScreen – favorites and Gemini', () => {
+  it('renders a favorited recipe (not in own recipes) placed in a slot', () => {
+    const fav = makeRecipe({ id: 'f1', nameEn: 'Fav Soup', authorEmail: undefined });
+    renderPlanner({
+      recipes: [],
+      favoriteRecipes: [fav],
+      planner: { [WEEK_KEY]: { '0_breakfast': 'f1' } },
+    });
+    expect(screen.getByText('Fav Soup', { selector: '.meal-name' })).toBeInTheDocument();
+  });
+
+  it('shows "Plan with Gemini" when the user has only favorite recipes', () => {
+    renderPlanner({ recipes: [], favoriteRecipes: [makeRecipe({ id: 'f1' })] });
+    expect(screen.getByRole('button', { name: /Plan with Gemini/i })).toBeInTheDocument();
+  });
+
+  it('shows "Plan with Gemini" when the user has fridge items but no recipes', () => {
+    renderPlanner({ recipes: [], fridge: [makeFridgeItem()] });
+    expect(screen.getByRole('button', { name: /Plan with Gemini/i })).toBeInTheDocument();
+  });
+
+  it('hides "Plan with Gemini" when there are no recipes, fridge, or products', () => {
+    renderPlanner({ recipes: [], fridge: [], products: [] });
+    expect(screen.queryByRole('button', { name: /Plan with Gemini/i })).not.toBeInTheDocument();
   });
 });
 

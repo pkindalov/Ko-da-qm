@@ -2,6 +2,7 @@ import { useState, useMemo, useCallback, type Dispatch, type SetStateAction } fr
 import { Modal } from '../../../shared/components/Modal';
 import type { Recipe, FridgeItem, Product, Profile, Language } from '../../../shared/types';
 import { planWithGemini } from '../utils/planWithGemini';
+import { useLocalStorage } from '../../../shared/hooks/useLocalStorage';
 import './PlannerScreen.css';
 
 type PlannerData = Record<string, Record<string, string>>;
@@ -245,15 +246,15 @@ export interface PlannerScreenProps {
   recipes: Recipe[];
   fridge: FridgeItem[];
   products: Product[];
-  addRecipe: (recipe: Recipe) => void;
   profile: Profile;
   lang: Language;
   planner: PlannerData;
   setPlanner: Dispatch<SetStateAction<PlannerData>>;
+  favoriteRecipes: Recipe[];
   onViewRecipe?: (id: string) => void;
 }
 
-export const PlannerScreen = ({ recipes, fridge, products = [], addRecipe, profile, lang, planner, setPlanner, onViewRecipe }: PlannerScreenProps) => {
+export const PlannerScreen = ({ recipes, fridge, products = [], profile, lang, planner, setPlanner, favoriteRecipes = [], onViewRecipe }: PlannerScreenProps) => {
   const isEn = lang === 'en';
 
   const blocked = useMemo(() => [
@@ -327,9 +328,27 @@ export const PlannerScreen = ({ recipes, fridge, products = [], addRecipe, profi
   const [drawerQuery, setDrawerQuery] = useState('');
   const [drawerFilter, setDrawerFilter] = useState<DrawerFilter>('all');
 
+  // Recipes the user can pick from: their own explicit recipes + favorites (deduped)
+  const pickableRecipes = useMemo(() => {
+    const seen = new Set<string>();
+    const result: Recipe[] = [];
+    for (const r of [...recipes.filter(r => r.authorEmail != null && r.authorEmail !== ''), ...favoriteRecipes]) {
+      if (!seen.has(r.id)) {
+        seen.add(r.id);
+        result.push(r);
+      }
+    }
+    return result;
+  }, [recipes, favoriteRecipes]);
+
+  // Gemini can reuse existing recipes or invent fresh ones from the fridge and
+  // products, so planning is meaningful whenever any of those exist — not only
+  // when the user has authored their own recipes.
+  const canPlanWithGemini = pickableRecipes.length > 0 || fridge.length > 0 || products.length > 0;
+
   const filteredRecipes = useMemo(() => {
     const q = drawerQuery.toLowerCase().trim();
-    return recipes.filter(r => {
+    return pickableRecipes.filter(r => {
       const name = ((isEn ? r.nameEn : r.name) ?? r.name).toLowerCase();
       if (q && !name.includes(q)) return false;
       if (drawerFilter === 'all') return true;
@@ -340,16 +359,24 @@ export const PlannerScreen = ({ recipes, fridge, products = [], addRecipe, profi
         return t === tagBg || t === drawerFilter;
       }) ?? false;
     });
-  }, [recipes, drawerQuery, drawerFilter, isEn]);
+  }, [pickableRecipes, drawerQuery, drawerFilter, isEn]);
+
+  // Gemini-suggested recipes stored transiently (not saved to DB)
+  const [transientRecipes, setTransientRecipes] = useLocalStorage<Recipe[]>('kdq_planner_transient', []);
+
+  // Full pool for slot lookup — own recipes, favorites, and transient Gemini
+  // suggestions. Favorites must be here or a dragged-in favorite resolves to
+  // nothing and the slot renders empty.
+  const allRecipes = useMemo(() => [...recipes, ...favoriteRecipes, ...transientRecipes], [recipes, favoriteRecipes, transientRecipes]);
 
   const assignedIds = useMemo(() => Object.values(weekData).filter(id => id !== ''), [weekData]);
 
   // Bug fix: use type predicate to narrow (Recipe | undefined)[] → Recipe[]
   const assignedRecipes = useMemo(() =>
     assignedIds
-      .map(id => recipes.find(r => r.id === id))
+      .map(id => allRecipes.find(r => r.id === id))
       .filter((r): r is Recipe => r != null),
-    [assignedIds, recipes],
+    [assignedIds, allRecipes],
   );
 
   const mealsPlanned = assignedRecipes.length;
@@ -359,12 +386,19 @@ export const PlannerScreen = ({ recipes, fridge, products = [], addRecipe, profi
   const [overwriteConfirmOpen, setOverwriteConfirmOpen] = useState(false);
 
   const doGeminiPlan = useCallback(async (overwrite: boolean) => {
-    if (recipes.length === 0) return;
+    if (!canPlanWithGemini) return;
     setPlanningLoading(true);
     try {
       const scheduledNames = assignedRecipes.map(r => isEn && r.nameEn != null ? r.nameEn : r.name);
-      const plan = await planWithGemini(recipes, fridge, products, blocked, liked, profile.dietaryPrefs, lang, addRecipe, scheduledNames);
+      const { plan, newRecipes } = await planWithGemini(recipes, fridge, products, blocked, liked, profile.dietaryPrefs, lang, scheduledNames);
       if (Object.keys(plan).length === 0) return;
+
+      // Store Gemini-invented recipes transiently — never persist to DB
+      const unseen = newRecipes.filter(r => !transientRecipes.some(t => t.id === r.id));
+      if (unseen.length > 0) {
+        setTransientRecipes([...transientRecipes, ...unseen]);
+      }
+
       if (overwrite) {
         setPlanner(prev => ({ ...prev, [weekKey]: plan }));
       } else {
@@ -380,7 +414,7 @@ export const PlannerScreen = ({ recipes, fridge, products = [], addRecipe, profi
     } finally {
       setPlanningLoading(false);
     }
-  }, [recipes, fridge, products, blocked, liked, profile.dietaryPrefs, lang, addRecipe, assignedRecipes, isEn, weekKey, setPlanner]);
+  }, [canPlanWithGemini, recipes, fridge, products, blocked, liked, profile.dietaryPrefs, lang, assignedRecipes, isEn, weekKey, setPlanner, transientRecipes, setTransientRecipes]);
 
   const handlePlanWithGemini = useCallback(() => {
     const emptyCount = ALL_SLOT_KEYS.filter(s => !weekData[s]).length;
@@ -492,7 +526,7 @@ export const PlannerScreen = ({ recipes, fridge, products = [], addRecipe, profi
                 {isEn ? 'Try a sample week' : 'Пробвай примерна седмица'}
               </button>
             )}
-            {recipes.length > 0 && (
+            {canPlanWithGemini && (
               <button
                 className="btn btn-secondary btn-xs"
                 onClick={handlePlanWithGemini}
@@ -552,7 +586,7 @@ export const PlannerScreen = ({ recipes, fridge, products = [], addRecipe, profi
                   {MEALS.map(meal => {
                     const slotKey = `${day.idx}_${meal.id}`;
                     const recipeId = weekData[slotKey];
-                    const recipe = recipeId != null ? recipes.find(r => r.id === recipeId) ?? null : null;
+                    const recipe = recipeId != null ? allRecipes.find(r => r.id === recipeId) ?? null : null;
                     const flagged = recipe != null && recipe.requiredIngredients?.some(i =>
                       blocked.some(b => i.toLowerCase().includes(b.toLowerCase()))
                     );
@@ -754,7 +788,7 @@ export const PlannerScreen = ({ recipes, fridge, products = [], addRecipe, profi
 
       {pickerOpen != null && (
         <PickerModal
-          recipes={recipes}
+          recipes={pickableRecipes}
           lang={lang}
           blocked={blocked}
           dayName={days[pickerOpen.day].name}
