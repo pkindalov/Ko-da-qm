@@ -119,7 +119,7 @@ export const AppShell = () => {
     cookbook: <ErrorBoundary><CookbookScreen recipes={recipes} favoriteIds={favoriteIds} profile={profile} lang={tweaks.lang} /></ErrorBoundary>,
     products: <ErrorBoundary><ProductsScreen products={products} setProducts={setProducts} addProduct={addProduct} lang={tweaks.lang} /></ErrorBoundary>,
     profile: <ErrorBoundary><ProfileScreen profile={profile} setProfile={setProfile} products={products} lang={tweaks.lang} onLogout={handleLogout} onDeleteAccount={deleteAccount} isDeleting={isDeleting} onDisableAccount={disableAccount} isDisabling={isDisabling} onChangePassword={changePassword} isChangingPassword={isChangingPassword} onTweaksToggle={() => setTweaksOpen((o) => !o)} onNavigateToProducts={() => setTab('products')} onViewPublicProfile={userId ? () => navigate(`/user/${userId}`) : undefined} /></ErrorBoundary>,
-    planner: <ErrorBoundary><PlannerScreen recipes={recipes} fridge={fridge} profile={profile} lang={tweaks.lang} planner={planner} setPlanner={setPlanner} onViewRecipe={(id) => { setTab('recipes'); setPendingOpenRecipeId(id); }} /></ErrorBoundary>,
+    planner: <ErrorBoundary><PlannerScreen recipes={recipes} fridge={fridge} products={products} addRecipe={addRecipe} profile={profile} lang={tweaks.lang} planner={planner} setPlanner={setPlanner} onViewRecipe={(id) => { setTab('recipes'); setPendingOpenRecipeId(id); }} /></ErrorBoundary>,
   };
 
   return (

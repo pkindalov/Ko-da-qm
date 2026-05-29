@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback } from 'react';
 import { Modal } from '../../../shared/components/Modal';
-import type { Recipe, FridgeItem, Profile, Language } from '../../../shared/types';
+import type { Recipe, FridgeItem, Product, Profile, Language } from '../../../shared/types';
 import { planWithGemini } from '../utils/planWithGemini';
 import './PlannerScreen.css';
 
@@ -242,6 +242,8 @@ const ShoppingModal = ({ items, missingCount, haveCount, mealsPlanned, weekRange
 export interface PlannerScreenProps {
   recipes: Recipe[];
   fridge: FridgeItem[];
+  products: Product[];
+  addRecipe: (recipe: Recipe) => void;
   profile: Profile;
   lang: Language;
   planner: PlannerData;
@@ -249,7 +251,7 @@ export interface PlannerScreenProps {
   onViewRecipe?: (id: string) => void;
 }
 
-export const PlannerScreen = ({ recipes, fridge, profile, lang, planner, setPlanner, onViewRecipe }: PlannerScreenProps) => {
+export const PlannerScreen = ({ recipes, fridge, products, addRecipe, profile, lang, planner, setPlanner, onViewRecipe }: PlannerScreenProps) => {
   const isEn = lang === 'en';
 
   const blocked = useMemo(
@@ -314,7 +316,7 @@ export const PlannerScreen = ({ recipes, fridge, profile, lang, planner, setPlan
     if (recipes.length === 0) return;
     setPlanningLoading(true);
     try {
-      const plan = await planWithGemini(recipes, blocked, profile.dietaryPrefs, lang);
+      const plan = await planWithGemini(recipes, fridge, products, blocked, profile.dietaryPrefs, lang, addRecipe);
       if (Object.keys(plan).length > 0) {
         setPlanner({ ...planner, [weekKey]: plan });
       }

@@ -1,32 +1,88 @@
 import { supabase } from '../../../lib/supabase';
-import type { Recipe, Language } from '../../../shared/types';
+import type { Recipe, FridgeItem, Product, Language } from '../../../shared/types';
+
+interface GeminiPlanRecipe {
+  name: string;
+  nameEn?: string;
+  emoji?: string;
+  tags?: string[];
+  ingredients?: string[];
+  requiredIngredients?: string[];
+  steps?: string[];
+  time?: number;
+}
+
+interface GeminiPlanResponse {
+  recipes: GeminiPlanRecipe[];
+  plan: Record<string, number>;
+}
 
 export const planWithGemini = async (
-  recipes: Recipe[],
+  existingRecipes: Recipe[],
+  fridge: FridgeItem[],
+  products: Product[],
   blocked: string[],
   dietaryPrefs: string[],
   lang: Language,
+  addRecipe: (recipe: Recipe) => void,
 ): Promise<Record<string, string>> => {
-  if (recipes.length === 0) return {};
+  const availableIngredients = [
+    ...fridge.map(f => f.name),
+    ...products.map(p => p.name),
+  ].filter((name, i, arr) => arr.indexOf(name) === i);
 
-  const recipeInput = recipes.map(r => ({
-    name: r.name,
-    nameEn: r.nameEn,
-    tags: r.tags ?? [],
-  }));
+  const existingNames = existingRecipes.map(r => r.name);
 
   const { data, error } = await supabase.functions.invoke('gemini-planner', {
-    body: { recipes: recipeInput, blocked, dietaryPrefs, lang },
+    body: { availableIngredients, existingRecipes: existingNames, blocked, dietaryPrefs, lang },
   });
 
   if (error != null || typeof data !== 'object' || data === null || Array.isArray(data)) return {};
 
-  const plan: Record<string, string> = {};
-  for (const [slot, idx] of Object.entries(data as Record<string, unknown>)) {
-    const index = typeof idx === 'number' ? Math.floor(idx) : Math.floor(Number(idx));
-    if (Number.isInteger(index) && index >= 0 && index < recipes.length) {
-      plan[slot] = recipes[index].id;
+  const { recipes: generated, plan } = data as GeminiPlanResponse;
+  if (!Array.isArray(generated) || typeof plan !== 'object' || plan === null) return {};
+
+  // Map generated recipe index → final recipe ID
+  const indexToId = new Map<number, string>();
+
+  for (let i = 0; i < generated.length; i++) {
+    const gen = generated[i];
+    if (!gen?.name) continue;
+
+    // Reuse an existing recipe if the name matches (case-insensitive)
+    const match = existingRecipes.find(r =>
+      r.name.toLowerCase() === gen.name.toLowerCase() ||
+      (r.nameEn != null && r.nameEn.toLowerCase() === (gen.nameEn ?? '').toLowerCase()),
+    );
+
+    if (match != null) {
+      indexToId.set(i, match.id);
+    } else {
+      const newRecipe: Recipe = {
+        id: crypto.randomUUID(),
+        name: gen.name,
+        nameEn: gen.nameEn,
+        emoji: gen.emoji ?? '🍽',
+        ingredients: gen.ingredients ?? [],
+        requiredIngredients: gen.requiredIngredients ?? [],
+        steps: gen.steps ?? [],
+        time: gen.time ?? 30,
+        tags: gen.tags ?? [],
+        isAI: true,
+        isPublic: false,
+      };
+      addRecipe(newRecipe);
+      indexToId.set(i, newRecipe.id);
     }
   }
-  return plan;
+
+  const result: Record<string, string> = {};
+  for (const [slot, idx] of Object.entries(plan)) {
+    const index = typeof idx === 'number' ? Math.floor(idx) : Math.floor(Number(idx));
+    const id = indexToId.get(index);
+    if (id != null) {
+      result[slot] = id;
+    }
+  }
+  return result;
 };

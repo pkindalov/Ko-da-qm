@@ -3,12 +3,6 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-interface RecipeHint {
-  name: string;
-  nameEn?: string;
-  tags: string[];
-}
-
 const GEMINI_URL =
   'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent';
 
@@ -23,35 +17,63 @@ const SLOTS = [
 ];
 
 const buildPrompt = (
-  recipes: RecipeHint[],
+  availableIngredients: string[],
+  existingRecipes: string[],
   blocked: string[],
   dietaryPrefs: string[],
   lang: string,
 ): string => {
   const isEn = lang === 'en';
-  const recipeList = recipes
-    .map((r, i) => `${i}: ${isEn ? (r.nameEn ?? r.name) : r.name} [${r.tags.slice(0, 3).join(', ')}]`)
-    .join('\n');
-
+  const ingredientsNote = availableIngredients.length > 0
+    ? `Available ingredients: ${availableIngredients.join(', ')}.`
+    : 'No specific ingredients provided — suggest common, easy-to-find recipes.';
+  const existingNote = existingRecipes.length > 0
+    ? `User's saved recipes (reuse these exact names when they fit well): ${existingRecipes.slice(0, 30).join(', ')}.`
+    : '';
   const blockedNote = blocked.length > 0
-    ? `Do NOT pick recipes that contain these ingredients: ${blocked.join(', ')}.`
+    ? `IMPORTANT — do NOT suggest recipes containing: ${blocked.join(', ')}.`
     : '';
   const prefsNote = dietaryPrefs.length > 0
-    ? `Dietary preferences to favour: ${dietaryPrefs.join(', ')}.`
+    ? `Dietary preferences: ${dietaryPrefs.join(', ')}.`
     : '';
 
-  return `You are a meal planner. Assign one recipe to each meal slot for a 7-day week (day 0 = Monday … day 6 = Sunday).
-Available recipes (index: name [tags]):
-${recipeList}
+  return `You are a meal planner. Create a varied 7-day meal plan.
+${ingredientsNote}
+${existingNote}
+${blockedNote}
+${prefsNote}
 
-${blockedNote} ${prefsNote}
+Generate 6-10 unique recipes. Assign each of the 21 meal slots (days 0=Mon … 6=Sun) to one of those recipes.
 Rules:
-- Prefer breakfast-tagged recipes for breakfast slots, lunch-tagged for lunch, dinner-tagged for dinner.
-- Vary the plan — repeat the same index at most twice per week.
-- Use only integer indices from 0 to ${recipes.length - 1}.
+- Prefer breakfast-tagged recipes for breakfast slots, lunch for lunch, dinner for dinner.
+- Vary the plan — avoid the same recipe in the same meal type on back-to-back days.
+- Recipe names must be ${isEn ? 'in English' : 'in Bulgarian'}. Always include nameEn in English.
+- If a saved recipe name fits, use that exact name so it gets matched.
 
-Respond ONLY with a JSON object (no markdown, no explanation):
-{"0_breakfast":index,"0_lunch":index,"0_dinner":index,"1_breakfast":index,"1_lunch":index,"1_dinner":index,"2_breakfast":index,"2_lunch":index,"2_dinner":index,"3_breakfast":index,"3_lunch":index,"3_dinner":index,"4_breakfast":index,"4_lunch":index,"4_dinner":index,"5_breakfast":index,"5_lunch":index,"5_dinner":index,"6_breakfast":index,"6_lunch":index,"6_dinner":index}`;
+Respond ONLY with valid JSON (no markdown, no explanation):
+{
+  "recipes": [
+    {
+      "name": "string",
+      "nameEn": "string",
+      "emoji": "string (one food emoji)",
+      "tags": ["breakfast" or "lunch" or "dinner"],
+      "ingredients": ["2 eggs", "..."],
+      "requiredIngredients": ["eggs", "..."],
+      "steps": ["step 1", "..."],
+      "time": 20
+    }
+  ],
+  "plan": {
+    "0_breakfast": 0, "0_lunch": 1, "0_dinner": 2,
+    "1_breakfast": 0, "1_lunch": 3, "1_dinner": 4,
+    "2_breakfast": 1, "2_lunch": 2, "2_dinner": 5,
+    "3_breakfast": 0, "3_lunch": 1, "3_dinner": 3,
+    "4_breakfast": 2, "4_lunch": 4, "4_dinner": 5,
+    "5_breakfast": 1, "5_lunch": 3, "5_dinner": 2,
+    "6_breakfast": 0, "6_lunch": 4, "6_dinner": 5
+  }
+}`;
 };
 
 Deno.serve(async (req: Request) => {
@@ -60,21 +82,21 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    const { recipes, blocked = [], dietaryPrefs = [], lang = 'en' } = await req.json();
-
-    if (!Array.isArray(recipes) || recipes.length === 0) {
-      return new Response(JSON.stringify({}), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
+    const {
+      availableIngredients = [],
+      existingRecipes = [],
+      blocked = [],
+      dietaryPrefs = [],
+      lang = 'en',
+    } = await req.json();
 
     const apiKey = Deno.env.get('GEMINI_API_KEY') ?? '';
     const geminiRes = await fetch(`${GEMINI_URL}?key=${apiKey}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        contents: [{ parts: [{ text: buildPrompt(recipes as RecipeHint[], blocked, dietaryPrefs, lang) }] }],
-        generationConfig: { temperature: 0.7, maxOutputTokens: 512 },
+        contents: [{ parts: [{ text: buildPrompt(availableIngredients, existingRecipes, blocked, dietaryPrefs, lang) }] }],
+        generationConfig: { temperature: 0.8, maxOutputTokens: 3000 },
       }),
     });
 
@@ -93,17 +115,20 @@ Deno.serve(async (req: Request) => {
     const jsonMatch = text.match(/\{[\s\S]*\}/);
     const raw = jsonMatch ? JSON.parse(jsonMatch[0]) : {};
 
-    // Validate: keep only known slot keys with in-range integer indices
-    const validated: Record<string, number> = {};
+    const recipes = Array.isArray(raw.recipes) ? raw.recipes : [];
+    const rawPlan = typeof raw.plan === 'object' && raw.plan !== null ? raw.plan : {};
+
+    // Validate plan: keep only known slots with in-range integer indices
+    const plan: Record<string, number> = {};
     for (const slot of SLOTS) {
-      const val = raw[slot];
+      const val = rawPlan[slot];
       const idx = typeof val === 'number' ? val : Number(val);
-      if (Number.isInteger(idx) && idx >= 0 && idx < (recipes as RecipeHint[]).length) {
-        validated[slot] = idx;
+      if (Number.isInteger(idx) && idx >= 0 && idx < recipes.length) {
+        plan[slot] = idx;
       }
     }
 
-    return new Response(JSON.stringify(validated), {
+    return new Response(JSON.stringify({ recipes, plan }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (err) {
