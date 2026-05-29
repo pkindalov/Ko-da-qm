@@ -570,8 +570,8 @@ export const PlannerScreen = ({ recipes, fridge, profile, lang, planner, setPlan
                             className="meal-slot-cta"
                             onClick={() => setPickerOpen({ day: day.idx, meal: meal.id })}
                           >
-                            <span>{isEn ? 'drop or pick' : 'пусни или избери'}</span>
                             <span className="meal-slot-cta-plus">+</span>
+                            <span>{isEn ? 'drop or pick' : 'пусни или избери'}</span>
                           </button>
                         )}
                       </div>
