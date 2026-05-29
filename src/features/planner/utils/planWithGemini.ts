@@ -26,6 +26,7 @@ export const planWithGemini = async (
   dietaryPrefs: string[],
   lang: Language,
   addRecipe: (recipe: Recipe) => void,
+  scheduledNames: string[] = [],
 ): Promise<Record<string, string>> => {
   const blockedLower = blocked.map(b => b.toLowerCase());
   const availableIngredients = [
@@ -36,7 +37,7 @@ export const planWithGemini = async (
   const existingNames = existingRecipes.map(r => r.name);
 
   const { data, error } = await supabase.functions.invoke('gemini-planner', {
-    body: { availableIngredients, existingRecipes: existingNames, blocked, liked, dietaryPrefs, lang },
+    body: { availableIngredients, existingRecipes: existingNames, blocked, liked, dietaryPrefs, lang, scheduledNames },
   });
 
   if (error != null || typeof data !== 'object' || data === null || Array.isArray(data)) return {};

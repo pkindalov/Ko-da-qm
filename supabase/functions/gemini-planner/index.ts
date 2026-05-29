@@ -23,6 +23,7 @@ const buildPrompt = (
   liked: string[],
   dietaryPrefs: string[],
   lang: string,
+  scheduledNames: string[],
 ): string => {
   const isEn = lang === 'en';
   const ingredientsNote = availableIngredients.length > 0
@@ -40,6 +41,9 @@ const buildPrompt = (
   const prefsNote = dietaryPrefs.length > 0
     ? `Dietary preferences: ${dietaryPrefs.join(', ')}.`
     : '';
+  const scheduledNote = scheduledNames.length > 0
+    ? `These recipes are already scheduled this week — avoid repeating them too much: ${scheduledNames.join(', ')}.`
+    : '';
 
   return `You are a meal planner. Create a varied 7-day meal plan.
 ${ingredientsNote}
@@ -47,6 +51,7 @@ ${existingNote}
 ${blockedNote}
 ${likedNote}
 ${prefsNote}
+${scheduledNote}
 
 Generate 6-10 unique recipes. Assign each of the 21 meal slots (days 0=Mon … 6=Sun) to one of those recipes.
 Rules:
@@ -94,6 +99,7 @@ Deno.serve(async (req: Request) => {
       liked = [],
       dietaryPrefs = [],
       lang = 'en',
+      scheduledNames = [],
     } = await req.json();
 
     const apiKey = Deno.env.get('GEMINI_API_KEY') ?? '';
@@ -101,7 +107,7 @@ Deno.serve(async (req: Request) => {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        contents: [{ parts: [{ text: buildPrompt(availableIngredients, existingRecipes, blocked, liked, dietaryPrefs, lang) }] }],
+        contents: [{ parts: [{ text: buildPrompt(availableIngredients, existingRecipes, blocked, liked, dietaryPrefs, lang, scheduledNames) }] }],
         generationConfig: { temperature: 0.8, maxOutputTokens: 3000 },
       }),
     });

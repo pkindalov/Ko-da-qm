@@ -42,6 +42,8 @@ const MEAL_TAG_BG: Record<string, string> = {
 
 const MEALS_TOTAL = 21;
 
+const ALL_SLOT_KEYS = Array.from({ length: 7 }, (_, d) => MEALS.map(m => `${d}_${m.id}`)).flat();
+
 // ── PickerModal ────────────────────────────────────────────────────────────────
 
 interface PickerModalProps {
@@ -317,21 +319,6 @@ export const PlannerScreen = ({ recipes, fridge, products = [], addRecipe, profi
     setPlanner({ ...planner, [weekKey]: {} });
   }, [planner, weekKey, setPlanner]);
 
-  const [planningLoading, setPlanningLoading] = useState(false);
-
-  const handlePlanWithGemini = useCallback(async () => {
-    if (recipes.length === 0) return;
-    setPlanningLoading(true);
-    try {
-      const plan = await planWithGemini(recipes, fridge, products, blocked, liked, profile.dietaryPrefs, lang, addRecipe);
-      if (Object.keys(plan).length > 0) {
-        setPlanner({ ...planner, [weekKey]: plan });
-      }
-    } finally {
-      setPlanningLoading(false);
-    }
-  }, [recipes, blocked, profile.dietaryPrefs, lang, planner, weekKey, setPlanner]);
-
   const [dragId, setDragId] = useState<string | null>(null);
   const [dragSourceSlot, setDragSourceSlot] = useState<string | null>(null);
   const [dropTarget, setDropTarget] = useState<string | null>(null);
@@ -367,6 +354,39 @@ export const PlannerScreen = ({ recipes, fridge, products = [], addRecipe, profi
 
   const mealsPlanned = assignedRecipes.length;
   const uniqueRecipeCount = useMemo(() => new Set(assignedRecipes.map(r => r.id)).size, [assignedRecipes]);
+
+  const [planningLoading, setPlanningLoading] = useState(false);
+  const [overwriteConfirmOpen, setOverwriteConfirmOpen] = useState(false);
+
+  const doGeminiPlan = useCallback(async (overwrite: boolean) => {
+    if (recipes.length === 0) return;
+    setPlanningLoading(true);
+    try {
+      const scheduledNames = assignedRecipes.map(r => isEn && r.nameEn != null ? r.nameEn : r.name);
+      const plan = await planWithGemini(recipes, fridge, products, blocked, liked, profile.dietaryPrefs, lang, addRecipe, scheduledNames);
+      if (Object.keys(plan).length === 0) return;
+      if (overwrite) {
+        setPlanner({ ...planner, [weekKey]: plan });
+      } else {
+        const merged = { ...weekData };
+        for (const [slot, id] of Object.entries(plan)) {
+          if (!merged[slot]) merged[slot] = id;
+        }
+        setPlanner({ ...planner, [weekKey]: merged });
+      }
+    } finally {
+      setPlanningLoading(false);
+    }
+  }, [recipes, fridge, products, blocked, liked, profile.dietaryPrefs, lang, addRecipe, assignedRecipes, isEn, planner, weekKey, weekData, setPlanner]);
+
+  const handlePlanWithGemini = useCallback(() => {
+    const emptyCount = ALL_SLOT_KEYS.filter(s => !weekData[s]).length;
+    if (emptyCount === 0) {
+      setOverwriteConfirmOpen(true);
+    } else {
+      doGeminiPlan(false);
+    }
+  }, [weekData, doGeminiPlan]);
 
   const fridgeNames = useMemo(() => fridge.map(f => f.name.toLowerCase()), [fridge]);
 
@@ -465,20 +485,20 @@ export const PlannerScreen = ({ recipes, fridge, products = [], addRecipe, profi
           <span className="label">{weekRange}</span>
           <div className="planner-head-btns">
             {mealsPlanned === 0 && recipes.length > 0 && (
-              <>
-                <button className="btn btn-secondary btn-xs" onClick={handleSampleWeek}>
-                  {isEn ? 'Try a sample week' : 'Пробвай примерна седмица'}
-                </button>
-                <button
-                  className="btn btn-secondary btn-xs"
-                  onClick={handlePlanWithGemini}
-                  disabled={planningLoading}
-                >
-                  {planningLoading
-                    ? <><span className="spinner" />{isEn ? 'Planning…' : 'Планира…'}</>
-                    : `✨ ${isEn ? 'Plan with Gemini' : 'Планирай с Gemini'}`}
-                </button>
-              </>
+              <button className="btn btn-secondary btn-xs" onClick={handleSampleWeek}>
+                {isEn ? 'Try a sample week' : 'Пробвай примерна седмица'}
+              </button>
+            )}
+            {recipes.length > 0 && (
+              <button
+                className="btn btn-secondary btn-xs"
+                onClick={handlePlanWithGemini}
+                disabled={planningLoading}
+              >
+                {planningLoading
+                  ? <><span className="spinner" />{isEn ? 'Planning…' : 'Планира…'}</>
+                  : `✨ ${isEn ? 'Plan with Gemini' : 'Планирай с Gemini'}`}
+              </button>
             )}
             {mealsPlanned > 0 && (
               <button className="btn btn-ghost btn-xs" onClick={clearWeek}>
@@ -753,6 +773,30 @@ export const PlannerScreen = ({ recipes, fridge, products = [], addRecipe, profi
           lang={lang}
           onClose={() => setShopOpen(false)}
         />
+      )}
+
+      {overwriteConfirmOpen && (
+        <Modal open onClose={() => setOverwriteConfirmOpen(false)}>
+          <div className="picker-modal-title">
+            {isEn ? 'Replace the whole week?' : 'Замени цялата седмица?'}
+          </div>
+          <div className="picker-modal-sub">
+            {isEn
+              ? 'All current recipes will be replaced with new Gemini suggestions.'
+              : 'Всички текущи рецепти ще бъдат заменени с нови предложения от Gemini.'}
+          </div>
+          <div className="shop-modal-footer">
+            <button className="btn btn-secondary btn-sm" onClick={() => setOverwriteConfirmOpen(false)}>
+              {isEn ? 'Cancel' : 'Отказ'}
+            </button>
+            <button
+              className="btn btn-primary btn-sm"
+              onClick={() => { setOverwriteConfirmOpen(false); doGeminiPlan(true); }}
+            >
+              {isEn ? 'Re-plan everything' : 'Нов план за всичко'}
+            </button>
+          </div>
+        </Modal>
       )}
     </div>
   );
