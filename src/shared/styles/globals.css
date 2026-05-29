@@ -2282,8 +2282,8 @@ a {
 .section-eyebrow {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 24px;
+  gap: 0.5rem;
+  margin: 2rem 0.6rem;
 }
 .section-eyebrow::after {
   content: "";
