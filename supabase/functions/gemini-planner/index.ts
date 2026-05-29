@@ -125,7 +125,12 @@ Deno.serve(async (req: Request) => {
     const text: string = geminiData?.candidates?.[0]?.content?.parts?.[0]?.text ?? '{}';
 
     const jsonMatch = text.match(/\{[\s\S]*\}/);
-    const raw = jsonMatch ? JSON.parse(jsonMatch[0]) : {};
+    let raw: Record<string, unknown> = {};
+    try {
+      if (jsonMatch) raw = JSON.parse(jsonMatch[0]);
+    } catch {
+      // malformed or truncated JSON from model — fall through to empty plan
+    }
 
     const recipes = Array.isArray(raw.recipes) ? raw.recipes : [];
     const rawPlan = typeof raw.plan === 'object' && raw.plan !== null ? raw.plan : {};

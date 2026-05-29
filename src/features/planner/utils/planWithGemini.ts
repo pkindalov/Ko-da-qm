@@ -55,7 +55,7 @@ export const planWithGemini = async (
     // Reuse an existing recipe if the name matches (case-insensitive)
     const match = existingRecipes.find(r =>
       r.name.toLowerCase() === gen.name.toLowerCase() ||
-      (r.nameEn != null && r.nameEn.toLowerCase() === (gen.nameEn ?? '').toLowerCase()),
+      (r.nameEn != null && r.nameEn !== '' && gen.nameEn != null && gen.nameEn !== '' && r.nameEn.toLowerCase() === gen.nameEn.toLowerCase()),
     );
 
     if (match != null) {

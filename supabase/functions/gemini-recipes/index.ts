@@ -67,7 +67,7 @@ Deno.serve(async (req: Request) => {
     const text: string = geminiData?.candidates?.[0]?.content?.parts?.[0]?.text ?? '[]';
 
     const jsonMatch = text.match(/\[[\s\S]*\]/);
-    const recipes = jsonMatch ? JSON.parse(jsonMatch[0]) : [];
+    const recipes: unknown[] = jsonMatch ? JSON.parse(jsonMatch[0]) : [];
 
     return new Response(JSON.stringify(recipes), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

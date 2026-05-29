@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, type Dispatch, type SetStateAction } from 'react';
 import { Modal } from '../../../shared/components/Modal';
 import type { Recipe, FridgeItem, Product, Profile, Language } from '../../../shared/types';
 import { planWithGemini } from '../utils/planWithGemini';
@@ -249,7 +249,7 @@ export interface PlannerScreenProps {
   profile: Profile;
   lang: Language;
   planner: PlannerData;
-  setPlanner: (data: PlannerData) => void;
+  setPlanner: Dispatch<SetStateAction<PlannerData>>;
   onViewRecipe?: (id: string) => void;
 }
 
@@ -366,18 +366,21 @@ export const PlannerScreen = ({ recipes, fridge, products = [], addRecipe, profi
       const plan = await planWithGemini(recipes, fridge, products, blocked, liked, profile.dietaryPrefs, lang, addRecipe, scheduledNames);
       if (Object.keys(plan).length === 0) return;
       if (overwrite) {
-        setPlanner({ ...planner, [weekKey]: plan });
+        setPlanner(prev => ({ ...prev, [weekKey]: plan }));
       } else {
-        const merged = { ...weekData };
-        for (const [slot, id] of Object.entries(plan)) {
-          if (!merged[slot]) merged[slot] = id;
-        }
-        setPlanner({ ...planner, [weekKey]: merged });
+        setPlanner(prev => {
+          const currentWeekData = prev[weekKey] ?? {};
+          const merged = { ...currentWeekData };
+          for (const [slot, id] of Object.entries(plan)) {
+            if (!merged[slot]) merged[slot] = id;
+          }
+          return { ...prev, [weekKey]: merged };
+        });
       }
     } finally {
       setPlanningLoading(false);
     }
-  }, [recipes, fridge, products, blocked, liked, profile.dietaryPrefs, lang, addRecipe, assignedRecipes, isEn, planner, weekKey, weekData, setPlanner]);
+  }, [recipes, fridge, products, blocked, liked, profile.dietaryPrefs, lang, addRecipe, assignedRecipes, isEn, weekKey, setPlanner]);
 
   const handlePlanWithGemini = useCallback(() => {
     const emptyCount = ALL_SLOT_KEYS.filter(s => !weekData[s]).length;

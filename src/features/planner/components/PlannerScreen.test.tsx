@@ -46,6 +46,8 @@ const renderPlanner = (overrides: Partial<PlannerScreenProps> = {}) =>
     <PlannerScreen
       recipes={[]}
       fridge={[]}
+      products={[]}
+      addRecipe={vi.fn()}
       profile={defaultProfile}
       lang="en"
       planner={{}}
