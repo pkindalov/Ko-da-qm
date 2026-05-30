@@ -413,20 +413,22 @@ export const PlannerScreen = ({ recipes, fridge, products = [], profile, lang, p
   // when the user has authored their own recipes.
   const canPlanWithGemini = pickableRecipes.length > 0 || fridge.length > 0 || products.length > 0;
 
-  const filteredRecipes = useMemo(() => {
+  // Shared search + meal-tag predicate so the saved-recipe list and the Gemini
+  // suggestions group filter identically.
+  const matchesDrawer = useCallback((r: Recipe) => {
     const q = drawerQuery.toLowerCase().trim();
-    return pickableRecipes.filter(r => {
-      const name = ((isEn ? r.nameEn : r.name) ?? r.name).toLowerCase();
-      if (q && !name.includes(q)) return false;
-      if (drawerFilter === 'all') return true;
-      // Bug fix: support both BG tags (stored in DB) and EN drawer filter IDs
-      const tagBg = MEAL_TAG_BG[drawerFilter];
-      return r.tags?.some(tag => {
-        const t = tag.toLowerCase();
-        return t === tagBg || t === drawerFilter;
-      }) ?? false;
-    });
-  }, [pickableRecipes, drawerQuery, drawerFilter, isEn]);
+    const name = ((isEn ? r.nameEn : r.name) ?? r.name).toLowerCase();
+    if (q && !name.includes(q)) return false;
+    if (drawerFilter === 'all') return true;
+    // Support both BG tags (stored in DB) and EN drawer filter IDs
+    const tagBg = MEAL_TAG_BG[drawerFilter];
+    return r.tags?.some(tag => {
+      const t = tag.toLowerCase();
+      return t === tagBg || t === drawerFilter;
+    }) ?? false;
+  }, [drawerQuery, drawerFilter, isEn]);
+
+  const filteredRecipes = useMemo(() => pickableRecipes.filter(matchesDrawer), [pickableRecipes, matchesDrawer]);
 
   // Gemini-suggested recipes stored transiently (not saved to DB)
   const [transientRecipes, setTransientRecipes] = useLocalStorage<Recipe[]>('kdq_planner_transient', []);
@@ -435,6 +437,8 @@ export const PlannerScreen = ({ recipes, fridge, products = [], profile, lang, p
   // suggestions. Favorites must be here or a dragged-in favorite resolves to
   // nothing and the slot renders empty.
   const allRecipes = useMemo(() => [...recipes, ...favoriteRecipes, ...transientRecipes], [recipes, favoriteRecipes, transientRecipes]);
+
+  const filteredSuggestions = useMemo(() => transientRecipes.filter(matchesDrawer), [transientRecipes, matchesDrawer]);
 
   const suggestionIds = useMemo(() => new Set(transientRecipes.map(r => r.id)), [transientRecipes]);
 
@@ -832,7 +836,7 @@ export const PlannerScreen = ({ recipes, fridge, products = [], profile, lang, p
               ))}
             </div>
             <div className="drawer-list">
-              {transientRecipes.length > 0 && (
+              {filteredSuggestions.length > 0 && (
                 <div className="drawer-suggestions">
                   <div className="drawer-suggestions-head">
                     <span className="drawer-suggestions-title">
@@ -842,7 +846,7 @@ export const PlannerScreen = ({ recipes, fridge, products = [], profile, lang, p
                       {isEn ? 'Clear' : 'Изчисти'}
                     </button>
                   </div>
-                  {transientRecipes.map(r => (
+                  {filteredSuggestions.map(r => (
                     <div
                       key={r.id}
                       className={`drawer-recipe is-suggestion${dragId === r.id ? ' dragging' : ''}`}
@@ -921,7 +925,7 @@ export const PlannerScreen = ({ recipes, fridge, products = [], profile, lang, p
                   </div>
                 );
               })}
-              {filteredRecipes.length === 0 && transientRecipes.length === 0 && (
+              {filteredRecipes.length === 0 && filteredSuggestions.length === 0 && (
                 <div className="drawer-empty">
                   {isEn ? 'Nothing matches.' : 'Нищо не намерихме.'}
                 </div>

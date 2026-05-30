@@ -593,6 +593,31 @@ describe('PlannerScreen – Gemini suggestions', () => {
     expect(updater({ [WEEK_KEY]: { '0_breakfast': 's1' } })[WEEK_KEY]).not.toHaveProperty('0_breakfast');
   });
 
+  it('the drawer search also filters the Gemini suggestions', async () => {
+    const user = userEvent.setup();
+    seedSuggestions([
+      makeRecipe({ id: 's1', nameEn: 'AI Soup' }),
+      makeRecipe({ id: 's2', nameEn: 'AI Salad' }),
+    ]);
+    renderPlanner();
+    await user.type(screen.getByPlaceholderText(/^Search…$/i), 'soup');
+    expect(screen.getByText('AI Soup')).toBeInTheDocument();
+    expect(screen.queryByText('AI Salad')).not.toBeInTheDocument();
+  });
+
+  it('a meal chip filters the Gemini suggestions by tag', async () => {
+    const user = userEvent.setup();
+    seedSuggestions([
+      makeRecipe({ id: 's1', nameEn: 'AI Eggs', tags: ['breakfast'] }),
+      makeRecipe({ id: 's2', nameEn: 'AI Steak', tags: ['dinner'] }),
+    ]);
+    renderPlanner();
+    const drawerChips = within(document.querySelector('.drawer-chips') as HTMLElement);
+    await user.click(drawerChips.getByRole('button', { name: /^Breakfast$/i }));
+    expect(screen.getByText('AI Eggs')).toBeInTheDocument();
+    expect(screen.queryByText('AI Steak')).not.toBeInTheDocument();
+  });
+
   it('marks a meal slot filled by a suggestion with a Gemini tag', () => {
     seedSuggestions([makeRecipe({ id: 's1', nameEn: 'AI Soup' })]);
     renderPlanner({ planner: { [WEEK_KEY]: { '0_breakfast': 's1' } } });
