@@ -602,6 +602,20 @@
   border-color: var(--clay);
 }
 
+.drawer-recipe-main {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+  background: none;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  color: inherit;
+}
+
 .drawer-recipe-actions {
   display: flex;
   align-items: center;

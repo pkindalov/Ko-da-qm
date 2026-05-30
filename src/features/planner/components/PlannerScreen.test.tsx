@@ -581,6 +581,27 @@ describe('PlannerScreen – Gemini suggestions', () => {
     renderPlanner({ planner: { [WEEK_KEY]: { '0_breakfast': 's1' } } });
     expect(screen.getByText(/✨ Gemini/i, { selector: '.meal-slot-suggestion' })).toBeInTheDocument();
   });
+
+  it('clicking a suggestion opens a preview modal with the full recipe', async () => {
+    const user = userEvent.setup();
+    seedSuggestions([makeRecipe({ id: 's1', nameEn: 'AI Soup', steps: ['Boil water', 'Serve'] })]);
+    renderPlanner();
+    await user.click(screen.getByRole('button', { name: /AI Soup/i }));
+    const dialog = screen.getByRole('dialog');
+    expect(within(dialog).getByText('Boil water')).toBeInTheDocument();
+    expect(within(dialog).getByText('Serve')).toBeInTheDocument();
+  });
+
+  it('"Add to my recipes" inside the preview modal saves the suggestion', async () => {
+    const user = userEvent.setup();
+    const onSaveSuggestion = vi.fn();
+    seedSuggestions([makeRecipe({ id: 's1', nameEn: 'AI Soup' })]);
+    renderPlanner({ onSaveSuggestion });
+    await user.click(screen.getByRole('button', { name: /AI Soup/i }));
+    await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: /Add to my recipes/i }));
+    expect(onSaveSuggestion).toHaveBeenCalledWith(expect.objectContaining({ id: 's1' }));
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
 });
 
 // ── Week navigation ────────────────────────────────────────────────────────────

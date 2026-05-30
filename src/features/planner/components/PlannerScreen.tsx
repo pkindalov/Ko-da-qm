@@ -1,5 +1,6 @@
 import { useState, useMemo, useCallback, type Dispatch, type SetStateAction } from 'react';
 import { Modal } from '../../../shared/components/Modal';
+import { RecipeDetailView } from '../../../shared/components/RecipeDetailView';
 import type { Recipe, FridgeItem, Product, Profile, Language } from '../../../shared/types';
 import { planWithGemini } from '../utils/planWithGemini';
 import { useLocalStorage } from '../../../shared/hooks/useLocalStorage';
@@ -328,6 +329,7 @@ export const PlannerScreen = ({ recipes, fridge, products = [], profile, lang, p
   const [shopOpen, setShopOpen] = useState(false);
   const [drawerQuery, setDrawerQuery] = useState('');
   const [drawerFilter, setDrawerFilter] = useState<DrawerFilter>('all');
+  const [previewSuggestion, setPreviewSuggestion] = useState<Recipe | null>(null);
 
   // Recipes the user can pick from: their own explicit recipes + favorites (deduped)
   const pickableRecipes = useMemo(() => {
@@ -767,17 +769,24 @@ export const PlannerScreen = ({ recipes, fridge, products = [], profile, lang, p
                       onDragStart={e => { e.dataTransfer.setData('text/plain', r.id); setDragId(r.id); setDragSourceSlot(null); }}
                       onDragEnd={() => { setDragId(null); setDragSourceSlot(null); setDropTarget(null); }}
                     >
-                      <div className="drawer-recipe-emoji">
-                        <span className="drawer-recipe-emoji-char">{r.emoji}</span>
-                      </div>
-                      <div className="drawer-recipe-text">
-                        <div className="drawer-recipe-name">
-                          {isEn && r.nameEn != null ? r.nameEn : r.name}
+                      <button
+                        type="button"
+                        className="drawer-recipe-main"
+                        onClick={() => setPreviewSuggestion(r)}
+                        title={isEn ? 'View full recipe' : 'Виж цялата рецепта'}
+                      >
+                        <div className="drawer-recipe-emoji">
+                          <span className="drawer-recipe-emoji-char">{r.emoji}</span>
                         </div>
-                        <div className="drawer-recipe-meta">
-                          {r.time} {isEn ? 'MIN' : 'МИН'} · {isEn ? 'suggestion' : 'предложение'}
+                        <div className="drawer-recipe-text">
+                          <div className="drawer-recipe-name">
+                            {isEn && r.nameEn != null ? r.nameEn : r.name}
+                          </div>
+                          <div className="drawer-recipe-meta">
+                            {r.time} {isEn ? 'MIN' : 'МИН'} · {isEn ? 'suggestion' : 'предложение'}
+                          </div>
                         </div>
-                      </div>
+                      </button>
                       <div className="drawer-recipe-actions">
                         <button
                           className="drawer-recipe-save"
@@ -890,6 +899,35 @@ export const PlannerScreen = ({ recipes, fridge, products = [], profile, lang, p
           onClose={() => setPickerOpen(null)}
           onPick={id => { setSlot(pickerOpen.day, pickerOpen.meal, id); setPickerOpen(null); }}
         />
+      )}
+
+      {previewSuggestion != null && (
+        <Modal open onClose={() => setPreviewSuggestion(null)} contentClassName="modal-recipe">
+          <RecipeDetailView
+            recipe={previewSuggestion}
+            allergies={profile.allergies}
+            dislikes={profile.dislikes}
+            lang={lang}
+            isOwner={false}
+            fridge={fridge}
+            showBackButton={false}
+            onBack={() => setPreviewSuggestion(null)}
+          />
+          <div className="shop-modal-footer">
+            <button
+              className="btn btn-secondary btn-sm"
+              onClick={() => { removeSuggestion(previewSuggestion.id); setPreviewSuggestion(null); }}
+            >
+              {isEn ? 'Remove' : 'Премахни'}
+            </button>
+            <button
+              className="btn btn-primary btn-sm"
+              onClick={() => { saveSuggestion(previewSuggestion); setPreviewSuggestion(null); }}
+            >
+              {isEn ? 'Add to my recipes' : 'Запази в моите рецепти'}
+            </button>
+          </div>
+        </Modal>
       )}
 
       {shopOpen && (
