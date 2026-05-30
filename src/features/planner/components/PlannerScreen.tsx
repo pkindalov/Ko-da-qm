@@ -251,10 +251,11 @@ export interface PlannerScreenProps {
   planner: PlannerData;
   setPlanner: Dispatch<SetStateAction<PlannerData>>;
   favoriteRecipes: Recipe[];
+  onSaveSuggestion?: (recipe: Recipe) => void;
   onViewRecipe?: (id: string) => void;
 }
 
-export const PlannerScreen = ({ recipes, fridge, products = [], profile, lang, planner, setPlanner, favoriteRecipes = [], onViewRecipe }: PlannerScreenProps) => {
+export const PlannerScreen = ({ recipes, fridge, products = [], profile, lang, planner, setPlanner, favoriteRecipes = [], onSaveSuggestion, onViewRecipe }: PlannerScreenProps) => {
   const isEn = lang === 'en';
 
   const blocked = useMemo(() => [
@@ -369,6 +370,37 @@ export const PlannerScreen = ({ recipes, fridge, products = [], profile, lang, p
   // nothing and the slot renders empty.
   const allRecipes = useMemo(() => [...recipes, ...favoriteRecipes, ...transientRecipes], [recipes, favoriteRecipes, transientRecipes]);
 
+  const suggestionIds = useMemo(() => new Set(transientRecipes.map(r => r.id)), [transientRecipes]);
+
+  // Strip a set of recipe ids out of every week's plan — used when a suggestion
+  // is discarded so no slot is left pointing at a recipe that no longer exists.
+  const removeIdsFromPlanner = useCallback((ids: Set<string>) => {
+    setPlanner(prev => {
+      const next: PlannerData = {};
+      for (const [wk, slots] of Object.entries(prev)) {
+        next[wk] = Object.fromEntries(Object.entries(slots).filter(([, id]) => !ids.has(id)));
+      }
+      return next;
+    });
+  }, [setPlanner]);
+
+  // Save a suggestion as a real recipe, then drop it from the transient list so
+  // it stops showing as a suggestion (its slots keep working — the id is reused).
+  const saveSuggestion = useCallback((recipe: Recipe) => {
+    onSaveSuggestion?.(recipe);
+    setTransientRecipes(prev => prev.filter(r => r.id !== recipe.id));
+  }, [onSaveSuggestion, setTransientRecipes]);
+
+  const removeSuggestion = useCallback((id: string) => {
+    setTransientRecipes(prev => prev.filter(r => r.id !== id));
+    removeIdsFromPlanner(new Set([id]));
+  }, [setTransientRecipes, removeIdsFromPlanner]);
+
+  const clearSuggestions = useCallback(() => {
+    removeIdsFromPlanner(new Set(transientRecipes.map(r => r.id)));
+    setTransientRecipes([]);
+  }, [removeIdsFromPlanner, transientRecipes, setTransientRecipes]);
+
   const assignedIds = useMemo(() => Object.values(weekData).filter(id => id !== ''), [weekData]);
 
   // Bug fix: use type predicate to narrow (Recipe | undefined)[] → Recipe[]
@@ -393,24 +425,30 @@ export const PlannerScreen = ({ recipes, fridge, products = [], profile, lang, p
       const { plan, newRecipes } = await planWithGemini(recipes, fridge, products, blocked, liked, profile.dietaryPrefs, lang, scheduledNames);
       if (Object.keys(plan).length === 0) return;
 
-      // Store Gemini-invented recipes transiently — never persist to DB
-      const unseen = newRecipes.filter(r => !transientRecipes.some(t => t.id === r.id));
-      if (unseen.length > 0) {
-        setTransientRecipes([...transientRecipes, ...unseen]);
-      }
+      // Every re-plan discards the previous batch of suggestions and keeps only
+      // the fresh one — suggestions are never persisted until the user saves.
+      const discardedIds = new Set(transientRecipes.map(r => r.id));
+      setTransientRecipes(newRecipes);
 
-      if (overwrite) {
-        setPlanner(prev => ({ ...prev, [weekKey]: plan }));
-      } else {
-        setPlanner(prev => {
-          const currentWeekData = prev[weekKey] ?? {};
-          const merged = { ...currentWeekData };
+      setPlanner(prev => {
+        // Drop slots that held now-discarded suggestions from every week first.
+        const stripped: PlannerData = {};
+        for (const [wk, slots] of Object.entries(prev)) {
+          stripped[wk] = Object.fromEntries(
+            Object.entries(slots).filter(([, id]) => !discardedIds.has(id)),
+          );
+        }
+        if (overwrite) {
+          stripped[weekKey] = plan;
+        } else {
+          const merged = { ...(stripped[weekKey] ?? {}) };
           for (const [slot, id] of Object.entries(plan)) {
             if (!merged[slot]) merged[slot] = id;
           }
-          return { ...prev, [weekKey]: merged };
-        });
-      }
+          stripped[weekKey] = merged;
+        }
+        return stripped;
+      });
     } finally {
       setPlanningLoading(false);
     }
@@ -623,6 +661,9 @@ export const PlannerScreen = ({ recipes, fridge, products = [], profile, lang, p
                       >
                         <div className="meal-slot-eyebrow">
                           <span>{isEn ? meal.en : meal.bg}</span>
+                          {recipe != null && suggestionIds.has(recipe.id) && (
+                            <span className="meal-slot-suggestion">· ✨ Gemini</span>
+                          )}
                           {flagged === true && (
                             <span className="meal-slot-flag">· {isEn ? 'check' : 'провери'}</span>
                           )}
@@ -708,6 +749,57 @@ export const PlannerScreen = ({ recipes, fridge, products = [], profile, lang, p
               ))}
             </div>
             <div className="drawer-list">
+              {transientRecipes.length > 0 && (
+                <div className="drawer-suggestions">
+                  <div className="drawer-suggestions-head">
+                    <span className="drawer-suggestions-title">
+                      ✨ {isEn ? 'Gemini suggestions' : 'Предложения от Gemini'}
+                    </span>
+                    <button className="drawer-suggestions-clear" onClick={clearSuggestions}>
+                      {isEn ? 'Clear' : 'Изчисти'}
+                    </button>
+                  </div>
+                  {transientRecipes.map(r => (
+                    <div
+                      key={r.id}
+                      className={`drawer-recipe is-suggestion${dragId === r.id ? ' dragging' : ''}`}
+                      draggable
+                      onDragStart={e => { e.dataTransfer.setData('text/plain', r.id); setDragId(r.id); setDragSourceSlot(null); }}
+                      onDragEnd={() => { setDragId(null); setDragSourceSlot(null); setDropTarget(null); }}
+                    >
+                      <div className="drawer-recipe-emoji">
+                        <span className="drawer-recipe-emoji-char">{r.emoji}</span>
+                      </div>
+                      <div className="drawer-recipe-text">
+                        <div className="drawer-recipe-name">
+                          {isEn && r.nameEn != null ? r.nameEn : r.name}
+                        </div>
+                        <div className="drawer-recipe-meta">
+                          {r.time} {isEn ? 'MIN' : 'МИН'} · {isEn ? 'suggestion' : 'предложение'}
+                        </div>
+                      </div>
+                      <div className="drawer-recipe-actions">
+                        <button
+                          className="drawer-recipe-save"
+                          onClick={() => saveSuggestion(r)}
+                          aria-label={isEn ? 'Save to my recipes' : 'Запази в моите рецепти'}
+                          title={isEn ? 'Save to my recipes' : 'Запази в моите рецепти'}
+                        >
+                          ＋
+                        </button>
+                        <button
+                          className="drawer-recipe-del"
+                          onClick={() => removeSuggestion(r.id)}
+                          aria-label={isEn ? 'Remove suggestion' : 'Премахни предложението'}
+                          title={isEn ? 'Remove suggestion' : 'Премахни предложението'}
+                        >
+                          ×
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
               {filteredRecipes.map(r => {
                 const flagged = r.requiredIngredients?.some(i =>
                   blocked.some(b => i.toLowerCase().includes(b.toLowerCase()))
@@ -739,7 +831,7 @@ export const PlannerScreen = ({ recipes, fridge, products = [], profile, lang, p
                   </div>
                 );
               })}
-              {filteredRecipes.length === 0 && (
+              {filteredRecipes.length === 0 && transientRecipes.length === 0 && (
                 <div className="drawer-empty">
                   {isEn ? 'Nothing matches.' : 'Нищо не намерихме.'}
                 </div>

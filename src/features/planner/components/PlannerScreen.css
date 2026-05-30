@@ -552,6 +552,100 @@
   font-size: 13px;
 }
 
+/* ── Gemini suggestions group ───────────────────────────────── */
+.drawer-suggestions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-bottom: 10px;
+  margin-bottom: 8px;
+  border-bottom: 1px dashed var(--line-2);
+}
+
+.drawer-suggestions-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 2px 2px 4px;
+}
+
+.drawer-suggestions-title {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--clay-deep);
+}
+
+.drawer-suggestions-clear {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 2px 4px;
+}
+
+.drawer-suggestions-clear:hover {
+  color: var(--ink);
+}
+
+.drawer-recipe.is-suggestion {
+  background: var(--clay-soft);
+  cursor: grab;
+}
+
+.drawer-recipe.is-suggestion:hover {
+  border-color: var(--clay);
+}
+
+.drawer-recipe-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.drawer-recipe-save,
+.drawer-recipe-del {
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--r-xs);
+  border: 1px solid var(--line);
+  background: var(--paper);
+  color: var(--ink-2);
+  cursor: pointer;
+  font-size: 15px;
+  line-height: 1;
+  transition: all 0.12s;
+}
+
+.drawer-recipe-save:hover {
+  background: var(--clay);
+  border-color: var(--clay);
+  color: var(--paper);
+}
+
+.drawer-recipe-del:hover {
+  background: var(--rust-soft);
+  border-color: var(--rust);
+  color: var(--rust);
+}
+
+.meal-slot-suggestion {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--clay-deep);
+}
+
 /* ── Shopping summary card ──────────────────────────────────── */
 .shopping-card {
   background: var(--ink);

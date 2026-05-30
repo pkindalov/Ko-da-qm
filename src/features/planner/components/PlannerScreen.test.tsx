@@ -528,6 +528,61 @@ describe('PlannerScreen – favorites and Gemini', () => {
   });
 });
 
+// ── Gemini suggestions management ──────────────────────────────────────────────
+
+describe('PlannerScreen – Gemini suggestions', () => {
+  beforeEach(() => localStorage.clear());
+
+  const seedSuggestions = (recipes: Recipe[]) =>
+    localStorage.setItem('kdq_planner_transient', JSON.stringify(recipes));
+
+  it('lists transient suggestions in the drawer under a "Gemini suggestions" group', () => {
+    seedSuggestions([makeRecipe({ id: 's1', nameEn: 'AI Soup', authorEmail: undefined })]);
+    renderPlanner();
+    expect(screen.getByText(/Gemini suggestions/i)).toBeInTheDocument();
+    expect(screen.getByText('AI Soup')).toBeInTheDocument();
+  });
+
+  it('Save calls onSaveSuggestion with the recipe and drops it from the suggestions group', async () => {
+    const user = userEvent.setup();
+    const onSaveSuggestion = vi.fn();
+    seedSuggestions([makeRecipe({ id: 's1', nameEn: 'AI Soup', authorEmail: undefined })]);
+    renderPlanner({ onSaveSuggestion });
+    await user.click(screen.getByRole('button', { name: /Save to my recipes/i }));
+    expect(onSaveSuggestion).toHaveBeenCalledWith(expect.objectContaining({ id: 's1' }));
+    expect(screen.queryByText(/Gemini suggestions/i)).not.toBeInTheDocument();
+  });
+
+  it('Clear removes every suggestion from the drawer', async () => {
+    const user = userEvent.setup();
+    seedSuggestions([
+      makeRecipe({ id: 's1', nameEn: 'AI Soup' }),
+      makeRecipe({ id: 's2', nameEn: 'AI Salad' }),
+    ]);
+    renderPlanner();
+    await user.click(screen.getByRole('button', { name: /^Clear$/i }));
+    expect(screen.queryByText(/Gemini suggestions/i)).not.toBeInTheDocument();
+  });
+
+  it('removing a suggestion also clears it from any meal slot it filled', async () => {
+    const user = userEvent.setup();
+    const setPlanner = vi.fn();
+    seedSuggestions([makeRecipe({ id: 's1', nameEn: 'AI Soup' })]);
+    renderPlanner({ planner: { [WEEK_KEY]: { '0_breakfast': 's1' } }, setPlanner });
+    expect(screen.getByText('AI Soup', { selector: '.meal-name' })).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: /Remove suggestion/i }));
+    // removeIdsFromPlanner passes a functional updater — apply it to assert
+    const updater = setPlanner.mock.calls[0][0] as (prev: Record<string, Record<string, string>>) => Record<string, Record<string, string>>;
+    expect(updater({ [WEEK_KEY]: { '0_breakfast': 's1' } })[WEEK_KEY]).not.toHaveProperty('0_breakfast');
+  });
+
+  it('marks a meal slot filled by a suggestion with a Gemini tag', () => {
+    seedSuggestions([makeRecipe({ id: 's1', nameEn: 'AI Soup' })]);
+    renderPlanner({ planner: { [WEEK_KEY]: { '0_breakfast': 's1' } } });
+    expect(screen.getByText(/✨ Gemini/i, { selector: '.meal-slot-suggestion' })).toBeInTheDocument();
+  });
+});
+
 // ── Week navigation ────────────────────────────────────────────────────────────
 
 describe('PlannerScreen – week navigation', () => {
