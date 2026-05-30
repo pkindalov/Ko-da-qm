@@ -398,6 +398,11 @@
   flex-wrap: wrap;
 }
 
+.drawer-chips-source {
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--line);
+}
+
 .drawer-chip {
   padding: 5px 10px;
   border-radius: 999px;

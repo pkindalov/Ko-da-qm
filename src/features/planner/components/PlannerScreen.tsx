@@ -9,6 +9,9 @@ import './PlannerScreen.css';
 type PlannerData = Record<string, Record<string, string>>;
 type MealId = 'breakfast' | 'lunch' | 'dinner';
 type DrawerFilter = 'all' | MealId;
+// Which recipe source the drawer list is showing: the user's own recipes,
+// recipes they favorited (others'), or everything.
+type RecipeSource = 'mine' | 'favorites' | 'all';
 
 interface PickerTarget {
   day: number;
@@ -392,14 +395,18 @@ export const PlannerScreen = ({ recipes, fridge, products = [], profile, lang, p
   const [shopOpen, setShopOpen] = useState(false);
   const [drawerQuery, setDrawerQuery] = useState('');
   const [drawerFilter, setDrawerFilter] = useState<DrawerFilter>('all');
+  const [sourceFilter, setSourceFilter] = useState<RecipeSource>('mine');
   const [previewSuggestion, setPreviewSuggestion] = useState<Recipe | null>(null);
   const [planScope, setPlanScope] = useState<DrawerFilter>('all');
 
-  // Recipes the user can pick from: their own explicit recipes + favorites (deduped)
+  // Recipes the user can pick from: their own recipes + favorites (deduped).
+  // `recipes` is already scoped to the signed-in user, so include all of them —
+  // filtering by authorEmail here would hide a user's own recipes that happen to
+  // have no email stored.
   const pickableRecipes = useMemo(() => {
     const seen = new Set<string>();
     const result: Recipe[] = [];
-    for (const r of [...recipes.filter(r => r.authorEmail != null && r.authorEmail !== ''), ...favoriteRecipes]) {
+    for (const r of [...recipes, ...favoriteRecipes]) {
       if (!seen.has(r.id)) {
         seen.add(r.id);
         result.push(r);
@@ -428,7 +435,24 @@ export const PlannerScreen = ({ recipes, fridge, products = [], profile, lang, p
     }) ?? false;
   }, [drawerQuery, drawerFilter, isEn]);
 
-  const filteredRecipes = useMemo(() => pickableRecipes.filter(matchesDrawer), [pickableRecipes, matchesDrawer]);
+  // Ids of the user's own recipes, so the source toggle can tell "mine" apart
+  // from favorited (others') recipes within the merged pickable list.
+  const mineIds = useMemo(() => new Set(recipes.map(r => r.id)), [recipes]);
+
+  // The Mine/Favorites toggle is only worth showing once the user has favorited
+  // a recipe that isn't already their own — otherwise every segment is identical.
+  const hasFavoriteRecipes = useMemo(() => pickableRecipes.some(r => !mineIds.has(r.id)), [pickableRecipes, mineIds]);
+
+  const matchesSource = useCallback((r: Recipe) => {
+    if (sourceFilter === 'all') return true;
+    const isMine = mineIds.has(r.id);
+    return sourceFilter === 'mine' ? isMine : !isMine;
+  }, [sourceFilter, mineIds]);
+
+  const filteredRecipes = useMemo(
+    () => pickableRecipes.filter(r => matchesSource(r) && matchesDrawer(r)),
+    [pickableRecipes, matchesSource, matchesDrawer],
+  );
 
   // Gemini-suggested recipes stored transiently (not saved to DB)
   const [transientRecipes, setTransientRecipes] = useLocalStorage<Recipe[]>('kdq_planner_transient', []);
@@ -808,7 +832,7 @@ export const PlannerScreen = ({ recipes, fridge, products = [], profile, lang, p
           <div className="recipe-drawer">
             <div className="recipe-drawer-head">
               <div className="drawer-title">{isEn ? 'Recipes' : 'Рецепти'}</div>
-              <div className="drawer-count">{filteredRecipes.length} / {recipes.length}</div>
+              <div className="drawer-count">{filteredRecipes.length} / {pickableRecipes.length}</div>
             </div>
             <div className="drawer-search">
               <span className="drawer-search-glyph">⌕</span>
@@ -819,6 +843,23 @@ export const PlannerScreen = ({ recipes, fridge, products = [], profile, lang, p
                 placeholder={isEn ? 'Search…' : 'Търси…'}
               />
             </div>
+            {hasFavoriteRecipes && (
+              <div className="drawer-chips drawer-chips-source">
+                {([
+                  ['mine',      isEn ? 'Mine'      : 'Мои'],
+                  ['favorites', isEn ? 'Favorites' : 'Любими'],
+                  ['all',       isEn ? 'All'       : 'Всички'],
+                ] as [RecipeSource, string][]).map(([id, label]) => (
+                  <button
+                    key={id}
+                    className={`drawer-chip${sourceFilter === id ? ' on' : ''}`}
+                    onClick={() => setSourceFilter(id)}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            )}
             <div className="drawer-chips">
               {([
                 ['all',       isEn ? 'All'       : 'Всички'],
@@ -836,6 +877,37 @@ export const PlannerScreen = ({ recipes, fridge, products = [], profile, lang, p
               ))}
             </div>
             <div className="drawer-list">
+              {filteredRecipes.map(r => {
+                const flagged = r.requiredIngredients?.some(i =>
+                  blocked.some(b => i.toLowerCase().includes(b.toLowerCase()))
+                );
+                return (
+                  <div
+                    key={r.id}
+                    className={[
+                      'drawer-recipe',
+                      flagged === true ? 'flagged' : '',
+                      dragId === r.id ? 'dragging' : '',
+                    ].filter(Boolean).join(' ')}
+                    draggable
+                    onDragStart={e => { e.dataTransfer.setData('text/plain', r.id); setDragId(r.id); setDragSourceSlot(null); }}
+                    onDragEnd={() => { setDragId(null); setDragSourceSlot(null); setDropTarget(null); }}
+                  >
+                    <div className="drawer-recipe-emoji">
+                      <span className="drawer-recipe-emoji-char">{r.emoji}</span>
+                    </div>
+                    <div className="drawer-recipe-text">
+                      <div className="drawer-recipe-name">
+                        {isEn && r.nameEn != null ? r.nameEn : r.name}
+                      </div>
+                      <div className="drawer-recipe-meta">
+                        {r.time} {isEn ? 'MIN' : 'МИН'} · {r.tags?.[0] ?? (isEn ? 'recipe' : 'рецепта')}
+                      </div>
+                    </div>
+                    <div className="drawer-recipe-grip">::</div>
+                  </div>
+                );
+              })}
               {filteredSuggestions.length > 0 && (
                 <div className="drawer-suggestions">
                   <div className="drawer-suggestions-head">
@@ -894,37 +966,6 @@ export const PlannerScreen = ({ recipes, fridge, products = [], profile, lang, p
                   ))}
                 </div>
               )}
-              {filteredRecipes.map(r => {
-                const flagged = r.requiredIngredients?.some(i =>
-                  blocked.some(b => i.toLowerCase().includes(b.toLowerCase()))
-                );
-                return (
-                  <div
-                    key={r.id}
-                    className={[
-                      'drawer-recipe',
-                      flagged === true ? 'flagged' : '',
-                      dragId === r.id ? 'dragging' : '',
-                    ].filter(Boolean).join(' ')}
-                    draggable
-                    onDragStart={e => { e.dataTransfer.setData('text/plain', r.id); setDragId(r.id); setDragSourceSlot(null); }}
-                    onDragEnd={() => { setDragId(null); setDragSourceSlot(null); setDropTarget(null); }}
-                  >
-                    <div className="drawer-recipe-emoji">
-                      <span className="drawer-recipe-emoji-char">{r.emoji}</span>
-                    </div>
-                    <div className="drawer-recipe-text">
-                      <div className="drawer-recipe-name">
-                        {isEn && r.nameEn != null ? r.nameEn : r.name}
-                      </div>
-                      <div className="drawer-recipe-meta">
-                        {r.time} {isEn ? 'MIN' : 'МИН'} · {r.tags?.[0] ?? (isEn ? 'recipe' : 'рецепта')}
-                      </div>
-                    </div>
-                    <div className="drawer-recipe-grip">::</div>
-                  </div>
-                );
-              })}
               {filteredRecipes.length === 0 && filteredSuggestions.length === 0 && (
                 <div className="drawer-empty">
                   {isEn ? 'Nothing matches.' : 'Нищо не намерихме.'}

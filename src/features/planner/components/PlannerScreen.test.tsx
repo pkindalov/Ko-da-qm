@@ -529,6 +529,13 @@ describe('PlannerScreen – favorites and Gemini', () => {
     expect(screen.getByText('Fav Soup', { selector: '.meal-name' })).toBeInTheDocument();
   });
 
+  it('lists the user\'s own recipe in the drawer even when it has no authorEmail', () => {
+    // Regression: pickableRecipes must not filter by authorEmail, or legacy
+    // recipes with a null author_email vanish from the planner drawer/picker.
+    renderPlanner({ recipes: [makeRecipe({ id: 'r1', nameEn: 'Legacy Stew', authorEmail: undefined })] });
+    expect(screen.getByText('Legacy Stew', { selector: '.drawer-recipe-name' })).toBeInTheDocument();
+  });
+
   it('shows "Plan with Gemini" when the user has only favorite recipes', () => {
     renderPlanner({ recipes: [], favoriteRecipes: [makeRecipe({ id: 'f1' })] });
     expect(screen.getByRole('button', { name: /Plan with Gemini/i })).toBeInTheDocument();
@@ -545,6 +552,69 @@ describe('PlannerScreen – favorites and Gemini', () => {
   });
 });
 
+// ── Recipe source filter (Mine / Favorites / All) ───────────────────────────────
+
+describe('PlannerScreen – recipe source filter', () => {
+  const sourceRow = () => document.querySelector('.drawer-chips-source') as HTMLElement | null;
+  const drawerNames = () =>
+    Array.from(document.querySelectorAll('.drawer-recipe-name')).map(el => el.textContent);
+
+  it('hides the source chips when the user has no favorited (non-own) recipes', () => {
+    renderPlanner({ recipes: [makeRecipe({ id: 'r1', nameEn: 'My Dish' })] });
+    expect(sourceRow()).toBeNull();
+  });
+
+  it('shows Mine / Favorites / All chips once a favorite recipe exists', () => {
+    renderPlanner({
+      recipes: [makeRecipe({ id: 'r1', nameEn: 'My Dish' })],
+      favoriteRecipes: [makeRecipe({ id: 'f1', nameEn: 'Fav Dish' })],
+    });
+    const row = within(sourceRow() as HTMLElement);
+    ['Mine', 'Favorites', 'All'].forEach(label =>
+      expect(row.getByRole('button', { name: new RegExp(`^${label}$`, 'i') })).toBeInTheDocument(),
+    );
+  });
+
+  it('defaults to "Mine": shows own recipes and hides favorites', () => {
+    renderPlanner({
+      recipes: [makeRecipe({ id: 'r1', nameEn: 'My Dish' })],
+      favoriteRecipes: [makeRecipe({ id: 'f1', nameEn: 'Fav Dish' })],
+    });
+    expect(drawerNames()).toContain('My Dish');
+    expect(drawerNames()).not.toContain('Fav Dish');
+  });
+
+  it('"Favorites" shows favorited recipes and hides own', async () => {
+    const user = userEvent.setup();
+    renderPlanner({
+      recipes: [makeRecipe({ id: 'r1', nameEn: 'My Dish' })],
+      favoriteRecipes: [makeRecipe({ id: 'f1', nameEn: 'Fav Dish' })],
+    });
+    await user.click(within(sourceRow() as HTMLElement).getByRole('button', { name: /^Favorites$/i }));
+    expect(drawerNames()).toContain('Fav Dish');
+    expect(drawerNames()).not.toContain('My Dish');
+  });
+
+  it('counts shown / total-pickable, so the numerator never exceeds the denominator', () => {
+    renderPlanner({
+      recipes: [makeRecipe({ id: 'r1', nameEn: 'My Dish' })],
+      favoriteRecipes: [makeRecipe({ id: 'f1', nameEn: 'Fav Dish' })],
+    });
+    // Default "Mine" shows 1 of the 2 pickable recipes (own + favorite).
+    expect(document.querySelector('.drawer-count')?.textContent).toBe('1 / 2');
+  });
+
+  it('"All" shows both own and favorited recipes', async () => {
+    const user = userEvent.setup();
+    renderPlanner({
+      recipes: [makeRecipe({ id: 'r1', nameEn: 'My Dish' })],
+      favoriteRecipes: [makeRecipe({ id: 'f1', nameEn: 'Fav Dish' })],
+    });
+    await user.click(within(sourceRow() as HTMLElement).getByRole('button', { name: /^All$/i }));
+    expect(drawerNames()).toEqual(expect.arrayContaining(['My Dish', 'Fav Dish']));
+  });
+});
+
 // ── Gemini suggestions management ──────────────────────────────────────────────
 
 describe('PlannerScreen – Gemini suggestions', () => {
@@ -558,6 +628,13 @@ describe('PlannerScreen – Gemini suggestions', () => {
     renderPlanner();
     expect(screen.getByText(/Gemini suggestions/i)).toBeInTheDocument();
     expect(screen.getByText('AI Soup')).toBeInTheDocument();
+  });
+
+  it('renders saved recipes above the Gemini suggestions group', () => {
+    seedSuggestions([makeRecipe({ id: 's1', nameEn: 'AI Soup' })]);
+    renderPlanner({ recipes: [makeRecipe({ id: 'r1', nameEn: 'My Dish' })] });
+    const names = Array.from(document.querySelectorAll('.drawer-recipe-name')).map(el => el.textContent);
+    expect(names.indexOf('My Dish')).toBeLessThan(names.indexOf('AI Soup'));
   });
 
   it('Save calls onSaveSuggestion with the recipe and drops it from the suggestions group', async () => {
