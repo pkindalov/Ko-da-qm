@@ -26,6 +26,10 @@ const buildPrompt = (
   scheduledNames: string[],
 ): string => {
   const isEn = lang === 'en';
+  const targetLang = isEn ? 'English' : 'Bulgarian';
+  const languageNote = isEn
+    ? 'LANGUAGE — CRITICAL: Write every recipe entirely in English. The "name", every "ingredients" item, every "requiredIngredients" item, and every "steps" entry MUST be in English. The available ingredients listed below may be written in Bulgarian — translate them into English in your output. Do not output any Bulgarian text anywhere. Set "nameEn" to the same English string as "name".'
+    : 'LANGUAGE — CRITICAL: Write every recipe entirely in Bulgarian. The "name", every "ingredients" item, every "requiredIngredients" item, and every "steps" entry MUST be in Bulgarian. Additionally set "nameEn" to the English translation of the name (used only for internal matching, never shown to the user).';
   const ingredientsNote = availableIngredients.length > 0
     ? `Available ingredients: ${availableIngredients.join(', ')}.`
     : 'No specific ingredients provided — suggest common, easy-to-find recipes.';
@@ -46,6 +50,9 @@ const buildPrompt = (
     : '';
 
   return `You are a meal planner. Create a varied 7-day meal plan.
+
+${languageNote}
+
 ${ingredientsNote}
 ${existingNote}
 ${blockedNote}
@@ -57,7 +64,7 @@ Generate 6-10 unique recipes. Assign each of the 21 meal slots (days 0=Mon … 6
 Rules:
 - Prefer breakfast-tagged recipes for breakfast slots, lunch for lunch, dinner for dinner.
 - Vary the plan — avoid the same recipe in the same meal type on back-to-back days.
-- Recipe names must be ${isEn ? 'in English' : 'in Bulgarian'}. Always include nameEn in English.
+- All recipe text (name, ingredients, requiredIngredients, steps) must be in ${targetLang}, per the LANGUAGE rule above.
 - If a saved recipe name fits, use that exact name so it gets matched.
 
 Respond ONLY with valid JSON (no markdown, no explanation):
@@ -133,7 +140,7 @@ Deno.serve(async (req: Request) => {
     }
 
     const recipes = Array.isArray(raw.recipes) ? raw.recipes : [];
-    const rawPlan = typeof raw.plan === 'object' && raw.plan !== null ? raw.plan : {};
+    const rawPlan = (typeof raw.plan === 'object' && raw.plan !== null ? raw.plan : {}) as Record<string, unknown>;
 
     // Validate plan: keep only known slots with in-range integer indices
     const plan: Record<string, number> = {};
@@ -155,3 +162,7 @@ Deno.serve(async (req: Request) => {
     });
   }
 });
+
+// Makes this file an ES module so its top-level names don't collide in the
+// shared global scope with the other edge functions (e.g. gemini-recipes).
+export {};

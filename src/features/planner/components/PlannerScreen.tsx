@@ -57,6 +57,51 @@ const SCOPE_LABELS: Record<DrawerFilter, { chip: { en: string; bg: string }; tar
 
 const SCOPE_ORDER: DrawerFilter[] = ['all', 'breakfast', 'lunch', 'dinner'];
 
+// Pure application of a Gemini plan onto the existing planner, honoring the
+// meal scope and merge/overwrite mode. Extracted + exported so the scope
+// behavior can be unit-tested without going through the edge function.
+//
+// Key rule: suggestions are kept as long as they are still placed somewhere.
+// Planning one meal type must NOT discard suggestions sitting in another — e.g.
+// filling dinner keeps the breakfasts Gemini already made.
+export const applyGeminiPlan = (
+  planner: PlannerData,
+  weekKey: string,
+  plan: Record<string, string>,
+  planScope: DrawerFilter,
+  overwrite: boolean,
+  transientRecipes: Recipe[],
+  newRecipes: Recipe[],
+): { nextPlanner: PlannerData; nextTransient: Recipe[] } => {
+  const weekData = planner[weekKey] ?? {};
+  const inScope = (slot: string) => planScope === 'all' || slot.endsWith(`_${planScope}`);
+
+  let nextWeek: Record<string, string>;
+  if (overwrite && planScope === 'all') {
+    nextWeek = { ...plan };
+  } else if (overwrite) {
+    // Replace just this meal type: clear its slots, then fill from the plan.
+    nextWeek = Object.fromEntries(Object.entries(weekData).filter(([slot]) => !inScope(slot)));
+    for (const [slot, id] of Object.entries(plan)) {
+      if (inScope(slot)) nextWeek[slot] = id;
+    }
+  } else {
+    // Fill only the empty in-scope slots, leaving everything else as-is.
+    nextWeek = { ...weekData };
+    for (const [slot, id] of Object.entries(plan)) {
+      if (inScope(slot) && !nextWeek[slot]) nextWeek[slot] = id;
+    }
+  }
+
+  const nextPlanner: PlannerData = { ...planner, [weekKey]: nextWeek };
+
+  const referencedIds = new Set(Object.values(nextPlanner).flatMap(week => Object.values(week)));
+  const keptSuggestions = transientRecipes.filter(r => referencedIds.has(r.id));
+  const addedSuggestions = newRecipes.filter(r => referencedIds.has(r.id));
+
+  return { nextPlanner, nextTransient: [...keptSuggestions, ...addedSuggestions] };
+};
+
 // ── PickerModal ────────────────────────────────────────────────────────────────
 
 interface PickerModalProps {
@@ -439,51 +484,15 @@ export const PlannerScreen = ({ recipes, fridge, products = [], profile, lang, p
       const { plan, newRecipes } = await planWithGemini(recipes, fridge, products, blocked, liked, profile.dietaryPrefs, lang, scheduledNames);
       if (Object.keys(plan).length === 0) return;
 
-      // Every re-plan discards the previous batch of suggestions; below we keep
-      // only the freshly-invented recipes that actually land on the calendar.
-      const discardedIds = new Set(transientRecipes.map(r => r.id));
-      const inScope = (slot: string) => planScope === 'all' || slot.endsWith(`_${planScope}`);
-
-      // Build the new current-week plan, honoring the meal scope and the mode.
-      const baseWeek = Object.fromEntries(
-        Object.entries(weekData).filter(([, id]) => !discardedIds.has(id)),
+      const { nextPlanner, nextTransient } = applyGeminiPlan(
+        planner, weekKey, plan, planScope, overwrite, transientRecipes, newRecipes,
       );
-      let nextWeek: Record<string, string>;
-      if (overwrite && planScope === 'all') {
-        nextWeek = { ...plan };
-      } else if (overwrite) {
-        // Replace just this meal type: clear its slots, then fill from the plan.
-        nextWeek = Object.fromEntries(Object.entries(baseWeek).filter(([slot]) => !inScope(slot)));
-        for (const [slot, id] of Object.entries(plan)) {
-          if (inScope(slot)) nextWeek[slot] = id;
-        }
-      } else {
-        // Fill only the empty in-scope slots, leaving everything else as-is.
-        nextWeek = { ...baseWeek };
-        for (const [slot, id] of Object.entries(plan)) {
-          if (inScope(slot) && !nextWeek[slot]) nextWeek[slot] = id;
-        }
-      }
-
-      const placedIds = new Set(Object.values(nextWeek));
-      setTransientRecipes(newRecipes.filter(r => placedIds.has(r.id)));
-
-      setPlanner(prev => {
-        // Drop now-discarded suggestions from the other weeks too.
-        const stripped: PlannerData = {};
-        for (const [wk, slots] of Object.entries(prev)) {
-          if (wk === weekKey) continue;
-          stripped[wk] = Object.fromEntries(
-            Object.entries(slots).filter(([, id]) => !discardedIds.has(id)),
-          );
-        }
-        stripped[weekKey] = nextWeek;
-        return stripped;
-      });
+      setTransientRecipes(nextTransient);
+      setPlanner(nextPlanner);
     } finally {
       setPlanningLoading(false);
     }
-  }, [canPlanWithGemini, recipes, fridge, products, blocked, liked, profile.dietaryPrefs, lang, assignedRecipes, isEn, weekKey, weekData, planScope, setPlanner, transientRecipes, setTransientRecipes]);
+  }, [canPlanWithGemini, recipes, fridge, products, blocked, liked, profile.dietaryPrefs, lang, assignedRecipes, isEn, planner, weekKey, planScope, setPlanner, transientRecipes, setTransientRecipes]);
 
   const handlePlanWithGemini = useCallback(() => {
     const scopeSlots = planScope === 'all' ? ALL_SLOT_KEYS : ALL_SLOT_KEYS.filter(s => s.endsWith(`_${planScope}`));
@@ -727,7 +736,15 @@ export const PlannerScreen = ({ recipes, fridge, products = [], profile, lang, p
                                 setDragSourceSlot(slotKey);
                               }}
                               onDragEnd={() => { setDragId(null); setDragSourceSlot(null); setDropTarget(null); }}
-                              onClick={() => onViewRecipe?.(recipe.id)}
+                              onClick={() => {
+                                // Suggestions aren't in the Recipes screen yet, so open the
+                                // local preview instead of navigating to a recipe that isn't there.
+                                if (suggestionIds.has(recipe.id)) {
+                                  setPreviewSuggestion(recipe);
+                                } else {
+                                  onViewRecipe?.(recipe.id);
+                                }
+                              }}
                             >
                               <div className="meal-emoji">
                                 <span className="meal-emoji-char">{recipe.emoji}</span>

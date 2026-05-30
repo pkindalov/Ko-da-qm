@@ -79,3 +79,7 @@ Deno.serve(async (req: Request) => {
     });
   }
 });
+
+// Makes this file an ES module so its top-level names don't collide in the
+// shared global scope with the other edge functions (e.g. gemini-planner).
+export {};
