@@ -374,9 +374,16 @@ export const PlannerScreen = ({ recipes, fridge, products = [], profile, lang, p
     setPlanner({ ...planner, [weekKey]: next });
   }, [planner, weekKey, weekData, setPlanner]);
 
-  const clearWeek = useCallback(() => {
-    setPlanner({ ...planner, [weekKey]: {} });
-  }, [planner, weekKey, setPlanner]);
+  const clearScope = useCallback((scope: DrawerFilter) => {
+    if (scope === 'all') {
+      setPlanner({ ...planner, [weekKey]: {} });
+      return;
+    }
+    const next = Object.fromEntries(
+      Object.entries(weekData).filter(([slot]) => !slot.endsWith(`_${scope}`)),
+    );
+    setPlanner({ ...planner, [weekKey]: next });
+  }, [planner, weekKey, weekData, setPlanner]);
 
   const [dragId, setDragId] = useState<string | null>(null);
   const [dragSourceSlot, setDragSourceSlot] = useState<string | null>(null);
@@ -616,11 +623,6 @@ export const PlannerScreen = ({ recipes, fridge, products = [], profile, lang, p
                   : `✨ ${isEn ? 'Plan with Gemini' : 'Планирай с Gemini'}`}
               </button>
             )}
-            {mealsPlanned > 0 && (
-              <button className="btn btn-ghost btn-xs" onClick={clearWeek}>
-                {isEn ? 'Clear week' : 'Изчисти седмицата'}
-              </button>
-            )}
           </div>
           {canPlanWithGemini && (
             <div className="plan-scope">
@@ -631,6 +633,22 @@ export const PlannerScreen = ({ recipes, fridge, products = [], profile, lang, p
                     key={scope}
                     className={`drawer-chip${planScope === scope ? ' on' : ''}`}
                     onClick={() => setPlanScope(scope)}
+                  >
+                    {isEn ? SCOPE_LABELS[scope].chip.en : SCOPE_LABELS[scope].chip.bg}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+          {mealsPlanned > 0 && (
+            <div className="plan-scope">
+              <span className="plan-scope-label">{isEn ? 'Clear' : 'Изчисти'}</span>
+              <div className="plan-scope-chips">
+                {SCOPE_ORDER.map(scope => (
+                  <button
+                    key={scope}
+                    className="drawer-chip plan-scope-reset"
+                    onClick={() => clearScope(scope)}
                   >
                     {isEn ? SCOPE_LABELS[scope].chip.en : SCOPE_LABELS[scope].chip.bg}
                   </button>

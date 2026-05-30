@@ -1029,6 +1029,13 @@
   flex-wrap: wrap;
 }
 
+/* Reset chips clear slots — signal the destructive action on hover. */
+.plan-scope-reset:hover {
+  color: var(--rust);
+  border-color: var(--rust);
+  background: var(--rust-soft);
+}
+
 .topbar {
   flex-wrap: wrap;
 }

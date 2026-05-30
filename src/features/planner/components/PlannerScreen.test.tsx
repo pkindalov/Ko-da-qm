@@ -94,9 +94,9 @@ describe('PlannerScreen – initial render', () => {
     expect(screen.queryByRole('button', { name: /Try a sample week/i })).not.toBeInTheDocument();
   });
 
-  it('hides "Clear week" when nothing is planned', () => {
+  it('hides the reset chips when nothing is planned', () => {
     renderPlanner({ recipes: [makeRecipe()] });
-    expect(screen.queryByRole('button', { name: /Clear week/i })).not.toBeInTheDocument();
+    expect(screen.queryByText('Clear', { selector: '.plan-scope-label' })).not.toBeInTheDocument();
   });
 
   it('shows Bulgarian heading when lang is bg', () => {
@@ -131,29 +131,44 @@ describe('PlannerScreen – sample week', () => {
   });
 });
 
-// ── Clear week ─────────────────────────────────────────────────────────────────
+// ── Reset chips ────────────────────────────────────────────────────────────────
 
-describe('PlannerScreen – clear week', () => {
-  it('shows "Clear week" when the current week has planned meals', () => {
-    const recipe = makeRecipe({ id: 'r1' });
-    renderPlanner({
-      recipes: [recipe],
-      planner: { [WEEK_KEY]: { '0_breakfast': 'r1' } },
-    });
-    expect(screen.getByRole('button', { name: /Clear week/i })).toBeInTheDocument();
+describe('PlannerScreen – reset chips', () => {
+  const getResetRow = () =>
+    screen.getByText('Clear', { selector: '.plan-scope-label' }).closest('.plan-scope') as HTMLElement;
+
+  it('shows the reset chips when the current week has planned meals', () => {
+    renderPlanner({ recipes: [makeRecipe({ id: 'r1' })], planner: { [WEEK_KEY]: { '0_breakfast': 'r1' } } });
+    const row = getResetRow();
+    ['All', 'Breakfast', 'Lunch', 'Dinner'].forEach(label =>
+      expect(within(row).getByRole('button', { name: new RegExp(`^${label}$`, 'i') })).toBeInTheDocument(),
+    );
   });
 
-  it('calls setPlanner with an empty object for the week key when "Clear week" is clicked', async () => {
+  it('reset All empties the whole week', async () => {
     const user = userEvent.setup();
     const setPlanner = vi.fn();
-    const recipe = makeRecipe({ id: 'r1' });
     renderPlanner({
-      recipes: [recipe],
-      planner: { [WEEK_KEY]: { '0_breakfast': 'r1' } },
+      recipes: [makeRecipe({ id: 'r1' })],
+      planner: { [WEEK_KEY]: { '0_breakfast': 'r1', '0_dinner': 'r1' } },
       setPlanner,
     });
-    await user.click(screen.getByRole('button', { name: /Clear week/i }));
+    await user.click(within(getResetRow()).getByRole('button', { name: /^All$/i }));
     expect(setPlanner.mock.calls[0][0][WEEK_KEY]).toEqual({});
+  });
+
+  it('reset Breakfast clears only the breakfast slots', async () => {
+    const user = userEvent.setup();
+    const setPlanner = vi.fn();
+    renderPlanner({
+      recipes: [makeRecipe({ id: 'r1' })],
+      planner: { [WEEK_KEY]: { '0_breakfast': 'r1', '0_dinner': 'r1' } },
+      setPlanner,
+    });
+    await user.click(within(getResetRow()).getByRole('button', { name: /^Breakfast$/i }));
+    const nextWeek = setPlanner.mock.calls[0][0][WEEK_KEY];
+    expect(nextWeek).not.toHaveProperty('0_breakfast');
+    expect(nextWeek['0_dinner']).toBe('r1');
   });
 });
 
@@ -176,9 +191,9 @@ describe('PlannerScreen – metrics', () => {
       recipes: [makeRecipe({ id: 'r1' })],
       planner: { [WEEK_KEY]: { '0_breakfast': 'deleted-id' } },
     });
-    // mealsPlanned is 0 → "Try a sample week" shows and "Clear week" stays hidden
+    // mealsPlanned is 0 → "Try a sample week" shows and the reset chips stay hidden
     expect(screen.getByRole('button', { name: /Try a sample week/i })).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /Clear week/i })).not.toBeInTheDocument();
+    expect(screen.queryByText('Clear', { selector: '.plan-scope-label' })).not.toBeInTheDocument();
   });
 });
 
