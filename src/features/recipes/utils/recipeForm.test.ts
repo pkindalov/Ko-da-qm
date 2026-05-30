@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parseRecipeForm, mealsFromTags } from './recipeForm';
+import { parseRecipeForm, mealsFromTags, mergeMealTags } from './recipeForm';
 
 describe('parseRecipeForm', () => {
   it('returns null for empty name', () => {
@@ -151,5 +151,35 @@ describe('mealsFromTags', () => {
     const meals = ['breakfast', 'dinner'] as const;
     const result = parseRecipeForm({ name: 'Тест', emoji: '🍳', time: '10', ingredients: '', steps: '', meals: [...meals] });
     expect(mealsFromTags(result?.tags)).toEqual([...meals]);
+  });
+});
+
+describe('mergeMealTags', () => {
+  it('keeps non-meal tags an edit would otherwise drop', () => {
+    expect(mergeMealTags(['breakfast'], ['lunch', 'vegetarian'])).toEqual(['breakfast', 'vegetarian']);
+  });
+
+  it('drops the old meal tags in favor of the new selection', () => {
+    expect(mergeMealTags(['dinner'], ['breakfast', 'lunch'])).toEqual(['dinner']);
+  });
+
+  it('puts the new meal tags first so the card label still shows the meal', () => {
+    expect(mergeMealTags(['breakfast'], ['quick', 'lunch'])).toEqual(['breakfast', 'quick']);
+  });
+
+  it('also recognizes legacy BG meal words as meal tags (so they are not kept as "other")', () => {
+    expect(mergeMealTags(['breakfast'], ['закуска', 'vegan'])).toEqual(['breakfast', 'vegan']);
+  });
+
+  it('returns just the new meal tags when the recipe had no extra tags', () => {
+    expect(mergeMealTags(['breakfast', 'dinner'], ['lunch'])).toEqual(['breakfast', 'dinner']);
+  });
+
+  it('handles an undefined existing tag list', () => {
+    expect(mergeMealTags(['lunch'], undefined)).toEqual(['lunch']);
+  });
+
+  it('keeps an empty result when nothing is selected and there were no other tags', () => {
+    expect(mergeMealTags([], ['breakfast'])).toEqual([]);
   });
 });

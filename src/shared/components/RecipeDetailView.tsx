@@ -7,6 +7,7 @@ import './RecipeDetailView.css';
 import { recipeRisk } from '../utils/recipeUtils';
 import { toast } from 'sonner';
 import { openGoogleTranslate } from '../utils/openGoogleTranslate';
+import { localizeMealTag } from '../utils/recipeDisplayName';
 import type { Recipe, FridgeItem, Language } from '../types';
 
 interface RecipeDetailViewProps {
@@ -98,7 +99,7 @@ export const RecipeDetailView = ({
         </div>
         <div className="detail-head">
           <div className="eyebrow">
-            {recipe.tags?.[0] ?? (isEnglish ? 'recipe' : 'рецепта')} · {recipe.time} {isEnglish ? 'min' : 'мин'}
+            {localizeMealTag(recipe.tags?.[0], isEnglish, isEnglish ? 'recipe' : 'рецепта')} · {recipe.time} {isEnglish ? 'min' : 'мин'}
           </div>
           <h1 className="h-title italic">{displayName}</h1>
           <div className="detail-head-badges">

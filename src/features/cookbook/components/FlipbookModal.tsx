@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import type { Recipe, Language } from '../../../shared/types';
-import { recipeDisplayName } from '../../../shared/utils/recipeDisplayName';
+import { recipeDisplayName, localizeMealTag } from '../../../shared/utils/recipeDisplayName';
 import './FlipbookModal.css';
 
 interface FlipbookModalProps {
@@ -202,7 +202,7 @@ export const FlipbookModal = ({ recipes, lang, onClose }: FlipbookModalProps) =>
       <div className="fbk__page">
         <div className="fbk__page-header">
           <span className="fbk__page-num">{String(index + 1).padStart(2, '0')}</span>
-          <span className="fbk__page-tag">{recipe.tags?.[0] ?? ''}</span>
+          <span className="fbk__page-tag">{localizeMealTag(recipe.tags?.[0], isEnglish, '')}</span>
           <span className="fbk__page-emoji">{recipe.emoji}</span>
         </div>
 

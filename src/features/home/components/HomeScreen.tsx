@@ -6,7 +6,7 @@ import { Modal } from '../../../shared/components/Modal';
 import './HomeScreen.css';
 import { RecipeDetailView } from '../../../shared/components/RecipeDetailView';
 import { isSafe, recipeRisk } from '../../../shared/utils/recipeUtils';
-import { recipeDisplayName } from '../../../shared/utils/recipeDisplayName';
+import { recipeDisplayName, localizeMealTag } from '../../../shared/utils/recipeDisplayName';
 import { getGreeting } from '../../../shared/utils/greeting';
 import type { Profile, Recipe, FridgeItem, Language, Tab, Product, ProductStatus } from '../../../shared/types';
 
@@ -292,7 +292,7 @@ export const HomeScreen = ({ profile, recipes, fridge, publicRecipes, favoriteId
           {recipes.slice(0, RECIPES_PREVIEW_SIZE).map((recipe) => {
             const risk = recipeRisk(recipe, allergies, dislikes);
             const name = recipeDisplayName(recipe, lang);
-            const tag = recipe.tags?.[0] ?? (isEnglish ? 'recipe' : 'рецепта');
+            const tag = localizeMealTag(recipe.tags?.[0], isEnglish, isEnglish ? 'recipe' : 'рецепта');
             return (
               <div key={recipe.id} className={`recipe-card${risk === 'allergy' ? ' allergy' : ''}`} onClick={() => setSelectedSafeRecipe(recipe)}>
                 <div className="recipe-image">
@@ -329,7 +329,7 @@ export const HomeScreen = ({ profile, recipes, fridge, publicRecipes, favoriteId
             {publicRecipes.slice(0, communityPage * COMMUNITY_PAGE_SIZE).map((recipe) => {
               const risk = recipeRisk(recipe, allergies, dislikes);
               const name = recipeDisplayName(recipe, lang);
-              const tag = recipe.tags?.[0] ?? (isEnglish ? 'recipe' : 'рецепта');
+              const tag = localizeMealTag(recipe.tags?.[0], isEnglish, isEnglish ? 'recipe' : 'рецепта');
               return (
                 <div key={recipe.id} className={`recipe-card${risk === 'allergy' ? ' allergy' : ''}`} onClick={() => setSelectedRecipe(recipe)}>
                   <div className="recipe-image">

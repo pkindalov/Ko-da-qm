@@ -33,6 +33,15 @@ export const mealsFromTags = (tags: string[] | undefined): MealType[] => {
   return MEAL_ORDER.filter((meal) => found.has(meal));
 };
 
+// When editing, parseRecipeForm rebuilds tags from the meal picker alone.
+// Preserve any non-meal tags the recipe already carried (e.g. a future
+// "vegetarian") so an edit doesn't silently drop them. Meal tags stay first so
+// the card label keeps showing the meal.
+export const mergeMealTags = (newMealTags: string[], existingTags: string[] | undefined): string[] => {
+  const nonMealTags = (existingTags ?? []).filter((tag) => mealsFromTags([tag]).length === 0);
+  return [...newMealTags, ...nonMealTags];
+};
+
 export interface RecipeFormData {
   name: string;
   emoji: string;

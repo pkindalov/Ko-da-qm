@@ -7,7 +7,7 @@ import './UserProfilePage.css';
 import { Badge } from '../../../shared/components/Badge';
 import { useLocalStorage } from '../../../shared/hooks/useLocalStorage';
 import { useUserProfile } from '../hooks/useUserProfile';
-import { recipeDisplayName } from '../../../shared/utils/recipeDisplayName';
+import { recipeDisplayName, localizeMealTag } from '../../../shared/utils/recipeDisplayName';
 import { useRecipeFavoriteCounts } from '../hooks/useRecipeFavoriteCounts';
 import { useFavorites } from '../../recipes/hooks/useFavorites';
 import { useFollows } from '../../feed/hooks/useFollows';
@@ -98,7 +98,7 @@ export const UserProfilePage = () => {
             <div className="grid-3">
               {recipes.map((recipe) => {
                 const name = recipeDisplayName(recipe, tweaks.lang);
-                const tag = recipe.tags?.[0] ?? (isEnglish ? 'recipe' : 'рецепта');
+                const tag = localizeMealTag(recipe.tags?.[0], isEnglish, isEnglish ? 'recipe' : 'рецепта');
                 const count = favoriteCounts[recipe.id] ?? 0;
                 return (
                   <div key={recipe.id} className="recipe-card" onClick={() => setSelectedRecipe(recipe)}>

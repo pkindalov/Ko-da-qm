@@ -6,7 +6,7 @@ import { Modal } from '../../../shared/components/Modal';
 import './FeedScreen.css';
 import { RecipeDetailView } from '../../../shared/components/RecipeDetailView';
 import { recipeRisk } from '../../../shared/utils/recipeUtils';
-import { recipeDisplayName } from '../../../shared/utils/recipeDisplayName';
+import { recipeDisplayName, localizeMealTag } from '../../../shared/utils/recipeDisplayName';
 import { useFavorites } from '../../recipes/hooks/useFavorites';
 import { useFollows } from '../hooks/useFollows';
 import { useFeedRecipes } from '../hooks/useFeedRecipes';
@@ -101,7 +101,7 @@ export const FeedScreen = ({ lang, allergies, dislikes }: FeedScreenProps) => {
           const risk = recipeRisk(recipe, allergies, dislikes);
           const isFavorited = favoriteIds.includes(recipe.id);
           const name = recipeDisplayName(recipe, lang);
-          const tag = recipe.tags?.[0] ?? (isEnglish ? 'recipe' : 'рецепта');
+          const tag = localizeMealTag(recipe.tags?.[0], isEnglish, isEnglish ? 'recipe' : 'рецепта');
 
           return (
             <div

@@ -8,8 +8,8 @@ import { EmptyState } from '../../../shared/components/EmptyState';
 import { RecipeDetailView } from '../../../shared/components/RecipeDetailView';
 import { searchDatabase } from '../../fridge/utils/matchFromFridge';
 import { isSafe, recipeRisk } from '../../../shared/utils/recipeUtils';
-import { recipeDisplayName } from '../../../shared/utils/recipeDisplayName';
-import { parseRecipeForm, mealsFromTags, type MealType } from '../utils/recipeForm';
+import { recipeDisplayName, localizeMealTag } from '../../../shared/utils/recipeDisplayName';
+import { parseRecipeForm, mealsFromTags, mergeMealTags, type MealType } from '../utils/recipeForm';
 import type { Recipe, Profile, Language, Product, FridgeItem } from '../../../shared/types';
 
 interface RecipesScreenProps {
@@ -161,7 +161,8 @@ export const RecipesScreen = ({ recipes, addRecipe, removeRecipe, updateRecipe, 
     if (editingId) {
       const existing = recipes.find(recipe => recipe.id === editingId);
       if (existing) {
-        updateRecipe({ ...existing, ...parsed, id: editingId });
+        const tags = mergeMealTags(parsed.tags, existing.tags);
+        updateRecipe({ ...existing, ...parsed, tags, id: editingId });
         toast.success(lang === 'en' ? 'Recipe updated!' : 'Рецептата е обновена!');
       }
     } else {
@@ -250,7 +251,7 @@ export const RecipesScreen = ({ recipes, addRecipe, removeRecipe, updateRecipe, 
                   {favoriteRecipes.map((recipe) => {
                     const risk = recipeRisk(recipe, allergies, dislikes);
                     const name = recipeDisplayName(recipe, lang);
-                    const tag = recipe.tags?.[0] ?? (lang === 'en' ? 'recipe' : 'рецепта');
+                    const tag = localizeMealTag(recipe.tags?.[0], lang === 'en', lang === 'en' ? 'recipe' : 'рецепта');
                     return (
                       <div key={recipe.id} className={`recipe-card${risk === 'allergy' ? ' allergy' : ''}`} onClick={() => setFavoriteDetail(recipe)}>
                         <div className="recipe-image">
@@ -295,7 +296,7 @@ export const RecipesScreen = ({ recipes, addRecipe, removeRecipe, updateRecipe, 
               {filtered.map((recipe) => {
                 const risk = recipeRisk(recipe, allergies, dislikes);
                 const name = recipeDisplayName(recipe, lang);
-                const tag = recipe.tags?.[0] ?? (lang === 'en' ? 'recipe' : 'рецепта');
+                const tag = localizeMealTag(recipe.tags?.[0], lang === 'en', lang === 'en' ? 'recipe' : 'рецепта');
                 return (
                   <div key={recipe.id} className={`recipe-card${risk === 'allergy' ? ' allergy' : ''}`} onClick={() => setDetail(recipe.id)}>
                     <div className="recipe-image">

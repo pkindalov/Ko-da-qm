@@ -1,6 +1,6 @@
 import { useState, lazy, Suspense } from 'react';
 import { useLocalStorage } from '../../../shared/hooks/useLocalStorage';
-import { recipeDisplayName } from '../../../shared/utils/recipeDisplayName';
+import { recipeDisplayName, localizeMealTag } from '../../../shared/utils/recipeDisplayName';
 import type { Recipe, Profile, Language } from '../../../shared/types';
 import './CookbookScreen.css';
 
@@ -175,7 +175,7 @@ export const CookbookScreen = ({ recipes, favoriteIds, profile, lang }: Cookbook
                 <div className="recipe-body">
                   <div className="recipe-name italic">{displayName}</div>
                   <div className="recipe-meta">
-                    {r.tags?.[0] ?? (isEnglish ? 'recipe' : 'рецепта')} · {r.time} {isEnglish ? 'min' : 'мин'} · {(r.requiredIngredients ?? []).length} {isEnglish ? 'ings' : 'съст.'}
+                    {localizeMealTag(r.tags?.[0], isEnglish, isEnglish ? 'recipe' : 'рецепта')} · {r.time} {isEnglish ? 'min' : 'мин'} · {(r.requiredIngredients ?? []).length} {isEnglish ? 'ings' : 'съст.'}
                   </div>
                 </div>
               </article>

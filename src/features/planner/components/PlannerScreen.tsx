@@ -4,6 +4,7 @@ import { RecipeDetailView } from '../../../shared/components/RecipeDetailView';
 import type { Recipe, FridgeItem, Product, Profile, Language } from '../../../shared/types';
 import { planWithGemini } from '../utils/planWithGemini';
 import { useLocalStorage } from '../../../shared/hooks/useLocalStorage';
+import { localizeMealTag } from '../../../shared/utils/recipeDisplayName';
 import './PlannerScreen.css';
 
 type PlannerData = Record<string, Record<string, string>>;
@@ -162,7 +163,7 @@ const PickerModal = ({ recipes, lang, blocked, dayName, mealName, onClose, onPic
               <div className="drawer-recipe-text">
                 <div className="drawer-recipe-name">{isEn && r.nameEn != null ? r.nameEn : r.name}</div>
                 <div className="drawer-recipe-meta">
-                  {r.time} {isEn ? 'MIN' : 'МИН'} · {r.tags?.[0] ?? (isEn ? 'recipe' : 'рецепта')}
+                  {r.time} {isEn ? 'MIN' : 'МИН'} · {localizeMealTag(r.tags?.[0], isEn, isEn ? 'recipe' : 'рецепта')}
                 </div>
               </div>
             </button>
@@ -904,7 +905,7 @@ export const PlannerScreen = ({ recipes, fridge, products = [], profile, lang, p
                         {isEn && r.nameEn != null ? r.nameEn : r.name}
                       </div>
                       <div className="drawer-recipe-meta">
-                        {r.time} {isEn ? 'MIN' : 'МИН'} · {r.tags?.[0] ?? (isEn ? 'recipe' : 'рецепта')}
+                        {r.time} {isEn ? 'MIN' : 'МИН'} · {localizeMealTag(r.tags?.[0], isEn, isEn ? 'recipe' : 'рецепта')}
                       </div>
                     </div>
                     <div className="drawer-recipe-grip">::</div>
