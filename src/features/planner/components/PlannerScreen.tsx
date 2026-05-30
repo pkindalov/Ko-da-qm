@@ -46,6 +46,17 @@ const MEALS_TOTAL = 21;
 
 const ALL_SLOT_KEYS = Array.from({ length: 7 }, (_, d) => MEALS.map(m => `${d}_${m.id}`)).flat();
 
+// Which meal slots Gemini is allowed to fill, shown as the scope chips + used
+// in the "Replace all …?" confirm copy.
+const SCOPE_LABELS: Record<DrawerFilter, { chip: { en: string; bg: string }; target: { en: string; bg: string } }> = {
+  all:       { chip: { en: 'All',       bg: 'Всички'  }, target: { en: 'the whole week', bg: 'цялата седмица' } },
+  breakfast: { chip: { en: 'Breakfast', bg: 'Закуска' }, target: { en: 'all breakfasts', bg: 'всички закуски' } },
+  lunch:     { chip: { en: 'Lunch',     bg: 'Обяд'    }, target: { en: 'all lunches',    bg: 'всички обеди'  } },
+  dinner:    { chip: { en: 'Dinner',    bg: 'Вечеря'  }, target: { en: 'all dinners',    bg: 'всички вечери' } },
+};
+
+const SCOPE_ORDER: DrawerFilter[] = ['all', 'breakfast', 'lunch', 'dinner'];
+
 // ── PickerModal ────────────────────────────────────────────────────────────────
 
 interface PickerModalProps {
@@ -330,6 +341,7 @@ export const PlannerScreen = ({ recipes, fridge, products = [], profile, lang, p
   const [drawerQuery, setDrawerQuery] = useState('');
   const [drawerFilter, setDrawerFilter] = useState<DrawerFilter>('all');
   const [previewSuggestion, setPreviewSuggestion] = useState<Recipe | null>(null);
+  const [planScope, setPlanScope] = useState<DrawerFilter>('all');
 
   // Recipes the user can pick from: their own explicit recipes + favorites (deduped)
   const pickableRecipes = useMemo(() => {
@@ -427,43 +439,61 @@ export const PlannerScreen = ({ recipes, fridge, products = [], profile, lang, p
       const { plan, newRecipes } = await planWithGemini(recipes, fridge, products, blocked, liked, profile.dietaryPrefs, lang, scheduledNames);
       if (Object.keys(plan).length === 0) return;
 
-      // Every re-plan discards the previous batch of suggestions and keeps only
-      // the fresh one — suggestions are never persisted until the user saves.
+      // Every re-plan discards the previous batch of suggestions; below we keep
+      // only the freshly-invented recipes that actually land on the calendar.
       const discardedIds = new Set(transientRecipes.map(r => r.id));
-      setTransientRecipes(newRecipes);
+      const inScope = (slot: string) => planScope === 'all' || slot.endsWith(`_${planScope}`);
+
+      // Build the new current-week plan, honoring the meal scope and the mode.
+      const baseWeek = Object.fromEntries(
+        Object.entries(weekData).filter(([, id]) => !discardedIds.has(id)),
+      );
+      let nextWeek: Record<string, string>;
+      if (overwrite && planScope === 'all') {
+        nextWeek = { ...plan };
+      } else if (overwrite) {
+        // Replace just this meal type: clear its slots, then fill from the plan.
+        nextWeek = Object.fromEntries(Object.entries(baseWeek).filter(([slot]) => !inScope(slot)));
+        for (const [slot, id] of Object.entries(plan)) {
+          if (inScope(slot)) nextWeek[slot] = id;
+        }
+      } else {
+        // Fill only the empty in-scope slots, leaving everything else as-is.
+        nextWeek = { ...baseWeek };
+        for (const [slot, id] of Object.entries(plan)) {
+          if (inScope(slot) && !nextWeek[slot]) nextWeek[slot] = id;
+        }
+      }
+
+      const placedIds = new Set(Object.values(nextWeek));
+      setTransientRecipes(newRecipes.filter(r => placedIds.has(r.id)));
 
       setPlanner(prev => {
-        // Drop slots that held now-discarded suggestions from every week first.
+        // Drop now-discarded suggestions from the other weeks too.
         const stripped: PlannerData = {};
         for (const [wk, slots] of Object.entries(prev)) {
+          if (wk === weekKey) continue;
           stripped[wk] = Object.fromEntries(
             Object.entries(slots).filter(([, id]) => !discardedIds.has(id)),
           );
         }
-        if (overwrite) {
-          stripped[weekKey] = plan;
-        } else {
-          const merged = { ...(stripped[weekKey] ?? {}) };
-          for (const [slot, id] of Object.entries(plan)) {
-            if (!merged[slot]) merged[slot] = id;
-          }
-          stripped[weekKey] = merged;
-        }
+        stripped[weekKey] = nextWeek;
         return stripped;
       });
     } finally {
       setPlanningLoading(false);
     }
-  }, [canPlanWithGemini, recipes, fridge, products, blocked, liked, profile.dietaryPrefs, lang, assignedRecipes, isEn, weekKey, setPlanner, transientRecipes, setTransientRecipes]);
+  }, [canPlanWithGemini, recipes, fridge, products, blocked, liked, profile.dietaryPrefs, lang, assignedRecipes, isEn, weekKey, weekData, planScope, setPlanner, transientRecipes, setTransientRecipes]);
 
   const handlePlanWithGemini = useCallback(() => {
-    const emptyCount = ALL_SLOT_KEYS.filter(s => !weekData[s]).length;
-    if (emptyCount === 0) {
+    const scopeSlots = planScope === 'all' ? ALL_SLOT_KEYS : ALL_SLOT_KEYS.filter(s => s.endsWith(`_${planScope}`));
+    const emptyInScope = scopeSlots.filter(s => !weekData[s]).length;
+    if (emptyInScope === 0) {
       setOverwriteConfirmOpen(true);
     } else {
       doGeminiPlan(false);
     }
-  }, [weekData, doGeminiPlan]);
+  }, [planScope, weekData, doGeminiPlan]);
 
   const fridgeNames = useMemo(() => fridge.map(f => f.name.toLowerCase()), [fridge]);
 
@@ -583,6 +613,22 @@ export const PlannerScreen = ({ recipes, fridge, products = [], profile, lang, p
               </button>
             )}
           </div>
+          {canPlanWithGemini && (
+            <div className="plan-scope">
+              <span className="plan-scope-label">{isEn ? 'Gemini fills' : 'Gemini попълва'}</span>
+              <div className="plan-scope-chips">
+                {SCOPE_ORDER.map(scope => (
+                  <button
+                    key={scope}
+                    className={`drawer-chip${planScope === scope ? ' on' : ''}`}
+                    onClick={() => setPlanScope(scope)}
+                  >
+                    {isEn ? SCOPE_LABELS[scope].chip.en : SCOPE_LABELS[scope].chip.bg}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -945,12 +991,14 @@ export const PlannerScreen = ({ recipes, fridge, products = [], profile, lang, p
       {overwriteConfirmOpen && (
         <Modal open onClose={() => setOverwriteConfirmOpen(false)}>
           <div className="picker-modal-title">
-            {isEn ? 'Replace the whole week?' : 'Замени цялата седмица?'}
+            {isEn
+              ? `Replace ${SCOPE_LABELS[planScope].target.en}?`
+              : `Замени ${SCOPE_LABELS[planScope].target.bg}?`}
           </div>
           <div className="picker-modal-sub">
             {isEn
-              ? 'All current recipes will be replaced with new Gemini suggestions.'
-              : 'Всички текущи рецепти ще бъдат заменени с нови предложения от Gemini.'}
+              ? 'The current recipes in those slots will be replaced with new Gemini suggestions.'
+              : 'Текущите рецепти в тези клетки ще бъдат заменени с нови предложения от Gemini.'}
           </div>
           <div className="shop-modal-footer">
             <button className="btn btn-secondary btn-sm" onClick={() => setOverwriteConfirmOpen(false)}>
@@ -960,7 +1008,9 @@ export const PlannerScreen = ({ recipes, fridge, products = [], profile, lang, p
               className="btn btn-primary btn-sm"
               onClick={() => { setOverwriteConfirmOpen(false); doGeminiPlan(true); }}
             >
-              {isEn ? 'Re-plan everything' : 'Нов план за всичко'}
+              {isEn
+                ? `Re-plan ${SCOPE_LABELS[planScope].target.en}`
+                : `Нов план за ${SCOPE_LABELS[planScope].target.bg}`}
             </button>
           </div>
         </Modal>

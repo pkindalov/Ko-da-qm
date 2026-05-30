@@ -462,7 +462,8 @@ describe('PlannerScreen – drawer search and filter', () => {
         makeRecipe({ id: 'r2', nameEn: 'Steak', tags: ['вечеря'] }),
       ],
     });
-    await user.click(screen.getByRole('button', { name: /^Breakfast$/i }));
+    const drawerChips = within(document.querySelector('.drawer-chips') as HTMLElement);
+    await user.click(drawerChips.getByRole('button', { name: /^Breakfast$/i }));
     expect(screen.getByText('Toast')).toBeInTheDocument();
     expect(screen.queryByText('Steak')).not.toBeInTheDocument();
   });
@@ -475,8 +476,9 @@ describe('PlannerScreen – drawer search and filter', () => {
         makeRecipe({ id: 'r2', nameEn: 'Steak', tags: ['вечеря'] }),
       ],
     });
-    await user.click(screen.getByRole('button', { name: /^Breakfast$/i }));
-    await user.click(screen.getByRole('button', { name: /^All$/i }));
+    const drawerChips = within(document.querySelector('.drawer-chips') as HTMLElement);
+    await user.click(drawerChips.getByRole('button', { name: /^Breakfast$/i }));
+    await user.click(drawerChips.getByRole('button', { name: /^All$/i }));
     expect(screen.getByText('Toast')).toBeInTheDocument();
     expect(screen.getByText('Steak')).toBeInTheDocument();
   });
@@ -601,6 +603,42 @@ describe('PlannerScreen – Gemini suggestions', () => {
     await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: /Add to my recipes/i }));
     expect(onSaveSuggestion).toHaveBeenCalledWith(expect.objectContaining({ id: 's1' }));
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+});
+
+// ── Gemini meal scope ──────────────────────────────────────────────────────────
+
+describe('PlannerScreen – Gemini meal scope', () => {
+  const getScopeChip = (label: RegExp) => {
+    const scope = screen.getByText(/Gemini fills/i).closest('.plan-scope') as HTMLElement;
+    return within(scope).getByRole('button', { name: label });
+  };
+
+  it('shows the Gemini scope chips when planning is possible', () => {
+    renderPlanner({ recipes: [makeRecipe({ id: 'r1' })] });
+    const scope = screen.getByText(/Gemini fills/i).closest('.plan-scope') as HTMLElement;
+    ['All', 'Breakfast', 'Lunch', 'Dinner'].forEach(label =>
+      expect(within(scope).getByRole('button', { name: new RegExp(`^${label}$`, 'i') })).toBeInTheDocument(),
+    );
+  });
+
+  it('scoping to Breakfast asks to replace only breakfasts when they are all full', async () => {
+    const user = userEvent.setup();
+    const breakfastFull = Object.fromEntries(Array.from({ length: 7 }, (_, d) => [`${d}_breakfast`, 'r1']));
+    renderPlanner({ recipes: [makeRecipe({ id: 'r1' })], planner: { [WEEK_KEY]: breakfastFull } });
+    await user.click(getScopeChip(/^Breakfast$/i));
+    await user.click(screen.getByRole('button', { name: /Plan with Gemini/i }));
+    expect(screen.getByText(/Replace all breakfasts\?/i)).toBeInTheDocument();
+  });
+
+  it('the default (All) scope asks to replace the whole week when every slot is full', async () => {
+    const user = userEvent.setup();
+    const fullWeek = Object.fromEntries(
+      Array.from({ length: 7 }, (_, d) => ['breakfast', 'lunch', 'dinner'].map(m => [`${d}_${m}`, 'r1'])).flat(),
+    );
+    renderPlanner({ recipes: [makeRecipe({ id: 'r1' })], planner: { [WEEK_KEY]: fullWeek } });
+    await user.click(screen.getByRole('button', { name: /Plan with Gemini/i }));
+    expect(screen.getByText(/Replace the whole week\?/i)).toBeInTheDocument();
   });
 });
 

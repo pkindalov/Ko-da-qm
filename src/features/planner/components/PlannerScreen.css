@@ -1008,6 +1008,27 @@
   gap: 8px;
 }
 
+.plan-scope {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.plan-scope-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.plan-scope-chips {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
 .topbar {
   flex-wrap: wrap;
 }
