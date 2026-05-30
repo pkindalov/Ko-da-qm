@@ -595,6 +595,32 @@ describe('PlannerScreen – recipe source filter', () => {
     expect(drawerNames()).not.toContain('My Dish');
   });
 
+  it('still shows own recipes if "Favorites" was selected and the favorites then disappear', async () => {
+    const user = userEvent.setup();
+    const { rerender } = renderPlanner({
+      recipes: [makeRecipe({ id: 'r1', nameEn: 'My Dish' })],
+      favoriteRecipes: [makeRecipe({ id: 'f1', nameEn: 'Fav Dish' })],
+    });
+    await user.click(within(sourceRow() as HTMLElement).getByRole('button', { name: /^Favorites$/i }));
+    expect(drawerNames()).toEqual(['Fav Dish']);
+    // Favorites vanish (e.g. unfavorited elsewhere) — the toggle hides, but the
+    // drawer must fall back to showing the user's own recipes, not go empty.
+    rerender(
+      <PlannerScreen
+        recipes={[makeRecipe({ id: 'r1', nameEn: 'My Dish' })]}
+        fridge={[]}
+        products={[]}
+        profile={defaultProfile}
+        lang="en"
+        planner={{}}
+        setPlanner={vi.fn()}
+        favoriteRecipes={[]}
+      />,
+    );
+    expect(sourceRow()).toBeNull();
+    expect(drawerNames()).toContain('My Dish');
+  });
+
   it('counts shown / total-pickable, so the numerator never exceeds the denominator', () => {
     renderPlanner({
       recipes: [makeRecipe({ id: 'r1', nameEn: 'My Dish' })],

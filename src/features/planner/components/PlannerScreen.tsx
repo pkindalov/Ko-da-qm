@@ -444,10 +444,13 @@ export const PlannerScreen = ({ recipes, fridge, products = [], profile, lang, p
   const hasFavoriteRecipes = useMemo(() => pickableRecipes.some(r => !mineIds.has(r.id)), [pickableRecipes, mineIds]);
 
   const matchesSource = useCallback((r: Recipe) => {
-    if (sourceFilter === 'all') return true;
+    // When the toggle isn't shown (no favorites), don't filter — otherwise a
+    // sourceFilter left on 'favorites' would empty the drawer with no chip to
+    // switch back to 'mine'.
+    if (sourceFilter === 'all' || !hasFavoriteRecipes) return true;
     const isMine = mineIds.has(r.id);
     return sourceFilter === 'mine' ? isMine : !isMine;
-  }, [sourceFilter, mineIds]);
+  }, [sourceFilter, hasFavoriteRecipes, mineIds]);
 
   const filteredRecipes = useMemo(
     () => pickableRecipes.filter(r => matchesSource(r) && matchesDrawer(r)),
