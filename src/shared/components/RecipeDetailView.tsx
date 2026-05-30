@@ -10,6 +10,10 @@ import { openGoogleTranslate } from '../utils/openGoogleTranslate';
 import { localizeMealTag } from '../utils/recipeDisplayName';
 import type { Recipe, FridgeItem, Language } from '../types';
 
+// Any Cyrillic letter — used to tell whether the content on screen is already in
+// Bulgarian, since the recipe data carries no explicit source-language field.
+const CYRILLIC_PATTERN = /[Ѐ-ӿ]/;
+
 interface RecipeDetailViewProps {
   recipe: Recipe;
   allergies: string[];
@@ -62,7 +66,11 @@ export const RecipeDetailView = ({
   const hasTranslation = recipe.ingredientsTranslated != null && recipe.ingredientsTranslated.length > 0;
   const [showTranslated, setShowTranslated] = useState(lang === 'bg' && hasTranslation);
 
-  const showTranslateButton = lang === 'bg' && !recipe.isAI && recipe.nameEn != null && recipe.nameEn !== '';
+  // nameEn is set on Bulgarian recipes too (as an internal English match-key), so
+  // it can't indicate language. Treat a recipe as English-source — and therefore
+  // translatable to Bulgarian — only when its original name has no Cyrillic.
+  const isEnglishSourceRecipe = !CYRILLIC_PATTERN.test(recipe.name);
+  const showTranslateButton = lang === 'bg' && !recipe.isAI && recipe.nameEn != null && recipe.nameEn !== '' && isEnglishSourceRecipe;
 
   const handleTranslate = async () => {
     const { clipboardUsed } = await openGoogleTranslate(recipe);
@@ -80,6 +88,10 @@ export const RecipeDetailView = ({
   const displaySteps = lang === 'bg' && showTranslated && recipe.stepsTranslated
     ? recipe.stepsTranslated
     : recipe.steps;
+
+  // Even for an English-source recipe, hide "Преведи" while its saved Bulgarian
+  // translation is the one on screen (the "Превод" tab) — there's nothing to translate.
+  const displayedInBulgarian = CYRILLIC_PATTERN.test(displayName);
 
   return (
     <div className="fade-in">
@@ -150,7 +162,7 @@ export const RecipeDetailView = ({
               </button>
             </div>
           )}
-          {showTranslateButton && (
+          {showTranslateButton && !displayedInBulgarian && (
             <button className="btn btn-ghost btn-sm mt-2" onClick={handleTranslate}>
               🌐 Преведи на български
             </button>

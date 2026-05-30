@@ -68,6 +68,32 @@ describe('RecipeDetailView – translate button visibility', () => {
     render(<RecipeDetailView {...defaultProps({ recipe: makeRecipe({ nameEn: '' }) })} />);
     expect(screen.queryByRole('button', { name: /Преведи на български/i })).not.toBeInTheDocument();
   });
+
+  it('does not show translate button for a Bulgarian recipe that carries nameEn for matching', () => {
+    const bgRecipe = makeRecipe({ name: 'Топли филийки с кашкавал', nameEn: 'Warm cheese toasts' });
+    render(<RecipeDetailView {...defaultProps({ recipe: bgRecipe })} />);
+    expect(screen.queryByRole('button', { name: /Преведи на български/i })).not.toBeInTheDocument();
+  });
+
+  it('does not show the save-translation button for a Bulgarian recipe carrying nameEn', () => {
+    const onSaveTranslation = vi.fn().mockResolvedValue(undefined);
+    const bgRecipe = makeRecipe({ name: 'Топли филийки с кашкавал', nameEn: 'Warm cheese toasts' });
+    render(<RecipeDetailView {...defaultProps({ isOwner: true, onSaveTranslation, recipe: bgRecipe })} />);
+    expect(screen.queryByRole('button', { name: /Запази превод/i })).not.toBeInTheDocument();
+  });
+
+  it('hides the translate button when a saved Bulgarian translation is shown (defaults to Превод)', () => {
+    render(<RecipeDetailView {...defaultProps({ recipe: makeTranslatedRecipe() })} />);
+    expect(screen.queryByRole('button', { name: /Преведи на български/i })).not.toBeInTheDocument();
+  });
+
+  it('shows the translate button again after switching to the English Оригинал', async () => {
+    const user = userEvent.setup();
+    render(<RecipeDetailView {...defaultProps({ recipe: makeTranslatedRecipe() })} />);
+    expect(screen.queryByRole('button', { name: /Преведи на български/i })).not.toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Оригинал' }));
+    expect(screen.getByRole('button', { name: /Преведи на български/i })).toBeInTheDocument();
+  });
 });
 
 describe('RecipeDetailView – save translation button', () => {
