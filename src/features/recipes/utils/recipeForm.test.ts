@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parseRecipeForm } from './recipeForm';
+import { parseRecipeForm, mealsFromTags } from './recipeForm';
 
 describe('parseRecipeForm', () => {
   it('returns null for empty name', () => {
@@ -76,5 +76,80 @@ describe('parseRecipeForm', () => {
   it('sets isPublic to false when form flag is false', () => {
     const result = parseRecipeForm({ name: 'Тест', emoji: '🍳', time: '10', ingredients: '', steps: '', isPublic: false });
     expect(result?.isPublic).toBe(false);
+  });
+
+  it('defaults tags to an empty array when meals are omitted (back-compat)', () => {
+    const result = parseRecipeForm({ name: 'Тест', emoji: '🍳', time: '10', ingredients: '', steps: '' });
+    expect(result?.tags).toEqual([]);
+  });
+
+  it('maps a single selected meal to its EN id tag', () => {
+    const result = parseRecipeForm({ name: 'Тест', emoji: '🍳', time: '10', ingredients: '', steps: '', meals: ['breakfast'] });
+    expect(result?.tags).toEqual(['breakfast']);
+  });
+
+  it('maps multiple selected meals to their EN id tags', () => {
+    const result = parseRecipeForm({ name: 'Тест', emoji: '🍳', time: '10', ingredients: '', steps: '', meals: ['breakfast', 'dinner'] });
+    expect(result?.tags).toEqual(['breakfast', 'dinner']);
+  });
+
+  it('emits tags in canonical order regardless of selection order', () => {
+    const result = parseRecipeForm({ name: 'Тест', emoji: '🍳', time: '10', ingredients: '', steps: '', meals: ['dinner', 'breakfast', 'lunch'] });
+    expect(result?.tags).toEqual(['breakfast', 'lunch', 'dinner']);
+  });
+
+  it('deduplicates repeated meal selections', () => {
+    const result = parseRecipeForm({ name: 'Тест', emoji: '🍳', time: '10', ingredients: '', steps: '', meals: ['lunch', 'lunch'] });
+    expect(result?.tags).toEqual(['lunch']);
+  });
+
+  it('produces an empty tags array for an empty meals array', () => {
+    const result = parseRecipeForm({ name: 'Тест', emoji: '🍳', time: '10', ingredients: '', steps: '', meals: [] });
+    expect(result?.tags).toEqual([]);
+  });
+
+  it('stores the same tag vocabulary Gemini uses (EN ids)', () => {
+    const result = parseRecipeForm({ name: 'Тест', emoji: '🍳', time: '10', ingredients: '', steps: '', meals: ['breakfast', 'lunch', 'dinner'] });
+    expect(result?.tags).toEqual(['breakfast', 'lunch', 'dinner']);
+  });
+});
+
+describe('mealsFromTags', () => {
+  it('returns an empty array for undefined tags', () => {
+    expect(mealsFromTags(undefined)).toEqual([]);
+  });
+
+  it('returns an empty array for an empty tag list', () => {
+    expect(mealsFromTags([])).toEqual([]);
+  });
+
+  it('recognizes EN meal ids (the format Gemini and the form both store)', () => {
+    expect(mealsFromTags(['breakfast', 'dinner'])).toEqual(['breakfast', 'dinner']);
+  });
+
+  it('recognizes legacy BG meal words', () => {
+    expect(mealsFromTags(['закуска', 'вечеря'])).toEqual(['breakfast', 'dinner']);
+  });
+
+  it('is case-insensitive for both id and BG forms', () => {
+    expect(mealsFromTags(['Закуска', 'DINNER'])).toEqual(['breakfast', 'dinner']);
+  });
+
+  it('ignores non-meal tags', () => {
+    expect(mealsFromTags(['vegetarian', 'quick'])).toEqual([]);
+  });
+
+  it('returns meals in canonical order regardless of tag order', () => {
+    expect(mealsFromTags(['вечеря', 'закуска'])).toEqual(['breakfast', 'dinner']);
+  });
+
+  it('deduplicates when a recipe carries both the EN id and its BG word', () => {
+    expect(mealsFromTags(['breakfast', 'закуска'])).toEqual(['breakfast']);
+  });
+
+  it('round-trips with parseRecipeForm', () => {
+    const meals = ['breakfast', 'dinner'] as const;
+    const result = parseRecipeForm({ name: 'Тест', emoji: '🍳', time: '10', ingredients: '', steps: '', meals: [...meals] });
+    expect(mealsFromTags(result?.tags)).toEqual([...meals]);
   });
 });

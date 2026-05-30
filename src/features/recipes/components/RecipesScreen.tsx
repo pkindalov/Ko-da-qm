@@ -9,7 +9,7 @@ import { RecipeDetailView } from '../../../shared/components/RecipeDetailView';
 import { searchDatabase } from '../../fridge/utils/matchFromFridge';
 import { isSafe, recipeRisk } from '../../../shared/utils/recipeUtils';
 import { recipeDisplayName } from '../../../shared/utils/recipeDisplayName';
-import { parseRecipeForm } from '../utils/recipeForm';
+import { parseRecipeForm, mealsFromTags, type MealType } from '../utils/recipeForm';
 import type { Recipe, Profile, Language, Product, FridgeItem } from '../../../shared/types';
 
 interface RecipesScreenProps {
@@ -36,10 +36,17 @@ interface RecipeFormState {
   ingredients: string;
   steps: string;
   isPublic: boolean;
+  meals: MealType[];
 }
 
-const EMPTY_FORM: RecipeFormState = { name: '', emoji: '🍽', time: '', ingredients: '', steps: '', isPublic: false };
+const EMPTY_FORM: RecipeFormState = { name: '', emoji: '🍽', time: '', ingredients: '', steps: '', isPublic: false, meals: [] };
 const PAGE_SIZE = 5;
+
+const MEAL_OPTIONS: { id: MealType; en: string; bg: string }[] = [
+  { id: 'breakfast', en: 'Breakfast', bg: 'Закуска' },
+  { id: 'lunch',     en: 'Lunch',     bg: 'Обяд'    },
+  { id: 'dinner',    en: 'Dinner',    bg: 'Вечеря'  },
+];
 
 export const RecipesScreen = ({ recipes, addRecipe, removeRecipe, updateRecipe, favoriteRecipes, favoriteIds, onToggleFavorite, products, profile, lang, userEmail, fridge, openRecipeId, onRecipeOpened }: RecipesScreenProps) => {
   const [detail, setDetail] = useState<string | null>(null);
@@ -100,9 +107,17 @@ export const RecipesScreen = ({ recipes, addRecipe, removeRecipe, updateRecipe, 
       ingredients: recipe.ingredients.join('\n'),
       steps: recipe.steps.join('\n'),
       isPublic: recipe.isPublic,
+      meals: mealsFromTags(recipe.tags),
     });
     setEditingId(recipe.id);
     setAddOpen(true);
+  };
+
+  const toggleMeal = (meal: MealType) => {
+    setForm(prev => ({
+      ...prev,
+      meals: prev.meals.includes(meal) ? prev.meals.filter(m => m !== meal) : [...prev.meals, meal],
+    }));
   };
 
   const appendIngredient = (name: string) => {
@@ -337,6 +352,20 @@ export const RecipesScreen = ({ recipes, addRecipe, removeRecipe, updateRecipe, 
         <div className="recipe-form-mb">
           <label className="input-label">{lang === 'en' ? 'Time (min)' : 'Време (мин)'}</label>
           <input className="input-field" type="number" value={form.time} onChange={(e) => setForm({ ...form, time: e.target.value })} placeholder="15" />
+        </div>
+        <div className="recipe-form-mb">
+          <label className="input-label">{lang === 'en' ? 'Meal type (optional)' : 'Вид хранене (по избор)'}</label>
+          <div className="tag-list">
+            {MEAL_OPTIONS.map(meal => (
+              <button
+                key={meal.id}
+                className={`chip${form.meals.includes(meal.id) ? ' selected' : ''}`}
+                onClick={() => toggleMeal(meal.id)}
+              >
+                {lang === 'en' ? meal.en : meal.bg}
+              </button>
+            ))}
+          </div>
         </div>
         <div className="recipe-form-mb">
           <label className="input-label" htmlFor="recipe-form-ingredients">{lang === 'en' ? 'Ingredients (one per line)' : 'Съставки (по един ред)'}</label>
