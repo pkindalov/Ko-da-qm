@@ -3,11 +3,13 @@ import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../../../lib/supabase';
 import { useLang } from '../../../shared/hooks/useLang';
 import { translations } from '../../../shared/i18n/translations';
+import { KofiModal } from '../../../shared/components/KofiModal';
 import './LandingPage.css';
 
 export const LandingPage = () => {
   const navigate = useNavigate();
   const [checking, setChecking] = useState(true);
+  const [kofiOpen, setKofiOpen] = useState(false);
   const [lang, toggleLang] = useLang();
   const t = translations.landing[lang];
 
@@ -116,8 +118,10 @@ export const LandingPage = () => {
 
       <footer className="landing-footer">
         <span>{t.appName} © 2025</span>
+        <button className="landing-footer-support" onClick={() => setKofiOpen(true)}>{t.supportKofi}</button>
         <span>{t.footerTagline}</span>
       </footer>
+      <KofiModal open={kofiOpen} onClose={() => setKofiOpen(false)} lang={lang} />
     </div>
   );
 };

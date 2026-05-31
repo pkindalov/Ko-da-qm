@@ -306,6 +306,42 @@ a {
   background: var(--paper-2);
 }
 
+.sidebar-kofi {
+  display: block;
+  text-align: center;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: var(--r-xs);
+  margin-top: 2px;
+  width: 100%;
+}
+.sidebar-kofi:hover {
+  color: var(--ink);
+  background: var(--paper-2);
+}
+
+.modal-kofi {
+  padding: 0;
+  overflow: hidden;
+  max-width: 480px;
+  height: min(700px, 88dvh);
+  display: flex;
+  flex-direction: column;
+}
+.kofi-iframe {
+  border: none;
+  width: 100%;
+  flex: 1;
+  display: block;
+}
+
 .main-content {
   min-height: 100dvh;
   padding: 48px 64px 96px;

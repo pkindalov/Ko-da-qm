@@ -1,7 +1,9 @@
+import { useState } from 'react';
 import type { JSX } from 'react';
 import type { Tab, Language, Profile, Notification } from '../../shared/types';
 import { NotificationBell } from '../../features/notifications/components/NotificationBell';
 import { HomeIcon, FeedIcon, FridgeIcon, RecipesIcon, CookbookIcon, ProductsIcon, ProfileIcon, PlannerIcon } from './NavIcons';
+import { KofiModal } from '../../shared/components/KofiModal';
 
 interface NavItem {
   id: Tab;
@@ -43,6 +45,7 @@ interface SidebarProps {
 }
 
 export const Sidebar = ({ tab, setTab, lang, profile, tweaksOpen, onTweaksToggle, onLangToggle, onLogout, onUserClick, notifications, unreadCount, onMarkAsRead, onMarkAllAsRead, onMarkAsUnread, onMarkAllAsUnread, onDeleteNotification, onDeleteAll, onEntityClick }: SidebarProps) => {
+  const [kofiOpen, setKofiOpen] = useState(false);
   const userInitial = (profile.name || 'К').trim().charAt(0).toUpperCase();
   const filterCount = profile.allergies.length + profile.dislikes.length;
 
@@ -90,6 +93,10 @@ export const Sidebar = ({ tab, setTab, lang, profile, tweaksOpen, onTweaksToggle
           <button onClick={onLangToggle}>{lang === 'bg' ? 'EN' : 'BG'}</button>
           <button className="logout" onClick={onLogout}>{lang === 'en' ? 'Log out' : 'Изход'}</button>
         </div>
+        <button className="sidebar-kofi" onClick={() => setKofiOpen(true)}>
+          {lang === 'en' ? 'Support ☕' : 'Подкрепи ☕'}
+        </button>
+        <KofiModal open={kofiOpen} onClose={() => setKofiOpen(false)} lang={lang} />
       </div>
     </aside>
   );

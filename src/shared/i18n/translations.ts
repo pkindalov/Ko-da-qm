@@ -29,6 +29,7 @@ export const translations = {
       ctaSub: 'Безплатно. Без усилие.',
       ctaBtn: 'Регистрирай се сега',
       footerTagline: 'За капризни хора 💛',
+      supportKofi: 'Подкрепи проекта ☕',
     },
     en: {
       appName: 'What-to-eat',
@@ -59,6 +60,7 @@ export const translations = {
       ctaSub: 'Free. Effortless.',
       ctaBtn: 'Register now',
       footerTagline: 'For picky eaters 💛',
+      supportKofi: 'Support this project ☕',
     },
   },
   auth: {
