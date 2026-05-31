@@ -108,6 +108,7 @@ export const RegisterScreen = () => {
   if (!sessionChecked) return null;
 
   if (awaitingConfirmation) {
+    const [confirmBefore, confirmAfter] = t.registerConfirmText(email).split(email);
     return (
       <div className="auth-page">
         <div className="auth-card">
@@ -118,7 +119,7 @@ export const RegisterScreen = () => {
           </div>
           <div className="auth-logo">{t.appName}</div>
           <p className="auth-sub">{t.registerCheckEmail}</p>
-          <p className="auth-confirm-text">{t.registerConfirmText(email)}</p>
+          <p className="auth-confirm-text">{confirmBefore}<strong>{email}</strong>{confirmAfter}</p>
           <p className="auth-switch auth-confirm-link">
             <Link to="/login">{t.registerConfirmBack}</Link>
           </p>
