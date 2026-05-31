@@ -136,7 +136,7 @@ export const RegisterScreen = () => {
             {lang === 'bg' ? 'EN' : 'BG'}
           </button>
         </div>
-        <div className="auth-logo">Ко-да-ям</div>
+        <div className="auth-logo">{t.appName}</div>
         <p className="auth-sub">{t.registerTitle}</p>
         <form onSubmit={handleSubmit} className="stack auth-form" noValidate>
           <div>
