@@ -1,10 +1,22 @@
 import type { Language } from '../types';
 
+// Any Cyrillic letter. Recipes carry no explicit language field, so we infer the
+// source language from the script of the (original) name: Cyrillic ⇒ Bulgarian.
+const CYRILLIC_PATTERN = /[Ѐ-ӿ]/;
+
+// The language a recipe was authored in. Prefer the stored value; fall back to
+// inferring it from the script of the original name (Cyrillic ⇒ Bulgarian) for
+// rows saved before source_lang existed.
+export const recipeSourceLang = (recipe: { name: string; sourceLang?: Language }): Language =>
+  recipe.sourceLang ?? (CYRILLIC_PATTERN.test(recipe.name) ? 'bg' : 'en');
+
 export const recipeDisplayName = (
-  recipe: { name: string; nameEn?: string; nameTranslated?: string },
+  recipe: { name: string; nameEn?: string; nameTranslated?: string; sourceLang?: Language },
   lang: Language,
 ): string => {
-  if (lang === 'bg' && recipe.nameTranslated) return recipe.nameTranslated;
+  // A saved translation lives in the language opposite the recipe's source, so
+  // prefer it whenever the reader's language isn't the source language.
+  if (lang !== recipeSourceLang(recipe) && recipe.nameTranslated) return recipe.nameTranslated;
   if (lang === 'en' && recipe.nameEn) return recipe.nameEn;
   return recipe.name;
 };

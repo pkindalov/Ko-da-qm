@@ -1,26 +1,31 @@
-const GOOGLE_TRANSLATE_BASE = 'https://translate.google.com/?sl=en&tl=bg&op=translate';
+import type { Language } from '../types';
+
 const URL_TEXT_LIMIT = 8000;
 
-export const openGoogleTranslate = async (recipe: {
-  name: string;
-  nameEn?: string | null;
-  ingredients: string[];
-  steps: string[];
-}): Promise<{ clipboardUsed: boolean }> => {
-  const name = recipe.nameEn ?? recipe.name;
-  const text = [name, ...recipe.ingredients, ...recipe.steps.map((step, i) => `${i + 1}. ${step}`)].join('\n');
+export const openGoogleTranslate = async (
+  recipe: {
+    name: string;
+    ingredients: string[];
+    steps: string[];
+  },
+  sourceLang: Language = 'en',
+  targetLang: Language = 'bg',
+): Promise<{ clipboardUsed: boolean }> => {
+  const base = `https://translate.google.com/?sl=${sourceLang}&tl=${targetLang}&op=translate`;
+  // Always translate the recipe's source content (name/ingredients/steps).
+  const text = [recipe.name, ...recipe.ingredients, ...recipe.steps.map((step, i) => `${i + 1}. ${step}`)].join('\n');
 
   if (text.length < URL_TEXT_LIMIT) {
-    window.open(`${GOOGLE_TRANSLATE_BASE}&text=${encodeURIComponent(text)}`, '_blank');
+    window.open(`${base}&text=${encodeURIComponent(text)}`, '_blank');
     return { clipboardUsed: false };
   }
 
   try {
     await navigator.clipboard.writeText(text);
-    window.open(GOOGLE_TRANSLATE_BASE, '_blank');
+    window.open(base, '_blank');
     return { clipboardUsed: true };
   } catch {
-    window.open(GOOGLE_TRANSLATE_BASE, '_blank');
+    window.open(base, '_blank');
     return { clipboardUsed: false };
   }
 };

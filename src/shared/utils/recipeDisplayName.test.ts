@@ -1,5 +1,51 @@
 import { describe, it, expect } from 'vitest';
-import { localizeMealTag } from './recipeDisplayName';
+import { localizeMealTag, recipeSourceLang, recipeDisplayName } from './recipeDisplayName';
+
+describe('recipeSourceLang', () => {
+  it('infers Bulgarian from a Cyrillic name', () => {
+    expect(recipeSourceLang({ name: 'Пилешка супа' })).toBe('bg');
+  });
+
+  it('infers English from a Latin name', () => {
+    expect(recipeSourceLang({ name: 'Chicken Soup' })).toBe('en');
+  });
+
+  it('treats a mixed name with any Cyrillic as Bulgarian', () => {
+    expect(recipeSourceLang({ name: 'Pizza Маргарита' })).toBe('bg');
+  });
+
+  it('prefers the stored sourceLang over the name-script guess', () => {
+    // A Bulgarian recipe deliberately titled with a Latin word — the heuristic
+    // alone would wrongly say English, but the stored value wins.
+    expect(recipeSourceLang({ name: 'Pizza', sourceLang: 'bg' })).toBe('bg');
+  });
+});
+
+describe('recipeDisplayName', () => {
+  it('shows the Bulgarian translation of an English recipe to a Bulgarian reader', () => {
+    const recipe = { name: 'Chicken Soup', nameEn: 'Chicken Soup', nameTranslated: 'Пилешка супа' };
+    expect(recipeDisplayName(recipe, 'bg')).toBe('Пилешка супа');
+  });
+
+  it('shows the English translation of a Bulgarian recipe to an English reader', () => {
+    const recipe = { name: 'Пилешка супа', nameTranslated: 'Chicken Soup' };
+    expect(recipeDisplayName(recipe, 'en')).toBe('Chicken Soup');
+  });
+
+  it('keeps the source name for a reader in the source language', () => {
+    const recipe = { name: 'Пилешка супа', nameTranslated: 'Chicken Soup' };
+    expect(recipeDisplayName(recipe, 'bg')).toBe('Пилешка супа');
+  });
+
+  it('falls back to nameEn for an English reader when no translation exists', () => {
+    const recipe = { name: 'Пилешка супа', nameEn: 'Chicken Soup' };
+    expect(recipeDisplayName(recipe, 'en')).toBe('Chicken Soup');
+  });
+
+  it('falls back to the original name when nothing better is available', () => {
+    expect(recipeDisplayName({ name: 'Пилешка супа' }, 'en')).toBe('Пилешка супа');
+  });
+});
 
 describe('localizeMealTag', () => {
   it('localizes an EN meal id to its BG label', () => {

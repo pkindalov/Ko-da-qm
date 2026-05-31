@@ -166,7 +166,9 @@ export const RecipesScreen = ({ recipes, addRecipe, removeRecipe, updateRecipe, 
         toast.success(lang === 'en' ? 'Recipe updated!' : 'Рецептата е обновена!');
       }
     } else {
-      addRecipe({ ...parsed, id: crypto.randomUUID(), authorName: profile.name, authorEmail: userEmail });
+      // Record the language the author is writing in — more reliable than guessing
+      // from the name's script (e.g. a Bulgarian recipe titled with a Latin word).
+      addRecipe({ ...parsed, id: crypto.randomUUID(), authorName: profile.name, authorEmail: userEmail, sourceLang: lang });
       toast.success(lang === 'en' ? 'Recipe added!' : 'Рецептата е добавена!');
     }
     closeModal();

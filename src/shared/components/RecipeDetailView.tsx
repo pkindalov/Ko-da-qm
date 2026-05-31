@@ -7,12 +7,8 @@ import './RecipeDetailView.css';
 import { recipeRisk } from '../utils/recipeUtils';
 import { toast } from 'sonner';
 import { openGoogleTranslate } from '../utils/openGoogleTranslate';
-import { localizeMealTag } from '../utils/recipeDisplayName';
+import { localizeMealTag, recipeSourceLang } from '../utils/recipeDisplayName';
 import type { Recipe, FridgeItem, Language } from '../types';
-
-// Any Cyrillic letter — used to tell whether the content on screen is already in
-// Bulgarian, since the recipe data carries no explicit source-language field.
-const CYRILLIC_PATTERN = /[Ѐ-ӿ]/;
 
 interface RecipeDetailViewProps {
   recipe: Recipe;
@@ -64,34 +60,35 @@ export const RecipeDetailView = ({
     }).length;
   }, [fridge, recipe.requiredIngredients]);
   const hasTranslation = recipe.ingredientsTranslated != null && recipe.ingredientsTranslated.length > 0;
-  const [showTranslated, setShowTranslated] = useState(lang === 'bg' && hasTranslation);
 
-  // nameEn is set on Bulgarian recipes too (as an internal English match-key), so
-  // it can't indicate language. Treat a recipe as English-source — and therefore
-  // translatable to Bulgarian — only when its original name has no Cyrillic.
-  const isEnglishSourceRecipe = !CYRILLIC_PATTERN.test(recipe.name);
-  const showTranslateButton = lang === 'bg' && !recipe.isAI && recipe.nameEn != null && recipe.nameEn !== '' && isEnglishSourceRecipe;
+  // A recipe is "foreign" to the reader when its source language differs from the
+  // UI language — the only time a translation is relevant. This works both ways:
+  // an English recipe for a Bulgarian reader, or a Bulgarian recipe for an English one.
+  const sourceLang = recipeSourceLang(recipe);
+  const isForeignToUser = lang !== sourceLang;
+  const [showTranslated, setShowTranslated] = useState(isForeignToUser && hasTranslation);
+
+  // AI recipes are generated in the reader's language, so they never need translating.
+  const showTranslateButton = isForeignToUser && !recipe.isAI;
 
   const handleTranslate = async () => {
-    const { clipboardUsed } = await openGoogleTranslate(recipe);
+    const { clipboardUsed } = await openGoogleTranslate(recipe, sourceLang, lang);
     if (clipboardUsed) {
-      toast.info('Рецептата е копирана. Натисни Ctrl+V в Google Translate.');
+      toast.info(isEnglish
+        ? 'Recipe copied. Press Ctrl+V in Google Translate.'
+        : 'Рецептата е копирана. Натисни Ctrl+V в Google Translate.');
     }
   };
 
-  const displayName = lang === 'bg' && showTranslated && recipe.nameTranslated
+  const displayName = showTranslated && isForeignToUser && recipe.nameTranslated
     ? recipe.nameTranslated
     : (isEnglish && recipe.nameEn ? recipe.nameEn : recipe.name);
-  const displayIngredients = lang === 'bg' && showTranslated && recipe.ingredientsTranslated
+  const displayIngredients = showTranslated && isForeignToUser && recipe.ingredientsTranslated
     ? recipe.ingredientsTranslated
     : recipe.ingredients;
-  const displaySteps = lang === 'bg' && showTranslated && recipe.stepsTranslated
+  const displaySteps = showTranslated && isForeignToUser && recipe.stepsTranslated
     ? recipe.stepsTranslated
     : recipe.steps;
-
-  // Even for an English-source recipe, hide "Преведи" while its saved Bulgarian
-  // translation is the one on screen (the "Превод" tab) — there's nothing to translate.
-  const displayedInBulgarian = CYRILLIC_PATTERN.test(displayName);
 
   return (
     <div className="fade-in">
@@ -146,25 +143,25 @@ export const RecipeDetailView = ({
               )}
             </button>
           )}
-          {lang === 'bg' && hasTranslation && (
+          {isForeignToUser && hasTranslation && (
             <div className="lang-toggle">
               <button
                 className={`chip${!showTranslated ? ' selected' : ''}`}
                 onClick={() => setShowTranslated(false)}
               >
-                Оригинал
+                {isEnglish ? 'Original' : 'Оригинал'}
               </button>
               <button
                 className={`chip${showTranslated ? ' selected' : ''}`}
                 onClick={() => setShowTranslated(true)}
               >
-                Превод
+                {isEnglish ? 'Translation' : 'Превод'}
               </button>
             </div>
           )}
-          {showTranslateButton && !displayedInBulgarian && (
+          {showTranslateButton && !showTranslated && (
             <button className="btn btn-ghost btn-sm mt-2" onClick={handleTranslate}>
-              🌐 Преведи на български
+              🌐 {isEnglish ? 'Translate to English' : 'Преведи на български'}
             </button>
           )}
           {isOwner && onSaveTranslation != null && showTranslateButton && (
@@ -172,7 +169,9 @@ export const RecipeDetailView = ({
               className="btn btn-ghost btn-sm mt-1"
               onClick={() => setSaveTranslationOpen(true)}
             >
-              💾 {hasTranslation ? 'Обнови превода' : 'Запази превод'}
+              💾 {isEnglish
+                ? (hasTranslation ? 'Update translation' : 'Save translation')
+                : (hasTranslation ? 'Обнови превода' : 'Запази превод')}
             </button>
           )}
           {fridge != null && recipe.requiredIngredients.length > 0 && (

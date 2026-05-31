@@ -52,6 +52,7 @@ export interface Recipe {
   name: string;
   nameEn?: string;
   nameTranslated?: string;
+  sourceLang?: Language;
   emoji: string;
   imageUrl?: string;
   ingredients: string[];

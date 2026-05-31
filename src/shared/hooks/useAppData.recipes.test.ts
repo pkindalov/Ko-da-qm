@@ -108,6 +108,20 @@ describe('useAppData – addRecipe', () => {
     );
   });
 
+  it('persists source_lang on insert', async () => {
+    setupLoadAllMocks();
+    mockInsert.mockResolvedValue({ data: null, error: null });
+
+    const { result } = renderHook(() => useAppData());
+    await act(async () => {});
+
+    await act(async () => { await result.current.addRecipe(makeRecipe({ sourceLang: 'bg' })); });
+
+    expect(mockInsert).toHaveBeenCalledWith(
+      expect.objectContaining({ source_lang: 'bg' }),
+    );
+  });
+
   it('saves image_url to DB when imageUrl is provided', async () => {
     setupLoadAllMocks();
     mockInsert.mockResolvedValue({ data: null, error: null });

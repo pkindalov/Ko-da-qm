@@ -3,7 +3,6 @@ import { openGoogleTranslate } from './openGoogleTranslate';
 
 const shortRecipe = {
   name: 'Chicken Soup',
-  nameEn: 'Chicken Soup',
   ingredients: ['chicken', 'salt'],
   steps: ['Boil water', 'Add chicken'],
 };
@@ -31,22 +30,27 @@ describe('openGoogleTranslate', () => {
     );
   });
 
-  it('uses nameEn over name when building the text', async () => {
-    await openGoogleTranslate({ ...shortRecipe, name: 'Пилешка супа', nameEn: 'Chicken Soup' });
+  it('translates the recipe name (its source content)', async () => {
+    await openGoogleTranslate({ ...shortRecipe, name: 'Пилешка супа' }, 'bg', 'en');
 
     expect(window.open).toHaveBeenCalledWith(
-      expect.stringContaining(encodeURIComponent('Chicken Soup')),
+      expect.stringContaining(encodeURIComponent('Пилешка супа')),
       '_blank',
     );
   });
 
-  it('falls back to name when nameEn is null', async () => {
-    await openGoogleTranslate({ ...shortRecipe, name: 'Chicken Soup', nameEn: null });
+  it('defaults to translating English → Bulgarian', async () => {
+    await openGoogleTranslate(shortRecipe);
 
-    expect(window.open).toHaveBeenCalledWith(
-      expect.stringContaining(encodeURIComponent('Chicken Soup')),
-      '_blank',
-    );
+    const [url] = (window.open as ReturnType<typeof vi.fn>).mock.calls[0] as [string];
+    expect(url).toContain('sl=en&tl=bg');
+  });
+
+  it('uses the provided source and target languages in the URL', async () => {
+    await openGoogleTranslate(shortRecipe, 'bg', 'en');
+
+    const [url] = (window.open as ReturnType<typeof vi.fn>).mock.calls[0] as [string];
+    expect(url).toContain('sl=bg&tl=en');
   });
 
   it('includes numbered steps in the URL', async () => {

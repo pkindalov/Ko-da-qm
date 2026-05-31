@@ -1,9 +1,10 @@
-import type { Recipe } from '../types';
+import type { Recipe, Language } from '../types';
 
 export const mapRecipeRow = (row: Record<string, unknown>): Recipe => ({
   id: row.id as string,
   name: row.name as string,
   nameEn: (row.name_en as string | null) ?? undefined,
+  sourceLang: (row.source_lang as Language | null) ?? undefined,
   emoji: row.emoji as string,
   imageUrl: (row.image_url as string | null) ?? undefined,
   ingredients: (row.ingredients as string[]) ?? [],

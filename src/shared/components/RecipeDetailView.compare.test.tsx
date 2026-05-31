@@ -64,9 +64,9 @@ describe('RecipeDetailView – translate button visibility', () => {
     expect(screen.queryByRole('button', { name: /Преведи на български/i })).not.toBeInTheDocument();
   });
 
-  it('does not show translate button when nameEn is an empty string', () => {
+  it('shows translate button even without nameEn — language comes from the content, not nameEn', () => {
     render(<RecipeDetailView {...defaultProps({ recipe: makeRecipe({ nameEn: '' }) })} />);
-    expect(screen.queryByRole('button', { name: /Преведи на български/i })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Преведи на български/i })).toBeInTheDocument();
   });
 
   it('does not show translate button for a Bulgarian recipe that carries nameEn for matching', () => {
@@ -200,11 +200,58 @@ describe('RecipeDetailView – translate calls openGoogleTranslate', () => {
       expect(openGoogleTranslate).toHaveBeenCalledWith(
         expect.objectContaining({
           name: 'Chicken Soup',
-          nameEn: 'Chicken Soup',
           ingredients: ['1 chicken', 'salt', 'water'],
           steps: ['Boil water', 'Add chicken', 'Season'],
         }),
+        'en',
+        'bg',
       ),
     );
+  });
+});
+
+describe('RecipeDetailView – Bulgarian recipe for an English reader', () => {
+  const makeBgRecipe = (overrides: Partial<Recipe> = {}): Recipe =>
+    makeRecipe({
+      name: 'Пилешка супа',
+      ingredients: ['1 пиле', 'сол', 'вода'],
+      steps: ['Сварете водата', 'Добавете пилето'],
+      ...overrides,
+    });
+
+  it('offers "Translate to English" for a Bulgarian recipe in the English UI', () => {
+    render(<RecipeDetailView {...defaultProps({ lang: 'en', recipe: makeBgRecipe() })} />);
+    expect(screen.getByRole('button', { name: /Translate to English/i })).toBeInTheDocument();
+  });
+
+  it('does not offer translation to a Bulgarian reader (it is already their language)', () => {
+    render(<RecipeDetailView {...defaultProps({ lang: 'bg', recipe: makeBgRecipe() })} />);
+    expect(screen.queryByRole('button', { name: /Преведи|Translate/i })).not.toBeInTheDocument();
+  });
+
+  it('shows an Original/Translation toggle once an English translation is saved', () => {
+    const translated = makeBgRecipe({
+      nameTranslated: 'Chicken soup',
+      ingredientsTranslated: ['1 chicken', 'salt', 'water'],
+      stepsTranslated: ['Boil the water', 'Add the chicken'],
+    });
+    render(<RecipeDetailView {...defaultProps({ lang: 'en', recipe: translated })} />);
+    expect(screen.getByRole('button', { name: 'Original' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Translation' })).toBeInTheDocument();
+    // Defaults to showing the English translation for the English reader.
+    expect(screen.getByText('1 chicken')).toBeInTheDocument();
+  });
+
+  it('lets the English reader switch back to the Bulgarian original', async () => {
+    const user = userEvent.setup();
+    const translated = makeBgRecipe({
+      nameTranslated: 'Chicken soup',
+      ingredientsTranslated: ['1 chicken', 'salt', 'water'],
+      stepsTranslated: ['Boil the water', 'Add the chicken'],
+    });
+    render(<RecipeDetailView {...defaultProps({ lang: 'en', recipe: translated })} />);
+    await user.click(screen.getByRole('button', { name: 'Original' }));
+    expect(screen.getByText('1 пиле')).toBeInTheDocument();
+    expect(screen.queryByText('1 chicken')).not.toBeInTheDocument();
   });
 });
