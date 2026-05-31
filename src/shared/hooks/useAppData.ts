@@ -28,7 +28,7 @@ export const useAppData = (lang: Language = 'bg') => {
     const [profileRes, fridgeRes, recipesRes, productsRes] = await Promise.all([
       supabase.from('users').select('name, allergies, dislikes, dietary_prefs, disabled_at').eq('id', user.id).single(),
       supabase.from('fridge_items').select('id, name, emoji, category').eq('user_id', user.id),
-      supabase.from('recipes').select('id, user_id, name, name_en, name_translated, emoji, image_url, ingredients, steps, ingredients_translated, steps_translated, time, tags, required_ingredients, is_ai, is_public, author_name, author_email').eq('user_id', user.id),
+      supabase.from('recipes').select('id, user_id, name, name_en, name_translated, source_lang, emoji, image_url, ingredients, steps, ingredients_translated, steps_translated, time, tags, required_ingredients, is_ai, is_public, author_name, author_email').eq('user_id', user.id),
       supabase.from('products').select('id, name, name_en, category, status, emoji').eq('user_id', user.id),
     ]);
 
@@ -75,6 +75,7 @@ export const useAppData = (lang: Language = 'bg') => {
         name: recipeRow.name,
         nameEn: recipeRow.name_en ?? undefined,
         nameTranslated: recipeRow.name_translated ?? undefined,
+        sourceLang: recipeRow.source_lang ?? undefined,
         emoji: recipeRow.emoji,
         imageUrl: recipeRow.image_url ?? undefined,
         ingredients: recipeRow.ingredients ?? [],
