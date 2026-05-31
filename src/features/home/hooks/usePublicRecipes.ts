@@ -8,7 +8,7 @@ const PUBLIC_RECIPES_LIMIT = 20;
 const fetchPublicRecipes = async (userId: string): Promise<Recipe[]> => {
   const { data } = await supabase
     .from('recipes')
-    .select('id, name, name_en, name_translated, emoji, image_url, ingredients, steps, ingredients_translated, steps_translated, time, tags, required_ingredients, is_ai, is_public, user_id, author_name, author_email')
+    .select('id, name, name_en, name_translated, source_lang, emoji, image_url, ingredients, steps, ingredients_translated, steps_translated, time, tags, required_ingredients, is_ai, is_public, user_id, author_name, author_email')
     .eq('is_public', true)
     .neq('user_id', userId)
     .order('created_at', { ascending: false })
