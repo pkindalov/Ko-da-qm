@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { supabase } from '../../../lib/supabase';
+import { useLang } from '../../../shared/hooks/useLang';
+import { translations } from '../../../shared/i18n/translations';
 import './auth.css';
 
 const MIN_PASSWORD_LENGTH = 6;
@@ -10,6 +12,8 @@ type Stage = 'waiting' | 'ready' | 'invalid';
 
 export const ResetPasswordScreen = () => {
   const navigate = useNavigate();
+  const [lang, toggleLang] = useLang();
+  const t = translations.auth[lang];
   const [stage, setStage] = useState<Stage>('waiting');
   const [newPassword, setNewPassword] = useState('');
   const [confirm, setConfirm] = useState('');
@@ -52,14 +56,14 @@ export const ResetPasswordScreen = () => {
   const validate = () => {
     const errs: { password?: string; confirm?: string } = {};
     if (!newPassword) {
-      errs.password = 'Паролата е задължителна';
+      errs.password = t.validPasswordRequired;
     } else if (newPassword.length < MIN_PASSWORD_LENGTH) {
-      errs.password = 'Паролата трябва да е поне 6 символа';
+      errs.password = t.validPasswordMin;
     }
     if (!confirm) {
-      errs.confirm = 'Потвърдете паролата';
+      errs.confirm = t.validConfirmRequired;
     } else if (newPassword !== confirm) {
-      errs.confirm = 'Паролите не съвпадат';
+      errs.confirm = t.validConfirmMismatch;
     }
     return errs;
   };
@@ -76,9 +80,9 @@ export const ResetPasswordScreen = () => {
     const { error } = await supabase.auth.updateUser({ password: newPassword });
     setSaving(false);
     if (error) {
-      toast.error('Грешка при смяна на паролата');
+      toast.error(t.resetErrorToast);
     } else {
-      toast.success('Паролата е сменена успешно');
+      toast.success(t.resetSuccessToast);
       navigate('/login', { replace: true });
     }
   };
@@ -87,8 +91,8 @@ export const ResetPasswordScreen = () => {
     return (
       <div className="auth-page">
         <div className="auth-card">
-          <div className="auth-logo">Ко-да-ям</div>
-          <p className="auth-sub">Проверка на линка…</p>
+          <div className="auth-logo">{t.appName}</div>
+          <p className="auth-sub">{t.resetWaiting}</p>
         </div>
       </div>
     );
@@ -98,9 +102,14 @@ export const ResetPasswordScreen = () => {
     return (
       <div className="auth-page">
         <div className="auth-card">
-          <div className="auth-logo">Ко-да-ям</div>
-          <p className="auth-error auth-confirm-text">Линкът е невалиден или е изтекъл.</p>
-          <p className="auth-switch"><Link to="/login">Обратно към вход</Link></p>
+          <div className="auth-lang-toggle">
+            <button type="button" className="btn btn-ghost btn-sm" onClick={toggleLang}>
+              {lang === 'bg' ? 'EN' : 'BG'}
+            </button>
+          </div>
+          <div className="auth-logo">{t.appName}</div>
+          <p className="auth-error auth-confirm-text">{t.resetInvalid}</p>
+          <p className="auth-switch"><Link to="/login">{t.resetBack}</Link></p>
         </div>
       </div>
     );
@@ -109,11 +118,16 @@ export const ResetPasswordScreen = () => {
   return (
     <div className="auth-page">
       <div className="auth-card">
+        <div className="auth-lang-toggle">
+          <button type="button" className="btn btn-ghost btn-sm" onClick={toggleLang}>
+            {lang === 'bg' ? 'EN' : 'BG'}
+          </button>
+        </div>
         <div className="auth-logo">Ко-да-ям</div>
-        <p className="auth-sub">Нова парола</p>
+        <p className="auth-sub">{t.resetTitle}</p>
         <form onSubmit={handleSubmit} className="stack auth-form" noValidate>
           <div>
-            <label className="input-label">Нова парола</label>
+            <label className="input-label">{t.resetNewPassword}</label>
             <input
               className="input-field"
               type="password"
@@ -125,7 +139,7 @@ export const ResetPasswordScreen = () => {
             {errors.password && <p className="auth-field-error">{errors.password}</p>}
           </div>
           <div>
-            <label className="input-label">Потвърди паролата</label>
+            <label className="input-label">{t.resetConfirmLabel}</label>
             <input
               className="input-field"
               type="password"
@@ -137,10 +151,10 @@ export const ResetPasswordScreen = () => {
             {errors.confirm && <p className="auth-field-error">{errors.confirm}</p>}
           </div>
           <button className="btn btn-primary btn-full" type="submit" disabled={saving}>
-            {saving ? 'Запазване...' : 'Запази паролата'}
+            {saving ? t.resetSaving : t.resetBtn}
           </button>
         </form>
-        <p className="auth-switch"><Link to="/login">Обратно към вход</Link></p>
+        <p className="auth-switch"><Link to="/login">{t.resetBack}</Link></p>
       </div>
     </div>
   );

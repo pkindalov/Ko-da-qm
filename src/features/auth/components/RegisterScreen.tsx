@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { supabase } from "../../../lib/supabase";
+import { useLang } from '../../../shared/hooks/useLang';
+import { translations } from '../../../shared/i18n/translations';
 import './auth.css';
 
 // WHATWG HTML Living Standard § "valid e-mail address"
@@ -16,6 +18,8 @@ type FieldErrors = {
 
 export const RegisterScreen = () => {
   const navigate = useNavigate();
+  const [lang, toggleLang] = useLang();
+  const t = translations.auth[lang];
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -36,26 +40,26 @@ export const RegisterScreen = () => {
   const validate = (): FieldErrors => {
     const errors: FieldErrors = {};
     if (!name.trim()) {
-      errors.name = "Името е задължително";
+      errors.name = t.validNameRequired;
     } else if (name.trim().length < 2) {
-      errors.name = "Името трябва да е поне 2 символа";
+      errors.name = t.validNameMin;
     } else if (name.trim().length > 50) {
-      errors.name = "Името не може да е повече от 50 символа";
+      errors.name = t.validNameMax;
     }
     if (!email.trim()) {
-      errors.email = "Имейлът е задължителен";
+      errors.email = t.validEmailRequired;
     } else if (!EMAIL_REGEX.test(email.trim())) {
-      errors.email = "Невалиден имейл адрес";
+      errors.email = t.validEmailInvalid;
     }
     if (!password) {
-      errors.password = "Паролата е задължителна";
+      errors.password = t.validPasswordRequired;
     } else if (password.length < 6) {
-      errors.password = "Паролата трябва да е поне 6 символа";
+      errors.password = t.validPasswordMin;
     }
     if (!confirm) {
-      errors.confirm = "Потвърдете паролата";
+      errors.confirm = t.validConfirmRequired;
     } else if (password !== confirm) {
-      errors.confirm = "Паролите не съвпадат";
+      errors.confirm = t.validConfirmMismatch;
     }
     return errors;
   };
@@ -107,14 +111,16 @@ export const RegisterScreen = () => {
     return (
       <div className="auth-page">
         <div className="auth-card">
-          <div className="auth-logo">Ко-да-ям</div>
-          <p className="auth-sub">Провери имейла си</p>
-          <p className="auth-confirm-text">
-            Изпратихме линк за потвърждение на <strong>{email}</strong>.
-            Кликни върху него, за да активираш акаунта си.
-          </p>
+          <div className="auth-lang-toggle">
+            <button type="button" className="btn btn-ghost btn-sm" onClick={toggleLang}>
+              {lang === 'bg' ? 'EN' : 'BG'}
+            </button>
+          </div>
+          <div className="auth-logo">{t.appName}</div>
+          <p className="auth-sub">{t.registerCheckEmail}</p>
+          <p className="auth-confirm-text">{t.registerConfirmText(email)}</p>
           <p className="auth-switch auth-confirm-link">
-            <Link to="/login">Обратно към вход</Link>
+            <Link to="/login">{t.registerConfirmBack}</Link>
           </p>
         </div>
       </div>
@@ -124,17 +130,22 @@ export const RegisterScreen = () => {
   return (
     <div className="auth-page">
       <div className="auth-card">
+        <div className="auth-lang-toggle">
+          <button type="button" className="btn btn-ghost btn-sm" onClick={toggleLang}>
+            {lang === 'bg' ? 'EN' : 'BG'}
+          </button>
+        </div>
         <div className="auth-logo">Ко-да-ям</div>
-        <p className="auth-sub">Създай акаунт</p>
+        <p className="auth-sub">{t.registerTitle}</p>
         <form onSubmit={handleSubmit} className="stack auth-form" noValidate>
           <div>
-            <label className="input-label">Име</label>
+            <label className="input-label">{t.registerName}</label>
             <input
               className="input-field"
               type="text"
               value={name}
               onChange={(e) => { setName(e.target.value); setFieldErrors((prev) => ({ ...prev, name: undefined })); }}
-              placeholder="Иван Иванов"
+              placeholder={t.registerNamePlaceholder}
             />
             {fieldErrors.name && <p className="auth-field-error">{fieldErrors.name}</p>}
           </div>
@@ -150,7 +161,7 @@ export const RegisterScreen = () => {
             {fieldErrors.email && <p className="auth-field-error">{fieldErrors.email}</p>}
           </div>
           <div>
-            <label className="input-label">Парола</label>
+            <label className="input-label">{t.registerPassword}</label>
             <input
               className="input-field"
               type="password"
@@ -161,7 +172,7 @@ export const RegisterScreen = () => {
             {fieldErrors.password && <p className="auth-field-error">{fieldErrors.password}</p>}
           </div>
           <div>
-            <label className="input-label">Потвърди парола</label>
+            <label className="input-label">{t.registerConfirm}</label>
             <input
               className="input-field"
               type="password"
@@ -172,25 +183,21 @@ export const RegisterScreen = () => {
             {fieldErrors.confirm && <p className="auth-field-error">{fieldErrors.confirm}</p>}
           </div>
           {errorMsg && <p className="auth-error">{errorMsg}</p>}
-          <button
-            className="btn btn-primary btn-full"
-            type="submit"
-            disabled={loading}
-          >
-            {loading ? "Регистрация..." : "Регистрирай се"}
+          <button className="btn btn-primary btn-full" type="submit" disabled={loading}>
+            {loading ? t.registerSubmitting : t.registerBtn}
           </button>
         </form>
-        <div className="auth-divider">или</div>
+        <div className="auth-divider">{t.registerDivider}</div>
         <div className="stack">
           <button className="btn btn-google btn-full" onClick={() => handleOAuthLogin('google')} disabled={loading}>
-            Регистрирай се с Google
+            {t.registerGoogle}
           </button>
           <button className="btn btn-facebook btn-full" onClick={() => handleOAuthLogin('facebook')} disabled={loading}>
-            Регистрирай се с Facebook
+            {t.registerFacebook}
           </button>
         </div>
         <p className="auth-switch">
-          Вече имаш акаунт? <Link to="/login">Влез</Link>
+          {t.registerHasAccount} <Link to="/login">{t.registerHasAccountLink}</Link>
         </p>
       </div>
     </div>

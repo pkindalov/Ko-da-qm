@@ -97,3 +97,8 @@
 .auth-confirm-link {
   margin-top: 24px;
 }
+.auth-lang-toggle {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 8px;
+}
