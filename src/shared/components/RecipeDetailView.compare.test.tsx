@@ -13,7 +13,12 @@ vi.mock('../utils/openGoogleTranslate', () => ({
   openGoogleTranslate: vi.fn().mockResolvedValue({ clipboardUsed: false }),
 }));
 
+vi.mock('../utils/fetchRecipeTranslation', () => ({
+  fetchRecipeTranslation: vi.fn(),
+}));
+
 import { openGoogleTranslate } from '../utils/openGoogleTranslate';
+import { fetchRecipeTranslation } from '../utils/fetchRecipeTranslation';
 
 const makeRecipe = (overrides: Partial<Recipe> = {}): Recipe => ({
   id: 'r1',
@@ -87,12 +92,12 @@ describe('RecipeDetailView – translate button visibility', () => {
     expect(screen.queryByRole('button', { name: /Преведи на български/i })).not.toBeInTheDocument();
   });
 
-  it('shows the translate button again after switching to the English Оригинал', async () => {
+  it('once a translation exists, the toggle replaces the translate button (even on the Original tab)', async () => {
     const user = userEvent.setup();
     render(<RecipeDetailView {...defaultProps({ recipe: makeTranslatedRecipe() })} />);
-    expect(screen.queryByRole('button', { name: /Преведи на български/i })).not.toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Оригинал' }));
-    expect(screen.getByRole('button', { name: /Преведи на български/i })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Преведи на български/i })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Превод' })).toBeInTheDocument();
   });
 });
 
@@ -184,25 +189,42 @@ describe('RecipeDetailView – translation toggle', () => {
   });
 });
 
-describe('RecipeDetailView – translate calls openGoogleTranslate', () => {
+describe('RecipeDetailView – inline auto-translation', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     (openGoogleTranslate as ReturnType<typeof vi.fn>).mockResolvedValue({ clipboardUsed: false });
   });
 
-  it('calls openGoogleTranslate with the recipe when translate button is clicked', async () => {
+  it('asks the function for the recipe id + target language and renders the result inline', async () => {
     const user = userEvent.setup();
+    (fetchRecipeTranslation as ReturnType<typeof vi.fn>).mockResolvedValue({
+      name: 'Пилешка супа',
+      ingredients: ['1 пиле', 'сол', 'вода'],
+      steps: ['Сварете водата'],
+    });
+    render(<RecipeDetailView {...defaultProps()} />);
+
+    await user.click(screen.getByRole('button', { name: /Преведи на български/i }));
+
+    expect(fetchRecipeTranslation).toHaveBeenCalledWith('r1', 'bg');
+    await waitFor(() => expect(screen.getByText('1 пиле')).toBeInTheDocument());
+    // The original is no longer shown, and the toggle has appeared.
+    expect(screen.queryByText('1 chicken')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Оригинал' })).toBeInTheDocument();
+    // No external Google Translate tab on the happy path.
+    expect(openGoogleTranslate).not.toHaveBeenCalled();
+  });
+
+  it('falls back to Google Translate when the function is unavailable', async () => {
+    const user = userEvent.setup();
+    (fetchRecipeTranslation as ReturnType<typeof vi.fn>).mockResolvedValue(null);
     render(<RecipeDetailView {...defaultProps()} />);
 
     await user.click(screen.getByRole('button', { name: /Преведи на български/i }));
 
     await waitFor(() =>
       expect(openGoogleTranslate).toHaveBeenCalledWith(
-        expect.objectContaining({
-          name: 'Chicken Soup',
-          ingredients: ['1 chicken', 'salt', 'water'],
-          steps: ['Boil water', 'Add chicken', 'Season'],
-        }),
+        expect.objectContaining({ name: 'Chicken Soup' }),
         'en',
         'bg',
       ),
@@ -253,5 +275,22 @@ describe('RecipeDetailView – Bulgarian recipe for an English reader', () => {
     await user.click(screen.getByRole('button', { name: 'Original' }));
     expect(screen.getByText('1 пиле')).toBeInTheDocument();
     expect(screen.queryByText('1 chicken')).not.toBeInTheDocument();
+  });
+
+  it('auto-translates a Bulgarian recipe to English inline when the reader clicks Translate', async () => {
+    const user = userEvent.setup();
+    vi.clearAllMocks();
+    (fetchRecipeTranslation as ReturnType<typeof vi.fn>).mockResolvedValue({
+      name: 'Chicken soup',
+      ingredients: ['1 chicken', 'salt', 'water'],
+      steps: ['Boil the water'],
+    });
+    render(<RecipeDetailView {...defaultProps({ lang: 'en', recipe: makeBgRecipe() })} />);
+
+    await user.click(screen.getByRole('button', { name: /Translate to English/i }));
+
+    expect(fetchRecipeTranslation).toHaveBeenCalledWith('r1', 'en');
+    await waitFor(() => expect(screen.getByText('1 chicken')).toBeInTheDocument());
+    expect(screen.getByRole('button', { name: 'Original' })).toBeInTheDocument();
   });
 });

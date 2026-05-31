@@ -7,6 +7,7 @@ import './RecipeDetailView.css';
 import { recipeRisk } from '../utils/recipeUtils';
 import { toast } from 'sonner';
 import { openGoogleTranslate } from '../utils/openGoogleTranslate';
+import { fetchRecipeTranslation, type RecipeTranslation } from '../utils/fetchRecipeTranslation';
 import { localizeMealTag, recipeSourceLang } from '../utils/recipeDisplayName';
 import type { Recipe, FridgeItem, Language } from '../types';
 
@@ -59,19 +60,42 @@ export const RecipeDetailView = ({
       return !fridgeLow.some(f => f.includes(r) || r.includes(f));
     }).length;
   }, [fridge, recipe.requiredIngredients]);
-  const hasTranslation = recipe.ingredientsTranslated != null && recipe.ingredientsTranslated.length > 0;
-
   // A recipe is "foreign" to the reader when its source language differs from the
   // UI language — the only time a translation is relevant. This works both ways:
   // an English recipe for a Bulgarian reader, or a Bulgarian recipe for an English one.
   const sourceLang = recipeSourceLang(recipe);
   const isForeignToUser = lang !== sourceLang;
-  const [showTranslated, setShowTranslated] = useState(isForeignToUser && hasTranslation);
+
+  // The author may have saved a translation on the recipe (shared with everyone);
+  // otherwise a viewer fetches one on demand, which the function caches for the next.
+  const savedTranslation: RecipeTranslation | null =
+    recipe.ingredientsTranslated != null && recipe.ingredientsTranslated.length > 0
+      ? {
+          name: recipe.nameTranslated ?? recipe.name,
+          ingredients: recipe.ingredientsTranslated,
+          steps: recipe.stepsTranslated ?? recipe.steps,
+        }
+      : null;
+  const [fetchedTranslation, setFetchedTranslation] = useState<RecipeTranslation | null>(null);
+  const [translating, setTranslating] = useState(false);
+
+  const translation = savedTranslation ?? fetchedTranslation;
+  const hasTranslation = translation != null;
+  const [showTranslated, setShowTranslated] = useState(isForeignToUser && savedTranslation != null);
 
   // AI recipes are generated in the reader's language, so they never need translating.
-  const showTranslateButton = isForeignToUser && !recipe.isAI;
+  const canTranslate = isForeignToUser && !recipe.isAI;
 
   const handleTranslate = async () => {
+    setTranslating(true);
+    const result = await fetchRecipeTranslation(recipe.id, lang);
+    setTranslating(false);
+    if (result != null) {
+      setFetchedTranslation(result);
+      setShowTranslated(true);
+      return;
+    }
+    // Service unavailable — fall back to opening Google Translate.
     const { clipboardUsed } = await openGoogleTranslate(recipe, sourceLang, lang);
     if (clipboardUsed) {
       toast.info(isEnglish
@@ -80,15 +104,12 @@ export const RecipeDetailView = ({
     }
   };
 
-  const displayName = showTranslated && isForeignToUser && recipe.nameTranslated
-    ? recipe.nameTranslated
+  const showTranslatedContent = showTranslated && isForeignToUser && translation != null;
+  const displayName = showTranslatedContent && translation
+    ? translation.name
     : (isEnglish && recipe.nameEn ? recipe.nameEn : recipe.name);
-  const displayIngredients = showTranslated && isForeignToUser && recipe.ingredientsTranslated
-    ? recipe.ingredientsTranslated
-    : recipe.ingredients;
-  const displaySteps = showTranslated && isForeignToUser && recipe.stepsTranslated
-    ? recipe.stepsTranslated
-    : recipe.steps;
+  const displayIngredients = showTranslatedContent && translation ? translation.ingredients : recipe.ingredients;
+  const displaySteps = showTranslatedContent && translation ? translation.steps : recipe.steps;
 
   return (
     <div className="fade-in">
@@ -159,19 +180,21 @@ export const RecipeDetailView = ({
               </button>
             </div>
           )}
-          {showTranslateButton && !showTranslated && (
-            <button className="btn btn-ghost btn-sm mt-2" onClick={handleTranslate}>
-              🌐 {isEnglish ? 'Translate to English' : 'Преведи на български'}
+          {canTranslate && !hasTranslation && (
+            <button className="btn btn-ghost btn-sm mt-2" onClick={handleTranslate} disabled={translating}>
+              {translating
+                ? (isEnglish ? '⏳ Translating…' : '⏳ Превеждам…')
+                : (isEnglish ? '🌐 Translate to English' : '🌐 Преведи на български')}
             </button>
           )}
-          {isOwner && onSaveTranslation != null && showTranslateButton && (
+          {isOwner && onSaveTranslation != null && canTranslate && (
             <button
               className="btn btn-ghost btn-sm mt-1"
               onClick={() => setSaveTranslationOpen(true)}
             >
               💾 {isEnglish
-                ? (hasTranslation ? 'Update translation' : 'Save translation')
-                : (hasTranslation ? 'Обнови превода' : 'Запази превод')}
+                ? (savedTranslation ? 'Update translation' : 'Save translation')
+                : (savedTranslation ? 'Обнови превода' : 'Запази превод')}
             </button>
           )}
           {fridge != null && recipe.requiredIngredients.length > 0 && (
