@@ -54,16 +54,10 @@ Deno.serve(async (req: Request) => {
     const { data: { user } } = await supabase.auth.getUser(token);
     if (!user) return json({ error: 'Unauthorized' }, 401);
 
-    // 1. Serve from the shared cache when present.
-    const { data: cached } = await supabase
-      .from('recipe_translations')
-      .select('name, ingredients, steps')
-      .eq('recipe_id', recipeId)
-      .eq('lang', targetLang)
-      .maybeSingle();
-    if (cached) return json({ ...cached, cached: true });
-
-    // 2. Load the source recipe and confirm the caller may see it.
+    // 1. Load the source recipe and confirm the caller may see it. This must happen
+    //    before the cache lookup because the cache is read with the service role
+    //    (which bypasses RLS), so without this gate any authenticated user who
+    //    knows a private recipe's UUID could retrieve its cached translation.
     const { data: recipe } = await supabase
       .from('recipes')
       .select('name, ingredients, steps, is_public, user_id')
@@ -72,7 +66,16 @@ Deno.serve(async (req: Request) => {
     if (!recipe) return json({ error: 'Recipe not found' }, 404);
     if (!recipe.is_public && recipe.user_id !== user.id) return json({ error: 'Forbidden' }, 403);
 
-    // 3. Translate via Gemini.
+    // 2. Serve from the shared cache when present.
+    const { data: cached } = await supabase
+      .from('recipe_translations')
+      .select('name, ingredients, steps')
+      .eq('recipe_id', recipeId)
+      .eq('lang', targetLang)
+      .maybeSingle();
+    if (cached) return json({ ...cached, cached: true });
+
+    // 3. Translate via Gemini (recipe is already loaded from step 1).
     const geminiRes = await fetch(`${GEMINI_URL}?key=${Deno.env.get('GEMINI_API_KEY') ?? ''}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
