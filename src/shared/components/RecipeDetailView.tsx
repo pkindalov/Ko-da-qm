@@ -124,9 +124,11 @@ export const RecipeDetailView = ({
   };
 
   const showTranslatedContent = showTranslated && isForeignToUser && translation != null;
+  // Use nameEn only for English-source recipes — on Bulgarian recipes it is an
+  // internal match-key, not a display name, and must not override the original.
   const displayName = showTranslatedContent && translation
     ? translation.name
-    : (isEnglish && recipe.nameEn ? recipe.nameEn : recipe.name);
+    : (isEnglish && sourceLang === 'en' && recipe.nameEn ? recipe.nameEn : recipe.name);
   const displayIngredients = showTranslatedContent && translation ? translation.ingredients : recipe.ingredients;
   const displaySteps = showTranslatedContent && translation ? translation.steps : recipe.steps;
 

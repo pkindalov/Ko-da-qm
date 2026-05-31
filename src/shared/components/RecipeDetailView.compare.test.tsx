@@ -296,6 +296,19 @@ describe('RecipeDetailView – Bulgarian recipe for an English reader', () => {
     expect(screen.queryByText('1 chicken')).not.toBeInTheDocument();
   });
 
+  it('shows the Bulgarian name (not the nameEn match-key) on the Original tab', async () => {
+    const user = userEvent.setup();
+    const translated = makeBgRecipe({
+      nameEn: 'Chicken Soup', // internal match-key set on many Bulgarian recipes
+      nameTranslated: 'Chicken soup',
+      ingredientsTranslated: ['1 chicken', 'salt', 'water'],
+      stepsTranslated: ['Boil the water', 'Add the chicken'],
+    });
+    render(<RecipeDetailView {...defaultProps({ lang: 'en', recipe: translated })} />);
+    await user.click(screen.getByRole('button', { name: 'Original' }));
+    expect(screen.getByRole('heading', { name: 'Пилешка супа', level: 1 })).toBeInTheDocument();
+  });
+
   it('auto-translates a Bulgarian recipe to English inline when the reader clicks Translate', async () => {
     const user = userEvent.setup();
     vi.clearAllMocks();
