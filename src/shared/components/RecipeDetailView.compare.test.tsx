@@ -64,9 +64,9 @@ describe('RecipeDetailView – translate button visibility', () => {
     expect(screen.queryByRole('button', { name: /Преведи на български/i })).not.toBeInTheDocument();
   });
 
-  it('does not show translate button when recipe is AI-generated', () => {
+  it('shows translate button for AI recipes too — translation depends on language, not origin', () => {
     render(<RecipeDetailView {...defaultProps({ recipe: makeRecipe({ isAI: true }) })} />);
-    expect(screen.queryByRole('button', { name: /Преведи на български/i })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Преведи на български/i })).toBeInTheDocument();
   });
 
   it('shows translate button even without nameEn — language comes from the content, not nameEn', () => {
@@ -229,6 +229,25 @@ describe('RecipeDetailView – inline auto-translation', () => {
         'bg',
       ),
     );
+  });
+
+  it('lets the owner save the auto-translation in one click, without the paste modal', async () => {
+    const user = userEvent.setup();
+    const onSaveTranslation = vi.fn().mockResolvedValue(undefined);
+    (fetchRecipeTranslation as ReturnType<typeof vi.fn>).mockResolvedValue({
+      name: 'Пилешка супа',
+      ingredients: ['1 пиле', 'сол'],
+      steps: ['Сварете водата'],
+    });
+    render(<RecipeDetailView {...defaultProps({ isOwner: true, onSaveTranslation })} />);
+
+    // Owner auto-translates, then the save button offers a one-click save.
+    await user.click(screen.getByRole('button', { name: /Преведи на български/i }));
+    await waitFor(() => expect(screen.getByText('1 пиле')).toBeInTheDocument());
+    await user.click(screen.getByRole('button', { name: /Запази този превод/i }));
+
+    expect(onSaveTranslation).toHaveBeenCalledWith('Пилешка супа', ['1 пиле', 'сол'], ['Сварете водата']);
+    expect(screen.queryByTestId('save-translation-modal')).not.toBeInTheDocument();
   });
 });
 

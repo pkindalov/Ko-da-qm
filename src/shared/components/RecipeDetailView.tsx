@@ -78,13 +78,15 @@ export const RecipeDetailView = ({
       : null;
   const [fetchedTranslation, setFetchedTranslation] = useState<RecipeTranslation | null>(null);
   const [translating, setTranslating] = useState(false);
+  const [savingTranslation, setSavingTranslation] = useState(false);
 
   const translation = savedTranslation ?? fetchedTranslation;
   const hasTranslation = translation != null;
   const [showTranslated, setShowTranslated] = useState(isForeignToUser && savedTranslation != null);
 
-  // AI recipes are generated in the reader's language, so they never need translating.
-  const canTranslate = isForeignToUser && !recipe.isAI;
+  // Whether translation is offered depends only on language: any recipe whose
+  // source language differs from the reader's can be translated, AI ones included.
+  const canTranslate = isForeignToUser;
 
   const handleTranslate = async () => {
     setTranslating(true);
@@ -101,6 +103,23 @@ export const RecipeDetailView = ({
       toast.info(isEnglish
         ? 'Recipe copied. Press Ctrl+V in Google Translate.'
         : 'Рецептата е копирана. Натисни Ctrl+V в Google Translate.');
+    }
+  };
+
+  // Owners persist a translation either by one-click saving the auto-translation
+  // currently on screen, or — when there isn't one — by pasting via the modal.
+  const handleSaveTranslation = async () => {
+    if (onSaveTranslation == null) return;
+    if (fetchedTranslation == null) {
+      setSaveTranslationOpen(true);
+      return;
+    }
+    setSavingTranslation(true);
+    try {
+      await onSaveTranslation(fetchedTranslation.name, fetchedTranslation.ingredients, fetchedTranslation.steps);
+      setFetchedTranslation(null); // now persisted on the recipe as the author translation
+    } finally {
+      setSavingTranslation(false);
     }
   };
 
@@ -190,11 +209,16 @@ export const RecipeDetailView = ({
           {isOwner && onSaveTranslation != null && canTranslate && (
             <button
               className="btn btn-ghost btn-sm mt-1"
-              onClick={() => setSaveTranslationOpen(true)}
+              onClick={handleSaveTranslation}
+              disabled={savingTranslation}
             >
-              💾 {isEnglish
-                ? (savedTranslation ? 'Update translation' : 'Save translation')
-                : (savedTranslation ? 'Обнови превода' : 'Запази превод')}
+              💾 {savingTranslation
+                ? (isEnglish ? 'Saving…' : 'Запазва…')
+                : fetchedTranslation != null
+                  ? (isEnglish ? 'Save this translation' : 'Запази този превод')
+                  : savedTranslation
+                    ? (isEnglish ? 'Update translation' : 'Обнови превода')
+                    : (isEnglish ? 'Save translation' : 'Запази превод')}
             </button>
           )}
           {fridge != null && recipe.requiredIngredients.length > 0 && (
