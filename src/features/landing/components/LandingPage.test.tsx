@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor, within } from '@testing-library/react';
+import { render, screen, waitFor, within, fireEvent } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { LandingPage } from './LandingPage';
 
@@ -88,5 +88,33 @@ describe('LandingPage', () => {
     renderLanding();
     await waitFor(() => expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument());
     expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('renders the ko-fi support button in the footer', async () => {
+    renderLanding();
+    await waitFor(() => expect(screen.getByRole('button', { name: /Подкрепи проекта/i })).toBeInTheDocument());
+  });
+
+  it('clicking the ko-fi button opens the donation modal', async () => {
+    renderLanding();
+    await waitFor(() => expect(screen.getByRole('button', { name: /Подкрепи проекта/i })).toBeInTheDocument());
+    fireEvent.click(screen.getByRole('button', { name: /Подкрепи проекта/i }));
+    expect(screen.getByTitle(/Ko-fi/i)).toBeInTheDocument();
+  });
+
+  it('closing the ko-fi modal removes the iframe', async () => {
+    renderLanding();
+    await waitFor(() => expect(screen.getByRole('button', { name: /Подкрепи проекта/i })).toBeInTheDocument());
+    fireEvent.click(screen.getByRole('button', { name: /Подкрепи проекта/i }));
+    fireEvent.click(screen.getByRole('button', { name: '✕' }));
+    expect(screen.queryByTitle(/Ko-fi/i)).not.toBeInTheDocument();
+  });
+
+  it('pressing Escape closes the ko-fi modal', async () => {
+    renderLanding();
+    await waitFor(() => expect(screen.getByRole('button', { name: /Подкрепи проекта/i })).toBeInTheDocument());
+    fireEvent.click(screen.getByRole('button', { name: /Подкрепи проекта/i }));
+    fireEvent.keyDown(document, { key: 'Escape' });
+    expect(screen.queryByTitle(/Ko-fi/i)).not.toBeInTheDocument();
   });
 });
