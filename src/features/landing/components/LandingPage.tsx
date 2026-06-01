@@ -4,12 +4,13 @@ import { supabase } from '../../../lib/supabase';
 import { useLang } from '../../../shared/hooks/useLang';
 import { translations } from '../../../shared/i18n/translations';
 import { KofiModal } from '../../../shared/components/KofiModal';
+import { useKofiSupport } from '../../../shared/hooks/useKofiSupport';
 import './LandingPage.css';
 
 export const LandingPage = () => {
   const navigate = useNavigate();
   const [checking, setChecking] = useState(true);
-  const [kofiOpen, setKofiOpen] = useState(false);
+  const { open: kofiOpen, openSupport, close: closeKofi } = useKofiSupport();
   const [lang, toggleLang] = useLang();
   const t = translations.landing[lang];
 
@@ -118,10 +119,10 @@ export const LandingPage = () => {
 
       <footer className="landing-footer">
         <span>{t.appName} © 2025</span>
-        <button className="landing-footer-support" onClick={() => setKofiOpen(true)}>{t.supportKofi}</button>
+        <button className="landing-footer-support" onClick={openSupport}>{t.supportKofi}</button>
         <span>{t.footerTagline}</span>
       </footer>
-      <KofiModal open={kofiOpen} onClose={() => setKofiOpen(false)} lang={lang} />
+      <KofiModal open={kofiOpen} onClose={closeKofi} lang={lang} />
     </div>
   );
 };

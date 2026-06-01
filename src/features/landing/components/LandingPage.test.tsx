@@ -117,4 +117,19 @@ describe('LandingPage', () => {
     fireEvent.keyDown(document, { key: 'Escape' });
     expect(screen.queryByTitle(/Ko-fi/i)).not.toBeInTheDocument();
   });
+
+  it('on mobile the ko-fi button opens Ko-fi in a new tab instead of the modal', async () => {
+    Object.defineProperty(window, 'innerWidth', { writable: true, configurable: true, value: 375 });
+    const openSpy = vi.spyOn(window, 'open').mockImplementation(() => null);
+
+    renderLanding();
+    await waitFor(() => expect(screen.getByRole('button', { name: /Подкрепи проекта/i })).toBeInTheDocument());
+    fireEvent.click(screen.getByRole('button', { name: /Подкрепи проекта/i }));
+
+    expect(openSpy).toHaveBeenCalledWith('https://ko-fi.com/pkindalov', '_blank', 'noopener,noreferrer');
+    expect(screen.queryByTitle(/Ko-fi/i)).not.toBeInTheDocument();
+
+    openSpy.mockRestore();
+    Object.defineProperty(window, 'innerWidth', { writable: true, configurable: true, value: 1024 });
+  });
 });

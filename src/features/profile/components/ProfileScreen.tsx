@@ -4,6 +4,7 @@ import { ConfirmDeleteModal } from '../../../shared/components/ConfirmDeleteModa
 import { ConfirmDisableModal } from '../../../shared/components/ConfirmDisableModal';
 import { ChangePasswordModal } from '../../../shared/components/ChangePasswordModal';
 import { KofiModal } from '../../../shared/components/KofiModal';
+import { useKofiSupport } from '../../../shared/hooks/useKofiSupport';
 import './ProfileScreen.css';
 import type { Profile, Product, Language } from '../../../shared/types';
 
@@ -39,7 +40,7 @@ export const ProfileScreen = ({ profile, setProfile, products, lang, onLogout, o
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [disableConfirmOpen, setDisableConfirmOpen] = useState(false);
   const [changePasswordOpen, setChangePasswordOpen] = useState(false);
-  const [kofiOpen, setKofiOpen] = useState(false);
+  const { open: kofiOpen, openSupport, close: closeKofi } = useKofiSupport();
 
   const saveName = () => {
     if (name.trim() === profile.name) return;
@@ -199,11 +200,11 @@ export const ProfileScreen = ({ profile, setProfile, products, lang, onLogout, o
 
       <div className="card card-mb profile-support">
         <div className="section-title">{isEnglish ? 'SUPPORT' : 'ПОДКРЕПИ'}</div>
-        <button className="btn btn-ghost btn-full profile-actions__btn" onClick={() => setKofiOpen(true)}>
+        <button className="btn btn-ghost btn-full profile-actions__btn" onClick={openSupport}>
           ☕ {isEnglish ? 'Support this project' : 'Подкрепи проекта'}
         </button>
       </div>
-      <KofiModal open={kofiOpen} onClose={() => setKofiOpen(false)} lang={lang} />
+      <KofiModal open={kofiOpen} onClose={closeKofi} lang={lang} />
 
       {(onDeleteAccount || onDisableAccount) && (
         <div className="card card-mb danger-zone">
