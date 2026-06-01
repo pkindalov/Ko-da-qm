@@ -11,6 +11,8 @@ const LoginScreen = lazy(() => import('./features/auth/components/LoginScreen').
 const RegisterScreen = lazy(() => import('./features/auth/components/RegisterScreen').then(m => ({ default: m.RegisterScreen })));
 const ResetPasswordScreen = lazy(() => import('./features/auth/components/ResetPasswordScreen').then(m => ({ default: m.ResetPasswordScreen })));
 const LandingPage = lazy(() => import('./features/landing/components/LandingPage').then(m => ({ default: m.LandingPage })));
+const FeaturesPage = lazy(() => import('./features/landing/components/FeaturesPage').then(m => ({ default: m.FeaturesPage })));
+const HowItWorksPage = lazy(() => import('./features/landing/components/HowItWorksPage').then(m => ({ default: m.HowItWorksPage })));
 const UserProfilePage = lazy(() => import('./features/userProfile/components/UserProfilePage').then(m => ({ default: m.UserProfilePage })));
 
 const queryClient = new QueryClient({
@@ -34,6 +36,8 @@ export const App = () => {
             <Route path="/login" element={<ErrorBoundary><LoginScreen /></ErrorBoundary>} />
             <Route path="/register" element={<ErrorBoundary><RegisterScreen /></ErrorBoundary>} />
             <Route path="/reset-password" element={<ErrorBoundary><ResetPasswordScreen /></ErrorBoundary>} />
+            <Route path="/features" element={<ErrorBoundary><FeaturesPage /></ErrorBoundary>} />
+            <Route path="/how-it-works" element={<ErrorBoundary><HowItWorksPage /></ErrorBoundary>} />
             <Route path="/user/:id" element={<ProtectedRoute><ErrorBoundary><UserProfilePage /></ErrorBoundary></ProtectedRoute>} />
             <Route path="/:tab" element={<ProtectedRoute><ErrorBoundary><AppShell /></ErrorBoundary></ProtectedRoute>} />
             <Route path="*" element={<Navigate to="/" replace />} />

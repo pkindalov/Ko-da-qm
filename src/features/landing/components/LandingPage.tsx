@@ -120,8 +120,8 @@ export const LandingPage = () => {
         onLangToggle={toggleLang}
         navLinks={
           <>
-            <a href="#features">{t.footerNavFeatures}</a>
-            <a href="#how">{t.footerNavHow}</a>
+            <Link to="/features">{t.footerNavFeatures}</Link>
+            <Link to="/how-it-works">{t.footerNavHow}</Link>
             <Link to="/login">{t.navLogin}</Link>
             <Link to="/register">{t.navRegister}</Link>
           </>
