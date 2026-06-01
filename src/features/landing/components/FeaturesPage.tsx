@@ -79,7 +79,9 @@ export const FeaturesPage = () => {
           <div className="landing-page-cta-card">
             <h2 className="landing-cta-title">{t.ctaTitle}</h2>
             <p className="landing-cta-sub">{t.ctaSub}</p>
-            <Link to="/register" className="btn landing-cta-btn">{t.ctaBtn}</Link>
+            <Link to={session != null ? '/home' : '/register'} className="btn landing-cta-btn">
+              {session != null ? t.footerNavHome : t.ctaBtn}
+            </Link>
           </div>
         </div>
 

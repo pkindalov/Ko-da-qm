@@ -6,11 +6,14 @@ export const useSession = (): Session | null | undefined => {
   const [session, setSession] = useState<Session | null | undefined>(undefined);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => setSession(data.session));
+    let active = true;
+    supabase.auth.getSession()
+      .then(({ data }) => { if (active) setSession(data.session); })
+      .catch(() => { if (active) setSession(null); });
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, s) => {
       setSession(s);
     });
-    return () => subscription.unsubscribe();
+    return () => { active = false; subscription.unsubscribe(); };
   }, []);
 
   return session;
