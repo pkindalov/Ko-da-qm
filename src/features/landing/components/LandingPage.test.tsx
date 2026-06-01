@@ -37,18 +37,21 @@ describe('LandingPage', () => {
 
   it('renders login and register links in the nav', async () => {
     renderLanding();
-    await waitFor(() => expect(screen.getByRole('link', { name: /вход/i })).toBeInTheDocument());
-    expect(screen.getByRole('link', { name: /регистрация/i })).toBeInTheDocument();
+    const nav = await screen.findByRole('navigation');
+    expect(within(nav).getByRole('link', { name: /вход/i })).toBeInTheDocument();
+    expect(within(nav).getByRole('link', { name: /регистрация/i })).toBeInTheDocument();
   });
 
   it('login link points to /login', async () => {
     renderLanding();
-    await waitFor(() => expect(screen.getByRole('link', { name: /вход/i })).toHaveAttribute('href', '/login'));
+    const nav = await screen.findByRole('navigation');
+    expect(within(nav).getByRole('link', { name: /вход/i })).toHaveAttribute('href', '/login');
   });
 
   it('register link points to /register', async () => {
     renderLanding();
-    await waitFor(() => expect(screen.getByRole('link', { name: /регистрация/i })).toHaveAttribute('href', '/register'));
+    const nav = await screen.findByRole('navigation');
+    expect(within(nav).getByRole('link', { name: /регистрация/i })).toHaveAttribute('href', '/register');
   });
 
   it('renders all three feature cards', async () => {

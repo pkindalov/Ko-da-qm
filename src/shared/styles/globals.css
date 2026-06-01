@@ -334,10 +334,12 @@ a {
 }
 
 .app-footer {
-  margin: 48px -64px -96px;
   padding: 56px 64px 26px;
   background: var(--surface);
   border-top: 1px solid var(--line);
+}
+.main-content .app-footer {
+  margin: 48px -64px -96px;
 }
 .app-footer__top {
   display: grid;
@@ -1176,6 +1178,10 @@ a {
 }
 
 /* ── Animations ──────────────────────────────────────────── */
+@keyframes landingFloat {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-22px) rotate(8deg); }
+}
 .fade-in {
   animation: fadeIn 0.22s ease;
 }
@@ -1494,8 +1500,10 @@ a {
     padding: 32px 24px 100px;
   }
   .app-footer {
-    margin: 32px -24px -100px;
     padding: 40px 24px 20px;
+  }
+  .main-content .app-footer {
+    margin: 32px -24px -100px;
   }
   .app-footer__top {
     grid-template-columns: 1fr;
@@ -1518,8 +1526,10 @@ a {
     font-size: 30px;
   }
   .app-footer {
-    margin: 24px -16px -96px;
     padding: 36px 16px 20px;
+  }
+  .main-content .app-footer {
+    margin: 24px -16px -96px;
   }
   .app-footer__top {
     grid-template-columns: 1fr;

@@ -39,6 +39,8 @@ export const translations = {
       footerNavRecipes: 'Рецепти',
       footerNavFridge: 'Хладилник',
       footerNavProfile: 'Профил',
+      footerNavFeatures: 'Какво прави',
+      footerNavHow: 'Как работи',
     },
     en: {
       appName: 'What-to-eat',
@@ -79,6 +81,8 @@ export const translations = {
       footerNavRecipes: 'Recipes',
       footerNavFridge: 'Fridge',
       footerNavProfile: 'Profile',
+      footerNavFeatures: 'What it does',
+      footerNavHow: 'How it works',
     },
   },
   auth: {

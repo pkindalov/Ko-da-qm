@@ -86,15 +86,6 @@
   right: 18%;
   animation-delay: 3.2s;
 }
-@keyframes landingFloat {
-  0%,
-  100% {
-    transform: translateY(0) rotate(0deg);
-  }
-  50% {
-    transform: translateY(-22px) rotate(8deg);
-  }
-}
 
 .landing-hero-content {
   position: relative;

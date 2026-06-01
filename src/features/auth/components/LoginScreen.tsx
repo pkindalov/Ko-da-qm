@@ -5,6 +5,7 @@ import { supabase } from '../../../lib/supabase';
 import { useForgotPassword } from '../hooks/useForgotPassword';
 import { useLang } from '../../../shared/hooks/useLang';
 import { translations } from '../../../shared/i18n/translations';
+import { AuthLayout } from './AuthLayout';
 import './auth.css';
 
 // WHATWG HTML Living Standard § "valid e-mail address"
@@ -108,13 +109,8 @@ export const LoginScreen = () => {
   if (!sessionChecked) return null;
 
   return (
-    <div className="auth-page">
+    <AuthLayout lang={lang} onLangToggle={toggleLang}>
       <div className="auth-card">
-        <div className="auth-lang-toggle">
-          <button type="button" className="btn btn-ghost btn-sm" onClick={toggleLang}>
-            {lang === 'bg' ? 'EN' : 'BG'}
-          </button>
-        </div>
         <div className="auth-logo">{t.appName}</div>
         <p className="auth-sub">{t.appSub}</p>
 
@@ -203,6 +199,6 @@ export const LoginScreen = () => {
           </>
         )}
       </div>
-    </div>
+    </AuthLayout>
   );
 };

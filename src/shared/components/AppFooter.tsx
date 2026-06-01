@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { KofiModal } from './KofiModal';
 import { useKofiSupport } from '../hooks/useKofiSupport';
@@ -7,11 +8,21 @@ import type { Language } from '../types';
 interface AppFooterProps {
   lang: Language;
   onLangToggle: () => void;
+  navLinks?: ReactNode;
 }
 
-export const AppFooter = ({ lang, onLangToggle }: AppFooterProps) => {
+export const AppFooter = ({ lang, onLangToggle, navLinks }: AppFooterProps) => {
   const { open, openSupport, close } = useKofiSupport();
   const t = translations.landing[lang];
+
+  const defaultNavLinks = (
+    <>
+      <Link to="/home">{t.footerNavHome}</Link>
+      <Link to="/recipes">{t.footerNavRecipes}</Link>
+      <Link to="/fridge">{t.footerNavFridge}</Link>
+      <Link to="/profile">{t.footerNavProfile}</Link>
+    </>
+  );
 
   return (
     <>
@@ -33,10 +44,7 @@ export const AppFooter = ({ lang, onLangToggle }: AppFooterProps) => {
         </div>
         <div className="app-footer__bar">
           <div className="app-footer__bar-links">
-            <Link to="/home">{t.footerNavHome}</Link>
-            <Link to="/recipes">{t.footerNavRecipes}</Link>
-            <Link to="/fridge">{t.footerNavFridge}</Link>
-            <Link to="/profile">{t.footerNavProfile}</Link>
+            {navLinks ?? defaultNavLinks}
           </div>
           <div className="app-footer__bar-right">
             <span>{t.appName} © 2025</span>

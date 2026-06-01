@@ -3,14 +3,12 @@ import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../../../lib/supabase';
 import { useLang } from '../../../shared/hooks/useLang';
 import { translations } from '../../../shared/i18n/translations';
-import { KofiModal } from '../../../shared/components/KofiModal';
-import { useKofiSupport } from '../../../shared/hooks/useKofiSupport';
+import { AppFooter } from '../../../shared/components/AppFooter';
 import './LandingPage.css';
 
 export const LandingPage = () => {
   const navigate = useNavigate();
   const [checking, setChecking] = useState(true);
-  const { open: kofiOpen, openSupport, close: closeKofi } = useKofiSupport();
   const [lang, toggleLang] = useLang();
   const t = translations.landing[lang];
 
@@ -117,12 +115,18 @@ export const LandingPage = () => {
         <Link to="/register" className="btn landing-cta-btn">{t.ctaBtn}</Link>
       </section>
 
-      <footer className="landing-footer">
-        <span>{t.appName} © 2025</span>
-        <button className="landing-footer-support" onClick={openSupport}>{t.supportKofi}</button>
-        <span>{t.footerTagline}</span>
-      </footer>
-      <KofiModal open={kofiOpen} onClose={closeKofi} lang={lang} />
+      <AppFooter
+        lang={lang}
+        onLangToggle={toggleLang}
+        navLinks={
+          <>
+            <a href="#features">{t.footerNavFeatures}</a>
+            <a href="#how">{t.footerNavHow}</a>
+            <Link to="/login">{t.navLogin}</Link>
+            <Link to="/register">{t.navRegister}</Link>
+          </>
+        }
+      />
     </div>
   );
 };

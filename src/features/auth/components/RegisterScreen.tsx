@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { supabase } from "../../../lib/supabase";
 import { useLang } from '../../../shared/hooks/useLang';
 import { translations } from '../../../shared/i18n/translations';
+import { AuthLayout } from './AuthLayout';
 import './auth.css';
 
 // WHATWG HTML Living Standard § "valid e-mail address"
@@ -110,13 +111,8 @@ export const RegisterScreen = () => {
   if (awaitingConfirmation) {
     const [confirmBefore, confirmAfter] = t.registerConfirmText(email).split(email);
     return (
-      <div className="auth-page">
+      <AuthLayout lang={lang} onLangToggle={toggleLang}>
         <div className="auth-card">
-          <div className="auth-lang-toggle">
-            <button type="button" className="btn btn-ghost btn-sm" onClick={toggleLang}>
-              {lang === 'bg' ? 'EN' : 'BG'}
-            </button>
-          </div>
           <div className="auth-logo">{t.appName}</div>
           <p className="auth-sub">{t.registerCheckEmail}</p>
           <p className="auth-confirm-text">{confirmBefore}<strong>{email}</strong>{confirmAfter}</p>
@@ -124,18 +120,13 @@ export const RegisterScreen = () => {
             <Link to="/login">{t.registerConfirmBack}</Link>
           </p>
         </div>
-      </div>
+      </AuthLayout>
     );
   }
 
   return (
-    <div className="auth-page">
+    <AuthLayout lang={lang} onLangToggle={toggleLang}>
       <div className="auth-card">
-        <div className="auth-lang-toggle">
-          <button type="button" className="btn btn-ghost btn-sm" onClick={toggleLang}>
-            {lang === 'bg' ? 'EN' : 'BG'}
-          </button>
-        </div>
         <div className="auth-logo">{t.appName}</div>
         <p className="auth-sub">{t.registerTitle}</p>
         <form onSubmit={handleSubmit} className="stack auth-form" noValidate>
@@ -201,6 +192,6 @@ export const RegisterScreen = () => {
           {t.registerHasAccount} <Link to="/login">{t.registerHasAccountLink}</Link>
         </p>
       </div>
-    </div>
+    </AuthLayout>
   );
 };
