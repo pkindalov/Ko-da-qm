@@ -1,11 +1,13 @@
 import { Link } from 'react-router-dom';
 import { useLang } from '../../../shared/hooks/useLang';
+import { useSession } from '../../../shared/hooks/useSession';
 import { translations } from '../../../shared/i18n/translations';
 import { AppFooter } from '../../../shared/components/AppFooter';
 import './LandingPage.css';
 
 export const FeaturesPage = () => {
   const [lang, toggleLang] = useLang();
+  const session = useSession();
   const t = translations.landing[lang];
 
   return (
@@ -85,14 +87,14 @@ export const FeaturesPage = () => {
       <AppFooter
         lang={lang}
         onLangToggle={toggleLang}
-        navLinks={
+        navLinks={session != null ? undefined : (
           <>
             <Link to="/features">{t.footerNavFeatures}</Link>
             <Link to="/how-it-works">{t.footerNavHow}</Link>
             <Link to="/login">{t.navLogin}</Link>
             <Link to="/register">{t.navRegister}</Link>
           </>
-        }
+        )}
       />
     </div>
   );
