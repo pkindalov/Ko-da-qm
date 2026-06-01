@@ -3,6 +3,7 @@ import { toast } from 'sonner';
 import { ConfirmDeleteModal } from '../../../shared/components/ConfirmDeleteModal';
 import { ConfirmDisableModal } from '../../../shared/components/ConfirmDisableModal';
 import { ChangePasswordModal } from '../../../shared/components/ChangePasswordModal';
+import { KofiModal } from '../../../shared/components/KofiModal';
 import './ProfileScreen.css';
 import type { Profile, Product, Language } from '../../../shared/types';
 
@@ -38,6 +39,7 @@ export const ProfileScreen = ({ profile, setProfile, products, lang, onLogout, o
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [disableConfirmOpen, setDisableConfirmOpen] = useState(false);
   const [changePasswordOpen, setChangePasswordOpen] = useState(false);
+  const [kofiOpen, setKofiOpen] = useState(false);
 
   const saveName = () => {
     if (name.trim() === profile.name) return;
@@ -194,6 +196,14 @@ export const ProfileScreen = ({ profile, setProfile, products, lang, onLogout, o
           )}
         </div>
       )}
+
+      <div className="card card-mb profile-support">
+        <div className="section-title">{isEnglish ? 'SUPPORT' : 'ПОДКРЕПИ'}</div>
+        <button className="btn btn-ghost btn-full profile-actions__btn" onClick={() => setKofiOpen(true)}>
+          ☕ {isEnglish ? 'Support this project' : 'Подкрепи проекта'}
+        </button>
+      </div>
+      <KofiModal open={kofiOpen} onClose={() => setKofiOpen(false)} lang={lang} />
 
       {(onDeleteAccount || onDisableAccount) && (
         <div className="card card-mb danger-zone">

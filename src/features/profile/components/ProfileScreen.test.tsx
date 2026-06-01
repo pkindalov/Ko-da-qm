@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { toast } from 'sonner';
 import { ProfileScreen } from './ProfileScreen';
@@ -285,5 +285,30 @@ describe('ProfileScreen saveName', () => {
 
     expect(setProfile).not.toHaveBeenCalled();
     expect(toast.success).not.toHaveBeenCalled();
+  });
+});
+
+describe('ProfileScreen ko-fi support button', () => {
+  it('renders the support button in the DOM', () => {
+    renderProfile();
+    expect(screen.getByRole('button', { name: /support this project/i })).toBeInTheDocument();
+  });
+
+  it('renders the bulgarian support label when lang is bg', () => {
+    renderProfile({ lang: 'bg' });
+    expect(screen.getByRole('button', { name: /подкрепи проекта/i })).toBeInTheDocument();
+  });
+
+  it('clicking the support button opens the ko-fi modal', () => {
+    renderProfile();
+    fireEvent.click(screen.getByRole('button', { name: /support this project/i }));
+    expect(screen.getByTitle(/Ko-fi/i)).toBeInTheDocument();
+  });
+
+  it('closing the ko-fi modal removes the iframe', () => {
+    renderProfile();
+    fireEvent.click(screen.getByRole('button', { name: /support this project/i }));
+    fireEvent.click(screen.getByRole('button', { name: '✕' }));
+    expect(screen.queryByTitle(/Ko-fi/i)).not.toBeInTheDocument();
   });
 });

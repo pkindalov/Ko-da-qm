@@ -97,8 +97,12 @@
 .count-allergy {
   color: var(--rust);
 }
+.profile-support {
+  display: none;
+}
 @media (max-width: 767px) {
-  .profile-actions {
+  .profile-actions,
+  .profile-support {
     display: block;
   }
 }
