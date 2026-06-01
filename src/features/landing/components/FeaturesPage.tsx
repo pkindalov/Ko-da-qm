@@ -22,8 +22,14 @@ export const FeaturesPage = () => {
           <button type="button" className="btn btn-ghost btn-sm" onClick={toggleLang}>
             {lang === 'bg' ? 'EN' : 'BG'}
           </button>
-          <Link to="/login" className="btn btn-ghost btn-sm">{t.navLogin}</Link>
-          <Link to="/register" className="btn btn-primary btn-sm">{t.navRegister}</Link>
+          {session != null ? (
+            <Link to="/home" className="btn btn-primary btn-sm">{t.footerNavHome}</Link>
+          ) : (
+            <>
+              <Link to="/login" className="btn btn-ghost btn-sm">{t.navLogin}</Link>
+              <Link to="/register" className="btn btn-primary btn-sm">{t.navRegister}</Link>
+            </>
+          )}
         </div>
       </nav>
 
