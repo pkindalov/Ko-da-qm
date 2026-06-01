@@ -11,7 +11,7 @@ export const useSession = (): Session | null | undefined => {
       .then(({ data }) => { if (active) setSession(data.session); })
       .catch(() => { if (active) setSession(null); });
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, s) => {
-      setSession(s);
+      if (active) setSession(s);
     });
     return () => { active = false; subscription.unsubscribe(); };
   }, []);

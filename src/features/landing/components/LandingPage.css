@@ -606,4 +606,7 @@
   .landing-page-cta-card {
     padding: 40px 24px;
   }
+  .landing-page .app-footer {
+    padding-bottom: 20px;
+  }
 }
