@@ -5,24 +5,10 @@ import { translations } from '../../../shared/i18n/translations';
 import { AppFooter } from '../../../shared/components/AppFooter';
 import './LandingPage.css';
 
-const STEP_CHIPS = {
-  bg: {
-    step1: ['🥕 Зеленчуци', '🧀 Мляко & яйца', '🍝 Основни'],
-    step2: ['🥜 Без ядки', '🌾 Без глутен', '🚫 Нелюбими'],
-    step3: ['✨ Лични предложения', '⏱️ За минути'],
-  },
-  en: {
-    step1: ['🥕 Vegetables', '🧀 Dairy & eggs', '🍝 Staples'],
-    step2: ['🥜 No nuts', '🌾 Gluten-free', '🚫 Dislikes'],
-    step3: ['✨ Personal picks', '⏱️ In minutes'],
-  },
-};
-
 export const HowItWorksPage = () => {
   const [lang, toggleLang] = useLang();
   const session = useSession();
   const t = translations.landing[lang];
-  const chips = STEP_CHIPS[lang];
 
   return (
     <div className="landing-page">
@@ -65,7 +51,7 @@ export const HowItWorksPage = () => {
               <h2 className="landing-vstep-title">{t.step1Title}</h2>
               <p className="landing-vstep-desc">{t.step1Desc}</p>
               <div className="landing-vstep-chips">
-                {chips.step1.map((chip) => (
+                {t.step1Chips.map((chip) => (
                   <span key={chip} className="landing-chip">{chip}</span>
                 ))}
               </div>
@@ -82,7 +68,7 @@ export const HowItWorksPage = () => {
               <h2 className="landing-vstep-title">{t.step2Title}</h2>
               <p className="landing-vstep-desc">{t.step2Desc}</p>
               <div className="landing-vstep-chips">
-                {chips.step2.map((chip) => (
+                {t.step2Chips.map((chip) => (
                   <span key={chip} className="landing-chip">{chip}</span>
                 ))}
               </div>
@@ -98,7 +84,7 @@ export const HowItWorksPage = () => {
               <h2 className="landing-vstep-title">{t.step3Title}</h2>
               <p className="landing-vstep-desc">{t.step3Desc}</p>
               <div className="landing-vstep-chips">
-                {chips.step3.map((chip) => (
+                {t.step3Chips.map((chip) => (
                   <span key={chip} className="landing-chip">{chip}</span>
                 ))}
               </div>
