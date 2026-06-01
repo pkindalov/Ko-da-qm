@@ -1,5 +1,5 @@
-import { lazy, Suspense } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { lazy, Suspense, useEffect } from 'react';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { Toaster } from 'sonner';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ProtectedRoute } from './features/auth/components/ProtectedRoute';
@@ -25,11 +25,18 @@ const queryClient = new QueryClient({
 });
 const TOAST_DURATION_MS = 3000;
 
+const ScrollToTop = () => {
+  const { pathname } = useLocation();
+  useEffect(() => { window.scrollTo(0, 0); }, [pathname]);
+  return null;
+};
+
 export const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <Toaster position="top-center" richColors closeButton duration={TOAST_DURATION_MS} />
+        <ScrollToTop />
         <Suspense fallback={null}>
           <Routes>
             <Route path="/" element={<ErrorBoundary><LandingPage /></ErrorBoundary>} />
