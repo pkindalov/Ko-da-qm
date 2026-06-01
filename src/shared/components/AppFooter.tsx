@@ -5,6 +5,8 @@ import { useKofiSupport } from '../hooks/useKofiSupport';
 import { translations } from '../i18n/translations';
 import type { Language } from '../types';
 
+const CURRENT_YEAR = new Date().getFullYear();
+
 interface AppFooterProps {
   lang: Language;
   onLangToggle: () => void;
@@ -37,7 +39,7 @@ export const AppFooter = ({ lang, onLangToggle, navLinks }: AppFooterProps) => {
           <div className="app-footer__support-col">
             <p className="app-footer__support-label">{t.footerSupportLabel}</p>
             <p className="app-footer__support-note">{t.footerSupportNote}</p>
-            <button className="app-footer__kofi" onClick={openSupport}>
+            <button type="button" className="app-footer__kofi" onClick={openSupport}>
               <span className="app-footer__cup">☕</span> {lang === 'bg' ? 'Подкрепи проекта' : 'Support this project'}
             </button>
           </div>
@@ -47,9 +49,9 @@ export const AppFooter = ({ lang, onLangToggle, navLinks }: AppFooterProps) => {
             {navLinks ?? defaultNavLinks}
           </div>
           <div className="app-footer__bar-right">
-            <span>{t.appName} © 2025</span>
+            <span>{t.appName} © {CURRENT_YEAR}</span>
             <span>{t.footerTaglineShort} <i className="app-footer__heart">♥</i></span>
-            <button className="app-footer__lang" onClick={onLangToggle}>
+            <button type="button" className="app-footer__lang" onClick={onLangToggle}>
               {lang === 'bg' ? 'EN' : 'BG'}
             </button>
           </div>
