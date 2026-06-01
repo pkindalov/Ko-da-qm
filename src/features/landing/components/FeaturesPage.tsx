@@ -12,6 +12,10 @@ export const FeaturesPage = () => {
     <div className="landing-page">
       <nav className="landing-nav">
         <Link to="/" className="landing-nav-logo">{t.appName}</Link>
+        <div className="landing-nav-mid">
+          <Link to="/features" className="landing-nav-mid-link landing-nav-mid-link--active">{t.footerNavFeatures}</Link>
+          <Link to="/how-it-works" className="landing-nav-mid-link">{t.footerNavHow}</Link>
+        </div>
         <div className="landing-nav-actions">
           <button type="button" className="btn btn-ghost btn-sm" onClick={toggleLang}>
             {lang === 'bg' ? 'EN' : 'BG'}
@@ -21,32 +25,61 @@ export const FeaturesPage = () => {
         </div>
       </nav>
 
-      <section className="landing-features">
-        <div className="landing-section-label">{t.featuresLabel}</div>
-        <h1 className="landing-section-title">{t.featuresTitle}</h1>
-        <div className="landing-features-grid">
-          <div className="landing-feature-card">
+      <header className="landing-phero">
+        <span className="landing-phero-label">{t.featuresLabel}</span>
+        <h1 className="landing-phero-title">{t.featuresTitlePlain} <em>{t.featuresTitleEm}</em></h1>
+        <p className="landing-phero-sub">{t.featuresPageSub}</p>
+      </header>
+
+      <section className="landing-feat-page">
+        <div className="landing-feat-page-grid">
+          <article className="landing-feature-card">
+            <span className="landing-feature-num">01</span>
             <div className="landing-feature-icon">🧊</div>
-            <h3 className="landing-feature-name">{t.feature1Name}</h3>
+            <h2 className="landing-feature-name">{t.feature1Name}</h2>
             <p className="landing-feature-desc">{t.feature1Desc}</p>
-          </div>
-          <div className="landing-feature-card landing-feature-card--accent">
+            <span className="landing-feature-tag">
+              <span className="landing-feat-pip" aria-hidden="true" />
+              {t.feature1Tag}
+            </span>
+          </article>
+
+          <article className="landing-feature-card landing-feature-card--accent">
+            <span className="landing-feature-num">02</span>
             <div className="landing-feature-icon">📖</div>
-            <h3 className="landing-feature-name">{t.feature2Name}</h3>
+            <h2 className="landing-feature-name">{t.feature2Name}</h2>
             <p className="landing-feature-desc">{t.feature2Desc}</p>
-          </div>
-          <div className="landing-feature-card">
+            <span className="landing-feature-tag">
+              <span className="landing-feat-pip" aria-hidden="true" />
+              {t.feature2Tag}
+            </span>
+          </article>
+
+          <article className="landing-feature-card">
+            <span className="landing-feature-num">03</span>
             <div className="landing-feature-icon">🛡️</div>
-            <h3 className="landing-feature-name">{t.feature3Name}</h3>
+            <h2 className="landing-feature-name">{t.feature3Name}</h2>
             <p className="landing-feature-desc">{t.feature3Desc}</p>
+            <span className="landing-feature-tag">
+              <span className="landing-feat-pip" aria-hidden="true" />
+              {t.feature3Tag}
+            </span>
+          </article>
+        </div>
+
+        <div className="landing-page-cta">
+          <div className="landing-page-cta-card">
+            <h2 className="landing-cta-title">{t.ctaTitle}</h2>
+            <p className="landing-cta-sub">{t.ctaSub}</p>
+            <Link to="/register" className="btn landing-cta-btn">{t.ctaBtn}</Link>
           </div>
         </div>
-      </section>
 
-      <section className="landing-cta">
-        <h2 className="landing-cta-title">{t.ctaTitle}</h2>
-        <p className="landing-cta-sub">{t.ctaSub}</p>
-        <Link to="/register" className="btn landing-cta-btn">{t.ctaBtn}</Link>
+        <div className="landing-page-next">
+          <Link to="/how-it-works">
+            {t.featuresNextLabel} · <strong>{t.footerNavHow}</strong> →
+          </Link>
+        </div>
       </section>
 
       <AppFooter
