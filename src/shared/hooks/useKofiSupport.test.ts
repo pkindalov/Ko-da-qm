@@ -2,8 +2,21 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { act, renderHook } from '@testing-library/react';
 import { useKofiSupport } from './useKofiSupport';
 
-const setViewport = (width: number) => {
-  Object.defineProperty(window, 'innerWidth', { writable: true, configurable: true, value: width });
+const mockTouchDevice = (isTouch: boolean) => {
+  Object.defineProperty(window, 'matchMedia', {
+    writable: true,
+    configurable: true,
+    value: vi.fn().mockImplementation((query: string) => ({
+      matches: isTouch,
+      media: query,
+      onchange: null,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    })),
+  });
 };
 
 describe('useKofiSupport', () => {
@@ -17,8 +30,8 @@ describe('useKofiSupport', () => {
     openSpy.mockRestore();
   });
 
-  it('opens the modal on desktop without opening a new tab', () => {
-    setViewport(1024);
+  it('opens the modal on a non-touch desktop without opening a new tab', () => {
+    mockTouchDevice(false);
     const { result } = renderHook(() => useKofiSupport());
 
     act(() => result.current.openSupport());
@@ -27,8 +40,8 @@ describe('useKofiSupport', () => {
     expect(openSpy).not.toHaveBeenCalled();
   });
 
-  it('opens Ko-fi in a new tab on mobile and leaves the modal closed', () => {
-    setViewport(375);
+  it('opens Ko-fi in a new tab on a touch device (phone or tablet) and leaves the modal closed', () => {
+    mockTouchDevice(true);
     const { result } = renderHook(() => useKofiSupport());
 
     act(() => result.current.openSupport());
@@ -38,7 +51,7 @@ describe('useKofiSupport', () => {
   });
 
   it('close() resets the modal state', () => {
-    setViewport(1024);
+    mockTouchDevice(false);
     const { result } = renderHook(() => useKofiSupport());
 
     act(() => result.current.openSupport());

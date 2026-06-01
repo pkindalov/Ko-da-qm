@@ -1,7 +1,8 @@
 import '@testing-library/jest-dom';
 
-// jsdom has no matchMedia. Provide a default that evaluates min/max-width
-// queries against window.innerWidth (jsdom defaults to 1024 = desktop).
+// jsdom has no matchMedia. Provide a default that models a desktop: width
+// queries evaluate against window.innerWidth (jsdom defaults to 1024), and
+// pointer/hover queries report a fine, hovering pointer (not a touch device).
 // Tests can override per-case via Object.defineProperty.
 if (typeof window.matchMedia !== 'function') {
   window.matchMedia = (query: string): MediaQueryList => {
@@ -10,7 +11,9 @@ if (typeof window.matchMedia !== 'function') {
     const width = window.innerWidth;
     const matches =
       (minWidth == null || width >= Number(minWidth[1])) &&
-      (maxWidth == null || width <= Number(maxWidth[1]));
+      (maxWidth == null || width <= Number(maxWidth[1])) &&
+      /hover:\s*none/.test(query) === false &&
+      /pointer:\s*coarse/.test(query) === false;
     return {
       matches,
       media: query,

@@ -118,8 +118,22 @@ describe('LandingPage', () => {
     expect(screen.queryByTitle(/Ko-fi/i)).not.toBeInTheDocument();
   });
 
-  it('on mobile the ko-fi button opens Ko-fi in a new tab instead of the modal', async () => {
-    Object.defineProperty(window, 'innerWidth', { writable: true, configurable: true, value: 375 });
+  it('on a touch device the ko-fi button opens Ko-fi in a new tab instead of the modal', async () => {
+    const originalMatchMedia = window.matchMedia;
+    Object.defineProperty(window, 'matchMedia', {
+      writable: true,
+      configurable: true,
+      value: vi.fn().mockImplementation((query: string) => ({
+        matches: true,
+        media: query,
+        onchange: null,
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+        addListener: vi.fn(),
+        removeListener: vi.fn(),
+        dispatchEvent: vi.fn(),
+      })),
+    });
     const openSpy = vi.spyOn(window, 'open').mockImplementation(() => null);
 
     renderLanding();
@@ -130,6 +144,6 @@ describe('LandingPage', () => {
     expect(screen.queryByTitle(/Ko-fi/i)).not.toBeInTheDocument();
 
     openSpy.mockRestore();
-    Object.defineProperty(window, 'innerWidth', { writable: true, configurable: true, value: 1024 });
+    window.matchMedia = originalMatchMedia;
   });
 });
