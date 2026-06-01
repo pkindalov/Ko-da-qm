@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Ко-да-ям · Footer Redesign</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@300;400;500;600;700;800&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --paper:#F5F1EA; --paper-2:#EFEAE0; --surface:#FCFAF6;
+    --ink:#1C1815; --ink-2:#5A4F46; --ink-3:#8B8278;
+    --line:#E4DED2; --line-2:#D6CFC1;
+    --clay:oklch(0.58 0.13 38); --clay-soft:oklch(0.93 0.04 38); --clay-deep:oklch(0.42 0.13 38);
+    --moss:oklch(0.52 0.07 145); --moss-soft:oklch(0.93 0.03 145);
+    --amber:oklch(0.66 0.11 75);
+    --r-sm:10px; --r:14px; --r-lg:20px;
+    --shadow-sm:0 1px 2px rgba(28,24,21,.04), 0 1px 1px rgba(28,24,21,.03);
+    --shadow:0 1px 2px rgba(28,24,21,.04), 0 8px 24px -8px rgba(28,24,21,.08);
+    --sans:"Geist", ui-sans-serif, system-ui, sans-serif;
+    --serif:"Instrument Serif", ui-serif, Georgia, serif;
+    --mono:"Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;background:#f0eee9;font-family:var(--sans);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;font-feature-settings:"ss01","cv11";}
+
+  /* ─────────── shared footer primitives ─────────── */
+  .ftr{font-family:var(--sans);color:var(--ink);}
+  .ftr a{color:inherit;text-decoration:none;}
+  .mono{font-family:var(--mono);text-transform:uppercase;}
+  .mark{font-family:var(--serif);font-style:italic;letter-spacing:-1px;color:var(--ink);}
+
+  /* a real Ko-fi pill (replaces the bare text link) */
+  .kofi{
+    display:inline-flex;align-items:center;gap:8px;
+    padding:9px 16px;border-radius:999px;
+    background:var(--clay-soft);color:var(--clay-deep);
+    border:1px solid color-mix(in oklch, var(--clay) 22%, transparent);
+    font-size:13px;font-weight:500;letter-spacing:-0.1px;
+    cursor:pointer;transition:transform .15s, background .15s, box-shadow .15s;
+  }
+  .kofi:hover{background:color-mix(in oklch, var(--clay-soft) 70%, var(--surface));box-shadow:var(--shadow-sm);}
+  .kofi:active{transform:translateY(1px);}
+  .kofi .cup{font-size:15px;}
+
+  .heart{color:var(--clay);font-style:normal;}
+
+  /* link-list shared */
+  .ftr-coltitle{font-family:var(--mono);text-transform:uppercase;font-size:10.5px;letter-spacing:1.4px;color:var(--ink-3);margin:0 0 14px;}
+  .ftr-links{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:11px;}
+  .ftr-links a{font-size:14px;color:var(--ink-2);transition:color .15s;width:fit-content;}
+  .ftr-links a:hover{color:var(--ink);}
+  .ftr-links a .arr{color:var(--clay);opacity:0;margin-left:6px;transition:opacity .15s,transform .15s;display:inline-block;}
+  .ftr-links a:hover .arr{opacity:1;transform:translateX(2px);}
+
+  /* ═══════════ A · Colophon ═══════════ */
+  .a-ftr{background:var(--surface);border-top:1px solid var(--line);padding:56px 64px 26px;}
+  .a-top{display:grid;grid-template-columns:1.3fr 1fr;gap:48px;align-items:start;padding-bottom:40px;}
+  .a-mark{font-size:40px;line-height:1;margin-bottom:16px;}
+  .a-manifesto{font-family:var(--serif);font-size:25px;line-height:1.25;letter-spacing:-0.4px;color:var(--ink);max-width:20ch;margin:0;}
+  .a-manifesto em{color:var(--clay-deep);}
+  .a-right{display:flex;flex-direction:column;align-items:flex-start;gap:18px;}
+  .a-support-label{font-family:var(--mono);text-transform:uppercase;font-size:10.5px;letter-spacing:1.4px;color:var(--ink-3);margin:0;}
+  .a-support-note{font-size:13.5px;color:var(--ink-2);line-height:1.55;max-width:34ch;margin:-6px 0 2px;}
+  .a-bar{display:flex;align-items:center;justify-content:space-between;gap:20px;padding-top:22px;border-top:1px solid var(--line);}
+  .a-bar-links{display:flex;align-items:center;gap:22px;}
+  .a-bar-links a{font-family:var(--mono);text-transform:uppercase;font-size:10.5px;letter-spacing:1.2px;color:var(--ink-3);transition:color .15s;}
+  .a-bar-links a:hover{color:var(--ink);}
+  .a-copy{font-family:var(--mono);text-transform:uppercase;font-size:10.5px;letter-spacing:1.2px;color:var(--ink-3);display:flex;align-items:center;gap:14px;}
+  .a-lang{font-family:var(--mono);text-transform:uppercase;font-size:10.5px;letter-spacing:1.2px;color:var(--ink-3);background:none;border:1px solid var(--line-2);border-radius:999px;padding:4px 11px;cursor:pointer;transition:border-color .15s,color .15s;}
+  .a-lang:hover{color:var(--ink);border-color:var(--ink-3);}
+
+  /* ═══════════ B · Multi-column ═══════════ */
+  .b-ftr{background:var(--paper-2);border-top:1px solid var(--line);padding:60px 64px 24px;}
+  .b-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr;gap:44px;padding-bottom:44px;}
+  .b-brand .mark{font-size:30px;display:block;margin-bottom:14px;}
+  .b-tag{font-size:14px;color:var(--ink-2);line-height:1.6;max-width:30ch;margin:0 0 22px;}
+  .b-bar{display:flex;align-items:center;justify-content:space-between;gap:20px;padding-top:24px;border-top:1px solid var(--line);}
+  .b-copy{font-family:var(--mono);text-transform:uppercase;font-size:10.5px;letter-spacing:1.2px;color:var(--ink-3);}
+  .b-made{font-family:var(--mono);text-transform:uppercase;font-size:10.5px;letter-spacing:1.2px;color:var(--ink-3);display:flex;align-items:center;gap:7px;}
+
+  /* ═══════════ C · Minimal centered ═══════════ */
+  .c-ftr{background:var(--surface);border-top:1px solid var(--line);padding:64px 48px 30px;text-align:center;}
+  .c-mark{font-family:var(--serif);font-style:italic;font-size:clamp(34px,5vw,52px);letter-spacing:-1.5px;color:var(--ink);line-height:1;margin:0 0 14px;}
+  .c-line{font-family:var(--serif);font-size:22px;color:var(--ink-2);line-height:1.4;letter-spacing:-0.3px;margin:0 auto 26px;max-width:30ch;}
+  .c-line em{color:var(--clay-deep);}
+  .c-actions{display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:40px;}
+  .c-ghost{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;border-radius:999px;border:1px solid var(--line-2);background:var(--surface);color:var(--ink);font-size:13px;font-weight:500;cursor:pointer;transition:border-color .15s,background .15s;}
+  .c-ghost:hover{border-color:var(--ink-3);background:var(--paper);}
+  .c-nav{display:flex;align-items:center;justify-content:center;gap:28px;flex-wrap:wrap;padding-top:26px;border-top:1px solid var(--line);}
+  .c-nav a{font-family:var(--mono);text-transform:uppercase;font-size:10.5px;letter-spacing:1.2px;color:var(--ink-3);transition:color .15s;}
+  .c-nav a:hover{color:var(--ink);}
+  .c-copy{font-family:var(--mono);text-transform:uppercase;font-size:10.5px;letter-spacing:1.2px;color:var(--ink-3);margin-left:auto;}
+
+  /* current (for reference artboard) */
+  .cur-ftr{background:var(--surface);border-top:1px solid var(--line);padding:24px 48px;display:flex;align-items:center;justify-content:space-between;font-family:var(--mono);font-size:11px;letter-spacing:0.3px;color:var(--ink-3);text-transform:uppercase;}
+  .cur-ftr button{color:var(--ink-3);background:none;border:none;cursor:pointer;font-family:var(--mono);font-size:11px;letter-spacing:.3px;text-transform:uppercase;padding:0;}
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script type="text/babel" src="design-canvas.jsx"></script>
+
+<script type="text/babel">
+const { useState } = React;
+
+/* ─── Current footer (reference) ─── */
+function CurrentFooter(){
+  return (
+    <footer className="cur-ftr">
+      <span>Ко-да-ям © 2025</span>
+      <button>Подкрепи проекта ☕</button>
+      <span>За капризни хора 💛</span>
+    </footer>
+  );
+}
+
+/* ─── A · Colophon ─── */
+function FooterA(){
+  return (
+    <footer className="ftr a-ftr" data-screen-label="Footer A · Colophon">
+      <div className="a-top">
+        <div>
+          <div className="a-mark mark">Ко-да-ям</div>
+          <p className="a-manifesto">Тиха готварска книга <em>за капризни хора</em>.</p>
+        </div>
+        <div className="a-right">
+          <p className="a-support-label">Подкрепи</p>
+          <p className="a-support-note">Ко-да-ям е безплатно и без реклами. Едно кафе помага да остане такова.</p>
+          <button className="kofi"><span className="cup">☕</span> Подкрепи проекта</button>
+        </div>
+      </div>
+      <div className="a-bar">
+        <div className="a-bar-links">
+          <a href="#features">Какво прави</a>
+          <a href="#how">Как работи</a>
+          <a href="#login">Вход</a>
+          <a href="#register">Регистрация</a>
+        </div>
+        <div className="a-copy">
+          <span>Ко-да-ям © 2025</span>
+          <span>За капризни хора <i className="heart">♥</i></span>
+          <button className="a-lang">EN</button>
+        </div>
+      </div>
+    </footer>
+  );
+}
+
+/* ─── B · Multi-column ─── */
+function FooterB(){
+  return (
+    <footer className="ftr b-ftr" data-screen-label="Footer B · Columns">
+      <div className="b-grid">
+        <div className="b-brand">
+          <span className="mark">Ко-да-ям</span>
+          <p className="b-tag">Умно планиране на хранене. Само рецепти, които можеш да ядеш.</p>
+          <button className="kofi"><span className="cup">☕</span> Подкрепи проекта</button>
+        </div>
+        <div>
+          <p className="ftr-coltitle">Продукт</p>
+          <ul className="ftr-links">
+            <li><a href="#features">Умен хладилник <span className="arr">→</span></a></li>
+            <li><a href="#features">Безопасни рецепти <span className="arr">→</span></a></li>
+            <li><a href="#features">Алергии под контрол <span className="arr">→</span></a></li>
+          </ul>
+        </div>
+        <div>
+          <p className="ftr-coltitle">Начало</p>
+          <ul className="ftr-links">
+            <li><a href="#how">Как работи <span className="arr">→</span></a></li>
+            <li><a href="#register">Започни безплатно <span className="arr">→</span></a></li>
+            <li><a href="#login">Вход <span className="arr">→</span></a></li>
+          </ul>
+        </div>
+        <div>
+          <p className="ftr-coltitle">Връзка</p>
+          <ul className="ftr-links">
+            <li><a href="#support">Подкрепи проекта <span className="arr">→</span></a></li>
+            <li><a href="mailto:zdravei@ko-da-yam.bg">Пиши ни <span className="arr">→</span></a></li>
+            <li><a href="#lang">English <span className="arr">→</span></a></li>
+          </ul>
+        </div>
+      </div>
+      <div className="b-bar">
+        <span className="b-copy">Ко-да-ям © 2025</span>
+        <span className="b-made">За капризни хора <i className="heart">♥</i></span>
+      </div>
+    </footer>
+  );
+}
+
+/* ─── C · Minimal centered ─── */
+function FooterC(){
+  return (
+    <footer className="ftr c-ftr" data-screen-label="Footer C · Minimal">
+      <div className="c-mark">Ко-да-ям</div>
+      <p className="c-line">Тиха готварска книга <em>за капризни хора</em>.</p>
+      <div className="c-actions">
+        <button className="kofi"><span className="cup">☕</span> Подкрепи проекта</button>
+        <a className="c-ghost" href="#register">Започни безплатно</a>
+      </div>
+      <div className="c-nav">
+        <a href="#features">Какво прави</a>
+        <a href="#how">Как работи</a>
+        <a href="#login">Вход</a>
+        <a href="#register">Регистрация</a>
+        <a href="mailto:zdravei@ko-da-yam.bg">Контакт</a>
+        <span className="c-copy">© 2025</span>
+      </div>
+    </footer>
+  );
+}
+
+function App(){
+  return (
+    <DesignCanvas>
+      <DCSection id="current" title="Сега" subtitle="The thin strip you have today — three items lost in a wide bar, no hierarchy">
+        <DCArtboard id="cur" label="Current footer" width={1280}>
+          <CurrentFooter />
+        </DCArtboard>
+      </DCSection>
+      <DCSection id="redesign" title="Предложения" subtitle="Three directions — all use the system tokens, type scale & voice. A real Ko-fi pill replaces the bare text link.">
+        <DCArtboard id="a" label="A · Colophon — editorial, paperback back-cover" width={1280}>
+          <FooterA />
+        </DCArtboard>
+        <DCArtboard id="b" label="B · Columns — structured, scales as the app grows" width={1280}>
+          <FooterB />
+        </DCArtboard>
+        <DCArtboard id="c" label="C · Minimal — centered, a calm closing line" width={1280}>
+          <FooterC />
+        </DCArtboard>
+      </DCSection>
+    </DesignCanvas>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>

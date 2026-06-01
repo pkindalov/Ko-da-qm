@@ -335,31 +335,140 @@ a {
 
 .app-footer {
   margin: 48px -64px -96px;
-  padding: 24px 64px;
+  padding: 56px 64px 26px;
   background: var(--surface);
   border-top: 1px solid var(--line);
+}
+.app-footer__top {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr;
+  gap: 48px;
+  align-items: start;
+  padding-bottom: 40px;
+}
+.app-footer__mark {
+  font-family: var(--serif);
+  font-style: italic;
+  letter-spacing: -1px;
+  font-size: 40px;
+  line-height: 1;
+  margin-bottom: 16px;
+  color: var(--ink);
+}
+.app-footer__manifesto {
+  font-family: var(--serif);
+  font-size: 25px;
+  line-height: 1.25;
+  letter-spacing: -0.4px;
+  color: var(--ink);
+  max-width: 20ch;
+  margin: 0;
+}
+.app-footer__manifesto em {
+  color: var(--clay-deep);
+  font-style: italic;
+}
+.app-footer__support-col {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 18px;
+}
+.app-footer__support-label {
+  font-family: var(--mono);
+  text-transform: uppercase;
+  font-size: 10.5px;
+  letter-spacing: 1.4px;
+  color: var(--ink-3);
+  margin: 0;
+}
+.app-footer__support-note {
+  font-size: 13.5px;
+  color: var(--ink-2);
+  line-height: 1.55;
+  max-width: 34ch;
+  margin: -6px 0 2px;
+}
+.app-footer__kofi {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 16px;
+  border-radius: 999px;
+  background: var(--clay-soft);
+  color: var(--clay-deep);
+  border: 1px solid color-mix(in oklch, var(--clay) 22%, transparent);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: -0.1px;
+  cursor: pointer;
+  transition: transform 0.15s, background 0.15s, box-shadow 0.15s;
+}
+.app-footer__kofi:hover {
+  background: color-mix(in oklch, var(--clay-soft) 70%, var(--surface));
+  box-shadow: var(--shadow-sm);
+}
+.app-footer__kofi:active {
+  transform: translateY(1px);
+}
+.app-footer__cup {
+  font-size: 15px;
+}
+.app-footer__bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-family: var(--mono);
-  font-size: 11px;
-  letter-spacing: 0.3px;
-  color: var(--ink-3);
-  text-transform: uppercase;
+  gap: 20px;
+  padding-top: 22px;
+  border-top: 1px solid var(--line);
 }
-.app-footer__support {
+.app-footer__bar-links {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+}
+.app-footer__bar-links a {
+  font-family: var(--mono);
+  text-transform: uppercase;
+  font-size: 10.5px;
+  letter-spacing: 1.2px;
+  color: var(--ink-3);
+  text-decoration: none;
+  transition: color 0.15s;
+}
+.app-footer__bar-links a:hover {
+  color: var(--ink);
+}
+.app-footer__bar-right {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-family: var(--mono);
+  text-transform: uppercase;
+  font-size: 10.5px;
+  letter-spacing: 1.2px;
+  color: var(--ink-3);
+}
+.app-footer__heart {
+  color: var(--clay);
+  font-style: normal;
+}
+.app-footer__lang {
+  font-family: var(--mono);
+  text-transform: uppercase;
+  font-size: 10.5px;
+  letter-spacing: 1.2px;
   color: var(--ink-3);
   background: none;
-  border: none;
+  border: 1px solid var(--line-2);
+  border-radius: 999px;
+  padding: 4px 11px;
   cursor: pointer;
-  font-family: var(--mono);
-  font-size: 11px;
-  letter-spacing: 0.3px;
-  text-transform: uppercase;
-  padding: 0;
+  transition: border-color 0.15s, color 0.15s;
 }
-.app-footer__support:hover {
+.app-footer__lang:hover {
   color: var(--ink);
+  border-color: var(--ink-3);
 }
 
 /* ── Typography helpers ──────────────────────────────────── */
@@ -1386,7 +1495,16 @@ a {
   }
   .app-footer {
     margin: 32px -24px -100px;
-    padding: 24px 24px;
+    padding: 40px 24px 20px;
+  }
+  .app-footer__top {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+  .app-footer__bar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
   }
 }
 @media (max-width: 767px) {
@@ -1401,10 +1519,30 @@ a {
   }
   .app-footer {
     margin: 24px -16px -96px;
-    padding: 20px 16px;
+    padding: 36px 16px 20px;
+  }
+  .app-footer__top {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+  .app-footer__mark {
+    font-size: 30px;
+  }
+  .app-footer__manifesto {
+    font-size: 20px;
+  }
+  .app-footer__bar {
     flex-direction: column;
-    gap: 8px;
-    text-align: center;
+    align-items: flex-start;
+    gap: 14px;
+  }
+  .app-footer__bar-links {
+    flex-wrap: wrap;
+    gap: 14px;
+  }
+  .app-footer__bar-right {
+    flex-wrap: wrap;
+    gap: 10px;
   }
 }
 @media (max-width: 520px) {
