@@ -15,6 +15,7 @@ import { useDisableAccount } from '../features/profile/hooks/useDisableAccount';
 import { useChangePassword } from '../features/profile/hooks/useChangePassword';
 import { NotificationBell } from '../features/notifications/components/NotificationBell';
 import { ErrorBoundary } from '../shared/components/ErrorBoundary';
+import { AppFooter } from '../shared/components/AppFooter';
 import { DEFAULT_TWEAKS } from '../shared/constants/defaults';
 import { supabase } from '../lib/supabase';
 import type { Tab } from '../shared/types';
@@ -130,6 +131,7 @@ export const AppShell = () => {
           <NotificationBell notifications={notifications} unreadCount={unreadCount} onMarkAsRead={markAsRead} onMarkAllAsRead={markAllAsRead} onMarkAsUnread={markAsUnread} onMarkAllAsUnread={markAllAsUnread} onDeleteNotification={deleteNotification} onDeleteAll={deleteAllNotifications} onEntityClick={handleEntityClick} lang={tweaks.lang} />
         </div>
         <Suspense fallback={null}>{screens[tab]}</Suspense>
+        <AppFooter lang={tweaks.lang} />
       </main>
       <BottomNav tab={tab} setTab={setTab} lang={tweaks.lang} />
       <TweaksPanel open={tweaksOpen} tweaks={tweaks} setTweaks={setTweaks} onClose={() => setTweaksOpen(false)} />

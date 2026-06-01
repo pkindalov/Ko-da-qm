@@ -333,6 +333,35 @@ a {
   min-width: 0;
 }
 
+.app-footer {
+  margin: 48px -64px -96px;
+  padding: 24px 64px;
+  background: var(--surface);
+  border-top: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.3px;
+  color: var(--ink-3);
+  text-transform: uppercase;
+}
+.app-footer__support {
+  color: var(--ink-3);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  padding: 0;
+}
+.app-footer__support:hover {
+  color: var(--ink);
+}
+
 /* ── Typography helpers ──────────────────────────────────── */
 .page-title {
   font-family: var(--serif);
@@ -1355,6 +1384,10 @@ a {
   .main-content {
     padding: 32px 24px 100px;
   }
+  .app-footer {
+    margin: 32px -24px -100px;
+    padding: 24px 24px;
+  }
 }
 @media (max-width: 767px) {
   .sidebar {
@@ -1365,6 +1398,13 @@ a {
   }
   .page-title {
     font-size: 30px;
+  }
+  .app-footer {
+    margin: 24px -16px -96px;
+    padding: 20px 16px;
+    flex-direction: column;
+    gap: 8px;
+    text-align: center;
   }
 }
 @media (max-width: 520px) {
