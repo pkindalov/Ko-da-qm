@@ -14,7 +14,7 @@ export const LandingPage = () => {
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) navigate('/app', { replace: true });
+      if (session) navigate('/home', { replace: true });
       else setChecking(false);
     });
   }, [navigate]);

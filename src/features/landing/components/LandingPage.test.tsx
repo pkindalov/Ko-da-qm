@@ -12,7 +12,12 @@ vi.mock('react-router-dom', async () => {
 });
 
 vi.mock('../../../lib/supabase', () => ({
-  supabase: { auth: { getSession: mockGetSession } },
+  supabase: {
+    auth: {
+      getSession: mockGetSession,
+      onAuthStateChange: vi.fn().mockReturnValue({ data: { subscription: { unsubscribe: vi.fn() } } }),
+    },
+  },
 }));
 
 const renderLanding = () => render(<MemoryRouter><LandingPage /></MemoryRouter>);
@@ -81,10 +86,10 @@ describe('LandingPage', () => {
     );
   });
 
-  it('redirects to /app when an active session exists', async () => {
+  it('redirects to /home when an active session exists', async () => {
     mockGetSession.mockResolvedValue({ data: { session: { access_token: 'tok' } } });
     renderLanding();
-    await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith('/app', { replace: true }));
+    await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith('/home', { replace: true }));
   });
 
   it('does not navigate when there is no session', async () => {

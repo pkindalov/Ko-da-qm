@@ -7,9 +7,6 @@ export const useSession = (): Session | null | undefined => {
 
   useEffect(() => {
     let active = true;
-    supabase.auth.getSession()
-      .then(({ data }) => { if (active) setSession(data.session); })
-      .catch(() => { if (active) setSession(null); });
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, s) => {
       if (active) setSession(s);
     });
