@@ -583,8 +583,18 @@
   .landing-phero {
     padding: 52px 24px 44px;
   }
+  .landing-nav {
+    flex-wrap: wrap;
+  }
   .landing-nav-mid {
-    display: none;
+    display: flex;
+    order: 3;
+    width: 100%;
+    justify-content: center;
+    gap: 20px;
+    padding-top: 10px;
+    margin-top: 6px;
+    border-top: 1px solid var(--line);
   }
   .landing-feat-page,
   .landing-vstep-page {
