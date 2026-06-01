@@ -23,6 +23,8 @@ export const AppFooter = ({ lang, onLangToggle, navLinks }: AppFooterProps) => {
       <Link to="/recipes">{t.footerNavRecipes}</Link>
       <Link to="/fridge">{t.footerNavFridge}</Link>
       <Link to="/profile">{t.footerNavProfile}</Link>
+      <Link to="/features">{t.footerNavFeatures}</Link>
+      <Link to="/how-it-works">{t.footerNavHow}</Link>
     </>
   );
 

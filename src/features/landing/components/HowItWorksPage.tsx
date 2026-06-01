@@ -124,14 +124,20 @@ export const HowItWorksPage = () => {
       <AppFooter
         lang={lang}
         onLangToggle={toggleLang}
-        navLinks={session != null ? undefined : (
+        navLinks={
           <>
             <Link to="/features">{t.footerNavFeatures}</Link>
             <Link to="/how-it-works">{t.footerNavHow}</Link>
-            <Link to="/login">{t.navLogin}</Link>
-            <Link to="/register">{t.navRegister}</Link>
+            {session != null ? (
+              <Link to="/home">{t.footerNavHome}</Link>
+            ) : (
+              <>
+                <Link to="/login">{t.navLogin}</Link>
+                <Link to="/register">{t.navRegister}</Link>
+              </>
+            )}
           </>
-        )}
+        }
       />
     </div>
   );
