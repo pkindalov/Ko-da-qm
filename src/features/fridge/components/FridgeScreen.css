@@ -28,6 +28,13 @@
   color: var(--ink-2);
   margin-bottom: 14px;
 }
+.fridge-difficulty-filter {
+  margin-bottom: 14px;
+}
+.fridge-difficulty-filter .input-label {
+  display: block;
+  margin-bottom: 6px;
+}
 .fridge-pin-clear-btn {
   background: none;
   border: none;

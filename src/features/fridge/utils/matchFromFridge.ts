@@ -1,5 +1,5 @@
 import { supabase } from '../../../lib/supabase';
-import type { FridgeItem } from '../../../shared/types';
+import type { FridgeItem, Difficulty } from '../../../shared/types';
 
 export interface MatchedRecipe {
   id: string;
@@ -11,6 +11,7 @@ export interface MatchedRecipe {
   steps: string[];
   time: number;
   tags: string[];
+  difficulty?: Difficulty;
   requiredIngredients: string[];
   isAI: boolean;
   isPublic: boolean;

@@ -88,7 +88,7 @@ describe('searchWithGemini', () => {
     const fridge = [makeFridgeItem('eggs')];
     await searchWithGemini(fridge, ['nuts'], 'bg');
     expect(mockInvoke).toHaveBeenCalledWith('gemini-recipes', {
-      body: { fridgeItems: fridge, blocked: ['nuts'], lang: 'bg', excludeNames: [] },
+      body: { fridgeItems: fridge, blocked: ['nuts'], lang: 'bg', excludeNames: [], difficulty: '' },
     });
   });
 
@@ -97,8 +97,38 @@ describe('searchWithGemini', () => {
     const fridge = [makeFridgeItem('eggs')];
     await searchWithGemini(fridge, [], 'en', ['Recipe A', 'Recipe B']);
     expect(mockInvoke).toHaveBeenCalledWith('gemini-recipes', {
-      body: { fridgeItems: fridge, blocked: [], lang: 'en', excludeNames: ['Recipe A', 'Recipe B'] },
+      body: { fridgeItems: fridge, blocked: [], lang: 'en', excludeNames: ['Recipe A', 'Recipe B'], difficulty: '' },
     });
+  });
+
+  it('forwards a chosen difficulty preference to the edge function', async () => {
+    mockInvoke.mockResolvedValue({ data: [], error: null });
+    const fridge = [makeFridgeItem('eggs')];
+    await searchWithGemini(fridge, [], 'en', [], 'hard');
+    expect(mockInvoke).toHaveBeenCalledWith('gemini-recipes', {
+      body: { fridgeItems: fridge, blocked: [], lang: 'en', excludeNames: [], difficulty: 'hard' },
+    });
+  });
+
+  it('sends an empty difficulty when none is selected (null)', async () => {
+    mockInvoke.mockResolvedValue({ data: [], error: null });
+    const fridge = [makeFridgeItem('eggs')];
+    await searchWithGemini(fridge, [], 'en', [], null);
+    expect(mockInvoke).toHaveBeenCalledWith('gemini-recipes', {
+      body: { fridgeItems: fridge, blocked: [], lang: 'en', excludeNames: [], difficulty: '' },
+    });
+  });
+
+  it('maps the difficulty returned by Gemini onto the matched recipe', async () => {
+    mockInvoke.mockResolvedValue({ data: [makeGeminiRecipe({ difficulty: 'medium' })], error: null });
+    const result = await searchWithGemini([makeFridgeItem('eggs')], [], 'en');
+    expect(result[0].difficulty).toBe('medium');
+  });
+
+  it('leaves difficulty undefined when Gemini omits it', async () => {
+    mockInvoke.mockResolvedValue({ data: [makeGeminiRecipe({ difficulty: undefined })], error: null });
+    const result = await searchWithGemini([makeFridgeItem('eggs')], [], 'en');
+    expect(result[0].difficulty).toBeUndefined();
   });
 
   it('matches when fridge item is a substring of required ingredient', async () => {

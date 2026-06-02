@@ -1,4 +1,4 @@
-import type { Recipe, Language } from '../types';
+import type { Recipe, Language, Difficulty } from '../types';
 
 export const mapRecipeRow = (row: Record<string, unknown>): Recipe => ({
   id: row.id as string,
@@ -18,6 +18,7 @@ export const mapRecipeRow = (row: Record<string, unknown>): Recipe => ({
     : undefined,
   time: row.time as number,
   tags: (row.tags as string[]) ?? [],
+  difficulty: (row.difficulty as Difficulty | null) ?? undefined,
   requiredIngredients: (row.required_ingredients as string[]) ?? [],
   isAI: row.is_ai as boolean,
   isPublic: (row.is_public as boolean) ?? false,

@@ -112,6 +112,17 @@ describe('parseRecipeForm', () => {
     const result = parseRecipeForm({ name: 'Тест', emoji: '🍳', time: '10', ingredients: '', steps: '', meals: ['breakfast', 'lunch', 'dinner'] });
     expect(result?.tags).toEqual(['breakfast', 'lunch', 'dinner']);
   });
+
+  it('keeps the author-chosen difficulty over the heuristic', () => {
+    // A short, simple recipe the heuristic would call "easy", explicitly marked "hard".
+    const result = parseRecipeForm({ name: 'Тест', emoji: '🍳', time: '10', ingredients: 'яйца', steps: 'разбий', difficulty: 'hard' });
+    expect(result?.difficulty).toBe('hard');
+  });
+
+  it('falls back to the heuristic difficulty when none is chosen', () => {
+    const result = parseRecipeForm({ name: 'Тест', emoji: '🍳', time: '10', ingredients: '2 яйца', steps: 'разбий' });
+    expect(result?.difficulty).toBe('easy');
+  });
 });
 
 describe('mealsFromTags', () => {

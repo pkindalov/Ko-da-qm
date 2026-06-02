@@ -1,4 +1,5 @@
-import type { Recipe } from '../../../shared/types';
+import type { Recipe, Difficulty } from '../../../shared/types';
+import { suggestDifficulty } from '../../../shared/utils/recipeDifficulty';
 
 export type MealType = 'breakfast' | 'lunch' | 'dinner';
 
@@ -50,6 +51,7 @@ export interface RecipeFormData {
   steps: string;
   isPublic?: boolean;
   meals?: MealType[];
+  difficulty?: Difficulty;
 }
 
 const DEFAULT_RECIPE_TIME_MIN = 15;
@@ -57,14 +59,19 @@ const DEFAULT_RECIPE_TIME_MIN = 15;
 export const parseRecipeForm = (form: RecipeFormData): Omit<Recipe, 'id' | 'authorName' | 'authorEmail'> | null => {
   if (!form.name.trim()) return null;
   const ingredientLines = form.ingredients.split('\n').filter(Boolean);
+  const stepLines = form.steps.split('\n').filter(Boolean);
   const selectedMeals = form.meals ?? [];
+  const time = parseInt(form.time) || DEFAULT_RECIPE_TIME_MIN;
   return {
     name: form.name,
     emoji: form.emoji || '🍽',
     ingredients: ingredientLines,
-    steps: form.steps.split('\n').filter(Boolean),
-    time: parseInt(form.time) || DEFAULT_RECIPE_TIME_MIN,
+    steps: stepLines,
+    time,
     tags: MEAL_ORDER.filter((meal) => selectedMeals.includes(meal)),
+    // Hybrid difficulty: the author's explicit choice wins; otherwise fall back to the
+    // heuristic so every recipe carries a sensible level without forcing a manual pick.
+    difficulty: form.difficulty ?? suggestDifficulty({ steps: stepLines, ingredients: ingredientLines, time }),
     isAI: false,
     isPublic: form.isPublic ?? false,
     requiredIngredients: ingredientLines.map((i) => i.split(' ').slice(1).join(' ') || i),

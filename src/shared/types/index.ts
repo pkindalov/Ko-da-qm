@@ -47,6 +47,8 @@ export interface Product {
   emoji: string;
 }
 
+export type Difficulty = 'easy' | 'medium' | 'hard';
+
 export interface Recipe {
   id: string;
   name: string;
@@ -61,6 +63,7 @@ export interface Recipe {
   stepsTranslated?: string[];
   time: number;
   tags: string[];
+  difficulty?: Difficulty;
   requiredIngredients: string[];
   isAI: boolean;
   isPublic: boolean;

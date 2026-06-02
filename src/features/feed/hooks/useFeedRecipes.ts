@@ -11,7 +11,7 @@ export const useFeedRecipes = (followingIds: string[], enabled = true) => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('recipes')
-        .select('id, name, name_en, name_translated, source_lang, emoji, image_url, ingredients, steps, ingredients_translated, steps_translated, time, tags, required_ingredients, is_ai, is_public, user_id, author_name, author_email')
+        .select('id, name, name_en, name_translated, source_lang, emoji, image_url, ingredients, steps, ingredients_translated, steps_translated, time, tags, difficulty, required_ingredients, is_ai, is_public, user_id, author_name, author_email')
         .in('user_id', followingIds)
         .eq('is_public', true)
         .order('created_at', { ascending: false })

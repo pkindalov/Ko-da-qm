@@ -13,8 +13,10 @@ import { useSaveGeminiRecipe } from '../hooks/useSaveGeminiRecipe';
 import { openGoogleTranslate } from '../../../shared/utils/openGoogleTranslate';
 import { recipeDisplayName } from '../../../shared/utils/recipeDisplayName';
 import { SaveTranslationModal } from '../../../shared/components/SaveTranslationModal';
+import { DifficultyBadge } from '../../../shared/components/DifficultyBadge';
+import { DIFFICULTY_OPTIONS } from '../../../shared/utils/recipeDifficulty';
 import { CATEGORIES } from '../../../shared/constants/categories';
-import type { FridgeItem, Profile, Recipe, Language, Product, ProductStatus } from '../../../shared/types';
+import type { FridgeItem, Profile, Recipe, Language, Product, ProductStatus, Difficulty } from '../../../shared/types';
 
 const FRIDGE_EMOJIS = ['🥚', '🧀', '🍞', '🧈', '🥛', '🍚', '🍗', '🥔', '🍎', '🍅', '🥕', '🥦', '🧅', '🫙', '📦'];
 
@@ -56,6 +58,7 @@ export const FridgeScreen = ({ fridge, addFridgeItem, removeFridgeItem, removePr
   const [suggestions, setSuggestions] = useState<MatchedRecipe[] | null>(null);
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
   const [geminiMode, setGeminiMode] = useState(false);
+  const [difficultyFilter, setDifficultyFilter] = useState<Difficulty | null>(null);
   const [fridgeExpanded, setFridgeExpanded] = useState(true);
   const [matchingExpanded, setMatchingExpanded] = useState(false);
   const [pendingSaveRecipe, setPendingSaveRecipe] = useState<MatchedRecipe | null>(null);
@@ -179,7 +182,7 @@ export const FridgeScreen = ({ fridge, addFridgeItem, removeFridgeItem, removePr
     setSuggestionSource(null);
     try {
       if (geminiMode) {
-        const results = filterSafe(await searchWithGemini(searchFridge, blocked, lang));
+        const results = filterSafe(await searchWithGemini(searchFridge, blocked, lang, [], difficultyFilter));
         setSuggestions(results);
         setSeenGeminiNames(results.map((recipe) => recipe.name));
         setSuggestionSource('gemini');
@@ -225,7 +228,7 @@ export const FridgeScreen = ({ fridge, addFridgeItem, removeFridgeItem, removePr
   const handleTryDifferentSuggestions = async () => {
     setLoadingMoreSuggestions(true);
     try {
-      const results = filterSafe(await searchWithGemini(searchFridge, blocked, lang, seenGeminiNames));
+      const results = filterSafe(await searchWithGemini(searchFridge, blocked, lang, seenGeminiNames, difficultyFilter));
       const newResults = results.filter((recipe) => !seenGeminiNames.includes(recipe.name));
       setSuggestions(newResults);
       setSeenGeminiNames((prev) => [...prev, ...newResults.map((recipe) => recipe.name)]);
@@ -392,6 +395,28 @@ export const FridgeScreen = ({ fridge, addFridgeItem, removeFridgeItem, removePr
           </button>
         </p>
       )}
+      {geminiMode && (
+        <div className="fridge-difficulty-filter">
+          <span className="input-label">{isEnglish ? 'Difficulty' : 'Трудност'}</span>
+          <div className="tag-list">
+            <button
+              className={`chip${difficultyFilter === null ? ' selected' : ''}`}
+              onClick={() => setDifficultyFilter(null)}
+            >
+              {isEnglish ? 'Any' : 'Всякаква'}
+            </button>
+            {DIFFICULTY_OPTIONS.map(difficulty => (
+              <button
+                key={difficulty.id}
+                className={`chip${difficultyFilter === difficulty.id ? ' selected' : ''}`}
+                onClick={() => setDifficultyFilter(difficulty.id)}
+              >
+                {isEnglish ? difficulty.en : difficulty.bg}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
       <button
         className="btn btn-primary btn-full"
         onClick={handleWhatCanICook}
@@ -446,6 +471,7 @@ export const FridgeScreen = ({ fridge, addFridgeItem, removeFridgeItem, removePr
                       }
                       <span className="suggestion-name">{displayName}</span>
                       {suggestion.isAI && <span className="badge badge-neutral suggestion-badge-ai">✨ AI</span>}
+                      {suggestion.difficulty != null && <DifficultyBadge difficulty={suggestion.difficulty} isEnglish={isEnglish} />}
                     </div>
                     <span className="badge badge-safe">
                       {suggestion.matchedCount}/{suggestion.requiredIngredients.length} {isEnglish ? 'match' : 'съвп.'}

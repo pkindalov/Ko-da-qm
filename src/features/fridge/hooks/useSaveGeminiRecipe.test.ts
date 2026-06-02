@@ -250,6 +250,16 @@ describe('useSaveGeminiRecipe', () => {
     expect(mockAddRecipe.mock.calls[0][0].imageUrl).toBeUndefined();
   });
 
+  it('passes the difficulty through to the saved recipe', async () => {
+    const { result } = renderSaveHook();
+
+    await act(async () => {
+      await result.current.saveRecipe(makeMatchedRecipe({ difficulty: 'hard' }), false);
+    });
+
+    expect(mockAddRecipe.mock.calls[0][0].difficulty).toBe('hard');
+  });
+
   describe('unsaveRecipe', () => {
     it('calls removeRecipe with the real recipe id', async () => {
       const { result } = renderSaveHook();

@@ -1,5 +1,5 @@
 import { supabase } from '../../../lib/supabase';
-import type { FridgeItem, Language } from '../../../shared/types';
+import type { FridgeItem, Language, Difficulty } from '../../../shared/types';
 import type { MatchedRecipe } from './matchFromFridge';
 import { toEnglish } from './searchTheMealDB';
 
@@ -13,6 +13,7 @@ interface GeminiRecipe {
   requiredIngredients: string[];
   steps: string[];
   time?: number;
+  difficulty?: Difficulty;
   tags?: string[];
 }
 
@@ -39,6 +40,7 @@ const toMatchedRecipe = (recipe: GeminiRecipe, index: number, fridgeItems: Fridg
     ingredients,
     steps,
     time: recipe.time ?? DEFAULT_RECIPE_TIME_MIN,
+    difficulty: recipe.difficulty,
     tags: recipe.tags ?? [],
     requiredIngredients,
     isAI: true,
@@ -53,9 +55,10 @@ export const searchWithGemini = async (
   blocked: string[],
   lang: Language,
   excludeNames: string[] = [],
+  difficulty: Difficulty | null = null,
 ): Promise<MatchedRecipe[]> => {
   const { data, error } = await supabase.functions.invoke('gemini-recipes', {
-    body: { fridgeItems, blocked, lang, excludeNames },
+    body: { fridgeItems, blocked, lang, excludeNames, difficulty: difficulty ?? '' },
   });
 
   if (error || !Array.isArray(data)) return [];

@@ -35,6 +35,7 @@ export const useSaveGeminiRecipe = (
         steps: matched.steps,
         time: matched.time,
         tags: matched.tags,
+        difficulty: matched.difficulty,
         requiredIngredients: matched.requiredIngredients,
         isAI: matched.isAI,
         isPublic,

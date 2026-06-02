@@ -10,7 +10,9 @@ import { searchDatabase } from '../../fridge/utils/matchFromFridge';
 import { isSafe, recipeRisk } from '../../../shared/utils/recipeUtils';
 import { recipeDisplayName, localizeMealTag } from '../../../shared/utils/recipeDisplayName';
 import { parseRecipeForm, mealsFromTags, mergeMealTags, type MealType } from '../utils/recipeForm';
-import type { Recipe, Profile, Language, Product, FridgeItem } from '../../../shared/types';
+import { DifficultyBadge } from '../../../shared/components/DifficultyBadge';
+import { suggestDifficulty, DIFFICULTY_OPTIONS } from '../../../shared/utils/recipeDifficulty';
+import type { Recipe, Profile, Language, Product, FridgeItem, Difficulty } from '../../../shared/types';
 
 interface RecipesScreenProps {
   recipes: Recipe[];
@@ -37,6 +39,7 @@ interface RecipeFormState {
   steps: string;
   isPublic: boolean;
   meals: MealType[];
+  difficulty?: Difficulty;
 }
 
 const EMPTY_FORM: RecipeFormState = { name: '', emoji: '🍽', time: '', ingredients: '', steps: '', isPublic: false, meals: [] };
@@ -108,6 +111,7 @@ export const RecipesScreen = ({ recipes, addRecipe, removeRecipe, updateRecipe, 
       steps: recipe.steps.join('\n'),
       isPublic: recipe.isPublic,
       meals: mealsFromTags(recipe.tags),
+      difficulty: recipe.difficulty,
     });
     setEditingId(recipe.id);
     setAddOpen(true);
@@ -119,6 +123,20 @@ export const RecipesScreen = ({ recipes, addRecipe, removeRecipe, updateRecipe, 
       meals: prev.meals.includes(meal) ? prev.meals.filter(m => m !== meal) : [...prev.meals, meal],
     }));
   };
+
+  // Clicking the active level clears the override so the auto-suggestion takes over again.
+  const chooseDifficulty = (difficulty: Difficulty) => {
+    setForm(prev => ({ ...prev, difficulty: prev.difficulty === difficulty ? undefined : difficulty }));
+  };
+
+  // Live heuristic suggestion shown until the author overrides it. Mirrors the fallback
+  // parseRecipeForm applies on save, so the highlighted chip matches what gets stored.
+  const suggestedDifficulty = suggestDifficulty({
+    steps: form.steps.split('\n').filter(Boolean),
+    ingredients: form.ingredients.split('\n').filter(Boolean),
+    time: parseInt(form.time) || 0,
+  });
+  const effectiveDifficulty = form.difficulty ?? suggestedDifficulty;
 
   const appendIngredient = (name: string) => {
     setForm(prev => {
@@ -271,6 +289,9 @@ export const RecipesScreen = ({ recipes, addRecipe, removeRecipe, updateRecipe, 
                         <div className="recipe-body">
                           <div className="recipe-name italic">{name}</div>
                           <div className="recipe-meta">⏱ {recipe.time} {lang === 'en' ? 'min' : 'мин'}</div>
+                      {recipe.difficulty != null && (
+                        <div className="recipe-tags"><DifficultyBadge difficulty={recipe.difficulty} isEnglish={lang === 'en'} /></div>
+                      )}
                           {recipe.authorName && <div className="recipe-meta">👤 {recipe.authorName}</div>}
                           <div className="recipe-tags">
                             {risk === 'safe'    && <Badge type="safe"><span className="dot dot-safe" /> {lang === 'en' ? 'safe' : 'безопасно'}</Badge>}
@@ -312,6 +333,9 @@ export const RecipesScreen = ({ recipes, addRecipe, removeRecipe, updateRecipe, 
                     <div className="recipe-body">
                       <div className="recipe-name italic">{name}</div>
                       <div className="recipe-meta">⏱ {recipe.time} {lang === 'en' ? 'min' : 'мин'}</div>
+                      {recipe.difficulty != null && (
+                        <div className="recipe-tags"><DifficultyBadge difficulty={recipe.difficulty} isEnglish={lang === 'en'} /></div>
+                      )}
                       <div className="recipe-tags">
                         {risk === 'safe'    && <Badge type="safe"><span className="dot dot-safe" /> {lang === 'en' ? 'safe' : 'безопасно'}</Badge>}
                         {risk === 'dislike' && <Badge type="dislike"><span className="dot dot-warn" /> {lang === 'en' ? 'check' : 'провери'}</Badge>}
@@ -366,6 +390,23 @@ export const RecipesScreen = ({ recipes, addRecipe, removeRecipe, updateRecipe, 
                 onClick={() => toggleMeal(meal.id)}
               >
                 {lang === 'en' ? meal.en : meal.bg}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className="recipe-form-mb">
+          <label className="input-label">
+            {lang === 'en' ? 'Difficulty' : 'Трудност'}
+            {form.difficulty == null && ` (${lang === 'en' ? 'suggested' : 'предложено'})`}
+          </label>
+          <div className="tag-list">
+            {DIFFICULTY_OPTIONS.map(difficulty => (
+              <button
+                key={difficulty.id}
+                className={`chip${effectiveDifficulty === difficulty.id ? ' selected' : ''}`}
+                onClick={() => chooseDifficulty(difficulty.id)}
+              >
+                {lang === 'en' ? difficulty.en : difficulty.bg}
               </button>
             ))}
           </div>

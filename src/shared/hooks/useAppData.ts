@@ -28,7 +28,7 @@ export const useAppData = (lang: Language = 'bg') => {
     const [profileRes, fridgeRes, recipesRes, productsRes] = await Promise.all([
       supabase.from('users').select('name, allergies, dislikes, dietary_prefs, disabled_at').eq('id', user.id).single(),
       supabase.from('fridge_items').select('id, name, emoji, category').eq('user_id', user.id),
-      supabase.from('recipes').select('id, user_id, name, name_en, name_translated, source_lang, emoji, image_url, ingredients, steps, ingredients_translated, steps_translated, time, tags, required_ingredients, is_ai, is_public, author_name, author_email').eq('user_id', user.id),
+      supabase.from('recipes').select('id, user_id, name, name_en, name_translated, source_lang, emoji, image_url, ingredients, steps, ingredients_translated, steps_translated, time, tags, difficulty, required_ingredients, is_ai, is_public, author_name, author_email').eq('user_id', user.id),
       supabase.from('products').select('id, name, name_en, category, status, emoji').eq('user_id', user.id),
     ]);
 
@@ -84,6 +84,7 @@ export const useAppData = (lang: Language = 'bg') => {
         stepsTranslated: recipeRow.steps_translated?.length ? recipeRow.steps_translated : undefined,
         time: recipeRow.time,
         tags: recipeRow.tags ?? [],
+        difficulty: recipeRow.difficulty ?? undefined,
         requiredIngredients: recipeRow.required_ingredients ?? [],
         isAI: recipeRow.is_ai,
         isPublic: recipeRow.is_public ?? false,
@@ -193,6 +194,7 @@ export const useAppData = (lang: Language = 'bg') => {
       steps_translated: recipe.stepsTranslated ?? [],
       time: recipe.time,
       tags: recipe.tags,
+      difficulty: recipe.difficulty ?? null,
       required_ingredients: recipe.requiredIngredients,
       is_ai: recipe.isAI,
       is_public: recipe.isPublic,
@@ -232,6 +234,7 @@ export const useAppData = (lang: Language = 'bg') => {
         steps_translated: recipe.stepsTranslated ?? [],
         time: recipe.time,
         tags: recipe.tags,
+        difficulty: recipe.difficulty ?? null,
         required_ingredients: recipe.requiredIngredients,
         is_ai: recipe.isAI,
         is_public: recipe.isPublic,

@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { Badge } from './Badge';
+import { DifficultyBadge } from './DifficultyBadge';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 import { SaveTranslationModal } from './SaveTranslationModal';
 import { ShoppingListModal } from './ShoppingListModal';
@@ -161,6 +162,7 @@ export const RecipeDetailView = ({
               {risk === 'allergy' && (isEnglish ? 'Contains allergens!'   : 'Съдържа алергени!')}
             </Badge>
             <span className="badge badge-neutral">{recipe.time} {isEnglish ? 'minutes' : 'минути'}</span>
+            {recipe.difficulty != null && <DifficultyBadge difficulty={recipe.difficulty} isEnglish={isEnglish} />}
             {recipe.isAI && <Badge type="primary">AI</Badge>}
             {recipe.isPublic && !isOwner && (
               <span className="badge badge-neutral">{isEnglish ? 'Community' : 'Общност'}</span>
