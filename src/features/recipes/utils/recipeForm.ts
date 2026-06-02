@@ -54,7 +54,7 @@ export interface RecipeFormData {
   difficulty?: Difficulty;
 }
 
-const DEFAULT_RECIPE_TIME_MIN = 15;
+export const DEFAULT_RECIPE_TIME_MIN = 15;
 
 export const parseRecipeForm = (form: RecipeFormData): Omit<Recipe, 'id' | 'authorName' | 'authorEmail'> | null => {
   if (!form.name.trim()) return null;

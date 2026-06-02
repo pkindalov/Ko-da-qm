@@ -9,7 +9,7 @@ import { RecipeDetailView } from '../../../shared/components/RecipeDetailView';
 import { searchDatabase } from '../../fridge/utils/matchFromFridge';
 import { isSafe, recipeRisk } from '../../../shared/utils/recipeUtils';
 import { recipeDisplayName, localizeMealTag } from '../../../shared/utils/recipeDisplayName';
-import { parseRecipeForm, mealsFromTags, mergeMealTags, type MealType } from '../utils/recipeForm';
+import { parseRecipeForm, mealsFromTags, mergeMealTags, DEFAULT_RECIPE_TIME_MIN, type MealType } from '../utils/recipeForm';
 import { DifficultyBadge } from '../../../shared/components/DifficultyBadge';
 import { suggestDifficulty, DIFFICULTY_OPTIONS } from '../../../shared/utils/recipeDifficulty';
 import type { Recipe, Profile, Language, Product, FridgeItem, Difficulty } from '../../../shared/types';
@@ -134,7 +134,7 @@ export const RecipesScreen = ({ recipes, addRecipe, removeRecipe, updateRecipe, 
   const suggestedDifficulty = suggestDifficulty({
     steps: form.steps.split('\n').filter(Boolean),
     ingredients: form.ingredients.split('\n').filter(Boolean),
-    time: parseInt(form.time) || 0,
+    time: parseInt(form.time) || DEFAULT_RECIPE_TIME_MIN,
   });
   const effectiveDifficulty = form.difficulty ?? suggestedDifficulty;
 
