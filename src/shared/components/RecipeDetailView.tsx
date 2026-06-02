@@ -4,6 +4,7 @@ import { DifficultyBadge } from './DifficultyBadge';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 import { SaveTranslationModal } from './SaveTranslationModal';
 import { ShoppingListModal } from './ShoppingListModal';
+import { CookingMode } from './cooking/CookingMode';
 import './RecipeDetailView.css';
 import { recipeRisk } from '../utils/recipeUtils';
 import { toast } from 'sonner';
@@ -52,6 +53,7 @@ export const RecipeDetailView = ({
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const [saveTranslationOpen, setSaveTranslationOpen] = useState(false);
   const [shopOpen, setShopOpen] = useState(false);
+  const [cooking, setCooking] = useState(false);
 
   const missingCount = useMemo(() => {
     if (fridge == null || recipe.requiredIngredients.length === 0) return 0;
@@ -168,6 +170,17 @@ export const RecipeDetailView = ({
               <span className="badge badge-neutral">{isEnglish ? 'Community' : 'Общност'}</span>
             )}
           </div>
+          {displaySteps.length > 0 && (
+            <div className="detail-actions">
+              <button className="btn-cook" onClick={() => setCooking(true)}>
+                <span className="glyph" aria-hidden="true">▶</span>
+                {isEnglish ? 'Start cooking' : 'Започни готвене'}
+                <span className="meta">
+                  {displaySteps.length} {isEnglish ? 'steps' : 'стъпки'}
+                </span>
+              </button>
+            </div>
+          )}
           {recipe.authorName && !isOwner && (
             <div className="detail-head-author">
               {isEnglish ? 'by' : 'от'}{' '}
@@ -314,6 +327,17 @@ export const RecipeDetailView = ({
           recipe={recipe}
           fridge={fridge}
           lang={lang}
+        />
+      )}
+
+      {cooking && (
+        <CookingMode
+          name={displayName}
+          steps={displaySteps}
+          ingredients={displayIngredients}
+          time={recipe.time}
+          isEnglish={isEnglish}
+          onClose={() => setCooking(false)}
         />
       )}
     </div>
