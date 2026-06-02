@@ -31,6 +31,13 @@ describe('parseStepDuration', () => {
     expect(parseStepDuration('Keep 1 hot')).toBeNull();
   });
 
+  it('reads fractional amounts without misreading the decimal digits', () => {
+    expect(parseStepDuration('Bake for 1.5 hours')).toBe(90);
+    expect(parseStepDuration('Rest 0.5 hour')).toBe(30);
+    expect(parseStepDuration('Whisk 2.5 min')).toBe(2.5);
+    expect(parseStepDuration('Печете 1,5 часа')).toBe(90);
+  });
+
   it('takes the first duration when several appear', () => {
     expect(parseStepDuration('Boil 10 min, then simmer 25 minutes')).toBe(10);
   });

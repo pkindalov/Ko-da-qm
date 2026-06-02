@@ -1,10 +1,12 @@
 // Detects a cooking duration written in a step's free text, in either Bulgarian
-// or English. Longer unit spellings come first so the alternation prefers them
-// (e.g. "минути" over "мин"). The trailing lookahead stops a unit from matching
-// inside a longer word, so "10 mince" or "1 hot" are not read as durations.
+// or English. The number may be fractional ("1.5 hours", "1,5 часа") — the
+// decimal part is captured so we don't mistake the digits after the separator
+// for a whole number. Longer unit spellings come first so the alternation
+// prefers them (e.g. "минути" over "мин"). The trailing lookahead stops a unit
+// from matching inside a longer word, so "10 mince" or "1 hot" aren't durations.
 const MINUTES_PER_HOUR = 60;
 const DURATION_RE =
-  /(\d+)\s*(минути|минута|мин|minutes|minute|mins|min|часа|час|hours|hour|hrs|hr|ч|h)(?![a-zа-я])/iu;
+  /(\d+(?:[.,]\d+)?)\s*(минути|минута|мин|minutes|minute|mins|min|часа|час|hours|hour|hrs|hr|ч|h)(?![a-zа-я])/iu;
 
 const HOUR_UNITS = ['hour', 'hours', 'hr', 'hrs', 'h', 'час', 'часа', 'ч'];
 
@@ -12,7 +14,7 @@ export const parseStepDuration = (text: string): number | null => {
   const match = DURATION_RE.exec(text);
   if (match == null) return null;
 
-  const amount = Number(match[1]);
+  const amount = Number(match[1].replace(',', '.'));
   const isHours = HOUR_UNITS.includes(match[2].toLowerCase());
   return isHours ? amount * MINUTES_PER_HOUR : amount;
 };
