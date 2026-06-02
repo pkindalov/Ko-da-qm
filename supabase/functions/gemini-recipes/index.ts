@@ -12,11 +12,15 @@ interface FridgeItem {
 const GEMINI_URL =
   'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent';
 
-const buildPrompt = (ingredients: string[], blocked: string[], lang: string): string => {
+const buildPrompt = (ingredients: string[], blocked: string[], lang: string, difficulty: string): string => {
   const isEn = lang === 'en';
   const blockedNote =
     blocked.length > 0 ? `Avoid these ingredients (allergies/dislikes): ${blocked.join(', ')}.` : '';
-  return `You are a chef. Suggest 3-5 recipes using mainly these fridge ingredients: ${ingredients.join(', ')}. ${blockedNote}
+  const difficultyNote =
+    difficulty === 'easy' || difficulty === 'medium' || difficulty === 'hard'
+      ? `Only suggest recipes whose difficulty is "${difficulty}".`
+      : '';
+  return `You are a chef. Suggest 3-5 recipes using mainly these fridge ingredients: ${ingredients.join(', ')}. ${blockedNote} ${difficultyNote}
 Respond ONLY with a valid JSON array, no markdown, no explanation.
 Each object must have exactly these fields:
 - name: string (${isEn ? 'in English' : 'in Bulgarian'})
@@ -26,6 +30,7 @@ Each object must have exactly these fields:
 - requiredIngredients: string[] (ingredient names only, no measures)
 - steps: string[] (clear, concise cooking steps)
 - time: number (estimated minutes)
+- difficulty: "easy" | "medium" | "hard" (based on the number of steps, techniques required, and active time)
 - tags: string[]`;
 };
 
@@ -35,7 +40,7 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    const { fridgeItems, blocked = [], lang = 'en' } = await req.json();
+    const { fridgeItems, blocked = [], lang = 'en', difficulty = '' } = await req.json();
     const ingredients = (fridgeItems as FridgeItem[]).map((f) => f.name);
 
     if (ingredients.length === 0) {
@@ -49,7 +54,7 @@ Deno.serve(async (req: Request) => {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        contents: [{ parts: [{ text: buildPrompt(ingredients, blocked, lang) }] }],
+        contents: [{ parts: [{ text: buildPrompt(ingredients, blocked, lang, difficulty) }] }],
         generationConfig: { temperature: 0.7, maxOutputTokens: 2048 },
       }),
     });
