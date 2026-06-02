@@ -165,7 +165,7 @@
   align-items: safe center;
   justify-content: center;
   padding: 24px 56px 32px;
-  overflow-y: auto;
+  overflow: hidden auto;
   min-height: 0;
 }
 
