@@ -68,4 +68,14 @@ describe('ingredientsInStep', () => {
   it('returns an empty array when nothing matches', () => {
     expect(ingredientsInStep(ingredients, 'Preheat the oven')).toEqual([]);
   });
+
+  it('does not match a word buried inside a larger word', () => {
+    // "ice" must not light up because the step mentions "rice".
+    expect(ingredientsInStep(['ice', 'olive oil'], 'Stir the rice gently')).toEqual([]);
+  });
+
+  it('still matches across simple plural/singular forms', () => {
+    expect(ingredientsInStep(['onion'], 'Slice the onions')).toEqual(['onion']);
+    expect(ingredientsInStep(['2 tomatoes'], 'Add one tomato')).toEqual(['2 tomatoes']);
+  });
 });

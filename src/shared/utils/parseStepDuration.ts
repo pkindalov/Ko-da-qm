@@ -19,15 +19,26 @@ export const parseStepDuration = (text: string): number | null => {
 
 // Words shorter than this are too generic to match reliably (e.g. "a", "to").
 const MIN_MATCH_WORD_LENGTH = 3;
+const WORD_SEPARATORS = /[^a-zа-я]+/iu;
 
-// Returns the ingredients whose name shares a word (>= 3 chars) with the step
-// text — a lightweight way to highlight "what you'll touch in this step".
+const significantWords = (text: string): string[] =>
+  text
+    .toLowerCase()
+    .split(WORD_SEPARATORS)
+    .filter((word) => word.length >= MIN_MATCH_WORD_LENGTH);
+
+// Two words "match" when one is a prefix of the other. This keeps plurals and
+// simple inflections (onion/onions, tomato/tomatoes) while refusing a word that
+// merely sits inside another (e.g. "ice" must not match "rice").
+const wordsMatch = (a: string, b: string): boolean => a.startsWith(b) || b.startsWith(a);
+
+// Returns the ingredients whose name shares a whole word (>= 3 chars) with the
+// step text — a lightweight way to highlight "what you'll touch in this step".
 export const ingredientsInStep = (ingredients: string[], stepText: string): string[] => {
-  const haystack = stepText.toLowerCase();
-  return ingredients.filter((ingredient) => {
-    const words = ingredient.toLowerCase().split(/[^a-zа-я]+/iu);
-    return words.some(
-      (word) => word.length >= MIN_MATCH_WORD_LENGTH && haystack.includes(word),
-    );
-  });
+  const stepWords = significantWords(stepText);
+  return ingredients.filter((ingredient) =>
+    significantWords(ingredient).some((word) =>
+      stepWords.some((stepWord) => wordsMatch(stepWord, word)),
+    ),
+  );
 };
