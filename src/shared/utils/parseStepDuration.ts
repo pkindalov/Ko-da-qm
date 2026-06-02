@@ -4,9 +4,9 @@
 // inside a longer word, so "10 mince" or "1 hot" are not read as durations.
 const MINUTES_PER_HOUR = 60;
 const DURATION_RE =
-  /(\d+)\s*(минути|минута|мин|minutes|minute|min|часа|час|hours|hour|ч|h)(?![a-zа-я])/iu;
+  /(\d+)\s*(минути|минута|мин|minutes|minute|mins|min|часа|час|hours|hour|hrs|hr|ч|h)(?![a-zа-я])/iu;
 
-const HOUR_UNITS = ['hour', 'hours', 'h', 'час', 'часа', 'ч'];
+const HOUR_UNITS = ['hour', 'hours', 'hr', 'hrs', 'h', 'час', 'часа', 'ч'];
 
 export const parseStepDuration = (text: string): number | null => {
   const match = DURATION_RE.exec(text);

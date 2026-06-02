@@ -20,6 +20,17 @@ describe('parseStepDuration', () => {
     expect(parseStepDuration('Rest 1 h')).toBe(60);
   });
 
+  it('reads abbreviated plural units common in recipes', () => {
+    expect(parseStepDuration('Cook for 10 mins')).toBe(10);
+    expect(parseStepDuration('Rest 2 hrs')).toBe(120);
+    expect(parseStepDuration('Rest 1 hr')).toBe(60);
+  });
+
+  it('still ignores a unit buried inside a longer word', () => {
+    expect(parseStepDuration('10 mince meat balls')).toBeNull();
+    expect(parseStepDuration('Keep 1 hot')).toBeNull();
+  });
+
   it('takes the first duration when several appear', () => {
     expect(parseStepDuration('Boil 10 min, then simmer 25 minutes')).toBe(10);
   });

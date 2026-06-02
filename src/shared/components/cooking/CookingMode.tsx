@@ -100,6 +100,9 @@ export const CookingMode = ({ name, steps, ingredients, time, isEnglish, onClose
         else attemptClose();
         return;
       }
+      // While the confirm dialog is open it owns the keyboard; don't let arrow
+      // keys navigate (or finish) the steps hidden behind it.
+      if (showExitConfirm) return;
       if (e.key === 'ArrowRight') {
         if (isLast) onClose();
         else setStepIndex((i) => Math.min(i + 1, totalSteps - 1));

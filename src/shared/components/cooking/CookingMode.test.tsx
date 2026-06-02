@@ -96,6 +96,17 @@ describe('CookingMode – exit confirmation', () => {
     await user.click(screen.getByRole('button', { name: 'Leave' }));
     expect(onClose).toHaveBeenCalledTimes(1);
   });
+
+  it('does not let arrow keys navigate steps behind the open confirm', () => {
+    const onClose = vi.fn();
+    render(<CookingMode {...makeProps({ onClose })} />);
+    fireEvent.keyDown(window, { key: 'ArrowRight' }); // -> step 2
+    fireEvent.keyDown(window, { key: 'Escape' }); // opens confirm (past first step)
+    expect(screen.getByRole('alertdialog')).toBeInTheDocument();
+    fireEvent.keyDown(window, { key: 'ArrowRight' }); // must be swallowed by the modal
+    expect(screen.getByText('2', { selector: '.cook-counter b' })).toBeInTheDocument();
+    expect(onClose).not.toHaveBeenCalled();
+  });
 });
 
 describe('CookingMode – layout switcher', () => {
