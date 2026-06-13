@@ -910,6 +910,14 @@ a {
   gap: 6px;
   flex: 1;
 }
+.recipe-card-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 10px;
+}
+.recipe-card-actions .btn {
+  flex: 1;
+}
 .recipe-tags {
   margin-top: auto;
   padding-top: 14px;

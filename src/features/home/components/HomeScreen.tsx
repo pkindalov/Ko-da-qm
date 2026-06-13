@@ -60,6 +60,7 @@ export const HomeScreen = ({ profile, recipes, fridge, publicRecipes, favoriteId
   const [dislikeFormMode, setDislikeFormMode] = useState<'add' | 'edit' | null>(null);
   const [dislikeFormOriginal, setDislikeFormOriginal] = useState('');
   const [dislikeFormValue, setDislikeFormValue] = useState('');
+  const [pendingDeleteRecipeId, setPendingDeleteRecipeId] = useState<string | null>(null);
 
   const [pendingDeleteFridgeId, setPendingDeleteFridgeId] = useState<string | null>(null);
   const [pendingDeleteAllergyName, setPendingDeleteAllergyName] = useState<string | null>(null);
@@ -313,6 +314,20 @@ export const HomeScreen = ({ profile, recipes, fridge, publicRecipes, favoriteId
                     {risk === 'dislike' && <Badge type="dislike"><span className="dot dot-warn" /> {isEnglish ? 'check' : 'провери'}</Badge>}
                     {risk === 'allergy' && <Badge type="allergy"><span className="dot dot-danger" /> {isEnglish ? 'allergy' : 'алергия'}</Badge>}
                   </div>
+                  {(onEditRecipe || onDeleteRecipe) && (
+                    <div className="recipe-card-actions">
+                      {onEditRecipe && (
+                        <button className="btn btn-secondary btn-sm" onClick={(e) => { e.stopPropagation(); onEditRecipe(recipe); }}>
+                          ✏ {isEnglish ? 'Edit' : 'Редактирай'}
+                        </button>
+                      )}
+                      {onDeleteRecipe && (
+                        <button className="btn btn-danger btn-sm" onClick={(e) => { e.stopPropagation(); setPendingDeleteRecipeId(recipe.id); }}>
+                          🗑 {isEnglish ? 'Delete' : 'Изтрий'}
+                        </button>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
             );
@@ -753,6 +768,19 @@ export const HomeScreen = ({ profile, recipes, fridge, publicRecipes, favoriteId
         )}
       </Modal>
 
+      <ConfirmDeleteModal
+        open={pendingDeleteRecipeId !== null}
+        itemName={recipes.find(r => r.id === pendingDeleteRecipeId)?.name ?? ''}
+        lang={lang}
+        onConfirm={() => {
+          if (pendingDeleteRecipeId) {
+            onDeleteRecipe?.(pendingDeleteRecipeId);
+            toast.success(isEnglish ? 'Recipe deleted' : 'Рецептата е изтрита');
+          }
+          setPendingDeleteRecipeId(null);
+        }}
+        onCancel={() => setPendingDeleteRecipeId(null)}
+      />
       <ConfirmDeleteModal
         open={pendingDeleteFridgeId !== null}
         itemName={fridge.find(f => f.id === pendingDeleteFridgeId)?.name ?? ''}

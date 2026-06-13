@@ -801,7 +801,8 @@ describe('HomeScreen – safe recipe click to detail', () => {
     render(<HomeScreen {...makeProps({ recipes, onEditRecipe, lang: 'en' })} />);
     await user.click(screen.getByText('safe recipes'));
     await user.click(screen.getByRole('button', { name: 'Chicken rice' }));
-    expect(screen.getByRole('button', { name: '✏ Edit' })).toBeInTheDocument();
+    const dialog = screen.getByRole('dialog');
+    expect(within(dialog).getByRole('button', { name: '✏ Edit' })).toBeInTheDocument();
   });
 
   it('clicking Edit in the safe recipe detail calls onEditRecipe with the recipe and closes the modal', async () => {
@@ -811,9 +812,10 @@ describe('HomeScreen – safe recipe click to detail', () => {
     render(<HomeScreen {...makeProps({ recipes: [recipe], onEditRecipe, lang: 'en' })} />);
     await user.click(screen.getByText('safe recipes'));
     await user.click(screen.getByRole('button', { name: 'Chicken rice' }));
-    await user.click(screen.getByRole('button', { name: '✏ Edit' }));
+    const dialog = screen.getByRole('dialog');
+    await user.click(within(dialog).getByRole('button', { name: '✏ Edit' }));
     expect(onEditRecipe).toHaveBeenCalledWith(expect.objectContaining({ id: 'r1' }));
-    expect(screen.queryByRole('button', { name: '✕' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
   it('Delete button is shown in the safe recipe detail when onDeleteRecipe is provided', async () => {
@@ -823,7 +825,8 @@ describe('HomeScreen – safe recipe click to detail', () => {
     render(<HomeScreen {...makeProps({ recipes, onDeleteRecipe, lang: 'en' })} />);
     await user.click(screen.getByText('safe recipes'));
     await user.click(screen.getByRole('button', { name: 'Chicken rice' }));
-    expect(screen.getByRole('button', { name: /delete/i })).toBeInTheDocument();
+    const dialog = screen.getByRole('dialog');
+    expect(within(dialog).getByRole('button', { name: /delete/i })).toBeInTheDocument();
   });
 
   it('author name is not shown when recipe has no authorName', async () => {

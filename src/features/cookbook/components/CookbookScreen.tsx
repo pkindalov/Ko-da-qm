@@ -1,6 +1,7 @@
 import { useState, lazy, Suspense } from 'react';
 import { useLocalStorage } from '../../../shared/hooks/useLocalStorage';
 import { recipeDisplayName, localizeMealTag } from '../../../shared/utils/recipeDisplayName';
+import { ConfirmDeleteModal } from '../../../shared/components/ConfirmDeleteModal';
 import type { Recipe, Profile, Language } from '../../../shared/types';
 import './CookbookScreen.css';
 
@@ -17,14 +18,17 @@ interface CookbookScreenProps {
   favoriteIds: string[];
   profile: Profile;
   lang: Language;
+  onEditRecipe?: (recipe: Recipe) => void;
+  onDeleteRecipe?: (id: string) => void;
 }
 
-export const CookbookScreen = ({ recipes, favoriteIds, profile, lang }: CookbookScreenProps) => {
+export const CookbookScreen = ({ recipes, favoriteIds, profile, lang, onEditRecipe, onDeleteRecipe }: CookbookScreenProps) => {
   const isEnglish = lang === 'en';
   const [filter, setFilter] = useState<'all' | 'favorites'>('all');
   const [selected, setSelected] = useLocalStorage<string[]>('kdq_cookbook_sel_v1', []);
   const [editorOpen, setEditorOpen] = useState(false);
   const [flipbookOpen, setFlipbookOpen] = useState(false);
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
 
   const favSet = new Set(favoriteIds);
   const visibleRecipes = filter === 'favorites'
@@ -169,14 +173,30 @@ export const CookbookScreen = ({ recipes, favoriteIds, profile, lang }: Cookbook
                 )}
                 <div className="recipe-image">
                   <div className="recipe-image-stripes" />
-                  <div className="recipe-image-emoji">{r.emoji}</div>
-                  <div className="recipe-image-label">PHOTO · {r.time}MIN</div>
+                  {(r.imageUrls?.[0] ?? r.imageUrl)
+                    ? <img src={r.imageUrls?.[0] ?? r.imageUrl} alt={displayName} className="recipe-card-img" />
+                    : <div className="recipe-image-emoji">{r.emoji}</div>}
+                  <div className="recipe-image-label">{localizeMealTag(r.tags?.[0], isEnglish, isEnglish ? 'recipe' : 'рецепта')} · {r.time}{isEnglish ? 'min' : 'мин'}</div>
                 </div>
                 <div className="recipe-body">
                   <div className="recipe-name italic">{displayName}</div>
                   <div className="recipe-meta">
-                    {localizeMealTag(r.tags?.[0], isEnglish, isEnglish ? 'recipe' : 'рецепта')} · {r.time} {isEnglish ? 'min' : 'мин'} · {(r.requiredIngredients ?? []).length} {isEnglish ? 'ings' : 'съст.'}
+                    {r.time} {isEnglish ? 'min' : 'мин'} · {(r.requiredIngredients ?? []).length} {isEnglish ? 'ings' : 'съст.'}
                   </div>
+                  {(onEditRecipe || onDeleteRecipe) && (
+                    <div className="recipe-card-actions">
+                      {onEditRecipe && (
+                        <button className="btn btn-secondary btn-sm" onClick={(e) => { e.stopPropagation(); onEditRecipe(r); }}>
+                          ✏ {isEnglish ? 'Edit' : 'Редактирай'}
+                        </button>
+                      )}
+                      {onDeleteRecipe && (
+                        <button className="btn btn-danger btn-sm" onClick={(e) => { e.stopPropagation(); setPendingDeleteId(r.id); }}>
+                          🗑 {isEnglish ? 'Delete' : 'Изтрий'}
+                        </button>
+                      )}
+                    </div>
+                  )}
                 </div>
               </article>
             );
@@ -236,6 +256,13 @@ export const CookbookScreen = ({ recipes, favoriteIds, profile, lang }: Cookbook
           />
         </Suspense>
       )}
+      <ConfirmDeleteModal
+        open={pendingDeleteId !== null}
+        itemName={recipes.find(r => r.id === pendingDeleteId)?.name ?? ''}
+        lang={lang}
+        onConfirm={() => { if (pendingDeleteId) onDeleteRecipe?.(pendingDeleteId); setPendingDeleteId(null); }}
+        onCancel={() => setPendingDeleteId(null)}
+      />
     </div>
   );
 };

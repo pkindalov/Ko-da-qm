@@ -314,9 +314,10 @@ export interface PlannerScreenProps {
   favoriteRecipes: Recipe[];
   onSaveSuggestion?: (recipe: Recipe) => void;
   onViewRecipe?: (id: string) => void;
+  onDeleteRecipe?: (id: string) => void;
 }
 
-export const PlannerScreen = ({ recipes, fridge, products = [], profile, lang, planner, setPlanner, favoriteRecipes = [], onSaveSuggestion, onViewRecipe }: PlannerScreenProps) => {
+export const PlannerScreen = ({ recipes, fridge, products = [], profile, lang, planner, setPlanner, favoriteRecipes = [], onSaveSuggestion, onViewRecipe, onDeleteRecipe }: PlannerScreenProps) => {
   const isEn = lang === 'en';
 
   const blocked = useMemo(() => [
@@ -898,7 +899,9 @@ export const PlannerScreen = ({ recipes, fridge, products = [], profile, lang, p
                     onDragEnd={() => { setDragId(null); setDragSourceSlot(null); setDropTarget(null); }}
                   >
                     <div className="drawer-recipe-emoji">
-                      <span className="drawer-recipe-emoji-char">{r.emoji}</span>
+                      {(r.imageUrls?.[0] ?? r.imageUrl)
+                        ? <img src={r.imageUrls?.[0] ?? r.imageUrl} alt={isEn && r.nameEn != null ? r.nameEn : r.name} className="drawer-recipe-img" />
+                        : <span className="drawer-recipe-emoji-char">{r.emoji}</span>}
                     </div>
                     <div className="drawer-recipe-text">
                       <div className="drawer-recipe-name">
@@ -908,7 +911,15 @@ export const PlannerScreen = ({ recipes, fridge, products = [], profile, lang, p
                         {r.time} {isEn ? 'MIN' : 'МИН'} · {localizeMealTag(r.tags?.[0], isEn, isEn ? 'recipe' : 'рецепта')}
                       </div>
                     </div>
-                    <div className="drawer-recipe-grip">::</div>
+                    <div className="drawer-recipe-actions-row">
+                      {onViewRecipe && (
+                        <button className="drawer-recipe-action-btn" title={isEn ? 'Edit' : 'Редактирай'} onClick={(e) => { e.stopPropagation(); onViewRecipe(r.id); }}>✏</button>
+                      )}
+                      {onDeleteRecipe && (
+                        <button className="drawer-recipe-action-btn drawer-recipe-action-btn--danger" title={isEn ? 'Delete' : 'Изтрий'} onClick={(e) => { e.stopPropagation(); onDeleteRecipe(r.id); }}>🗑</button>
+                      )}
+                      <div className="drawer-recipe-grip">::</div>
+                    </div>
                   </div>
                 );
               })}

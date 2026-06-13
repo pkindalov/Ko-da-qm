@@ -345,12 +345,20 @@ export const RecipesScreen = ({ recipes, addRecipe, removeRecipe, updateRecipe, 
                         {risk === 'dislike' && <Badge type="dislike"><span className="dot dot-warn" /> {lang === 'en' ? 'check' : 'провери'}</Badge>}
                         {risk === 'allergy' && <Badge type="allergy"><span className="dot dot-danger" /> {lang === 'en' ? 'allergy' : 'алергия'}</Badge>}
                       </div>
-                      <button
-                        className="btn btn-danger btn-sm mt-2 btn-full"
-                        onClick={(e) => { e.stopPropagation(); setPendingDeleteId(recipe.id); }}
-                      >
-                        🗑 {lang === 'en' ? 'Delete' : 'Изтрий'}
-                      </button>
+                      <div className="recipe-card-actions">
+                        <button
+                          className="btn btn-secondary btn-sm"
+                          onClick={(e) => { e.stopPropagation(); openEditModal(recipe); }}
+                        >
+                          ✏ {lang === 'en' ? 'Edit' : 'Редактирай'}
+                        </button>
+                        <button
+                          className="btn btn-danger btn-sm"
+                          onClick={(e) => { e.stopPropagation(); setPendingDeleteId(recipe.id); }}
+                        >
+                          🗑 {lang === 'en' ? 'Delete' : 'Изтрий'}
+                        </button>
+                      </div>
                     </div>
                   </div>
                 );
