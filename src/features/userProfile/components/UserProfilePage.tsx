@@ -1,5 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import { Modal } from '../../../shared/components/Modal';
 import { RecipeDetailView } from '../../../shared/components/RecipeDetailView';
 import { EmptyState } from '../../../shared/components/EmptyState';
@@ -13,6 +15,7 @@ import { useFavorites } from '../../recipes/hooks/useFavorites';
 import { useFollows } from '../../feed/hooks/useFollows';
 import { useFollowerCount } from '../../feed/hooks/useFollowerCount';
 import { DEFAULT_TWEAKS } from '../../../shared/constants/defaults';
+import { supabase } from '../../../lib/supabase';
 import type { Recipe } from '../../../shared/types';
 
 export const UserProfilePage = () => {
@@ -28,10 +31,20 @@ export const UserProfilePage = () => {
   const { followingIds, currentUserId, toggleFollow } = useFollows(tweaks.lang);
   const followerCount = useFollowerCount(userId);
 
+  const queryClient = useQueryClient();
   const isFollowing = followingIds.includes(userId);
   const isOwnProfile = Boolean(currentUserId) && currentUserId === userId;
 
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
+
+  const handleDeleteRecipe = async (id: string) => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user) return;
+    await supabase.from('recipes').delete().eq('id', id).eq('user_id', session.user.id);
+    queryClient.invalidateQueries({ queryKey: ['userProfile', userId] });
+    setSelectedRecipe(null);
+    toast.success(isEnglish ? 'Recipe deleted' : 'Рецептата е изтрита');
+  };
 
   const themeClass = tweaks.theme === 'cool' ? 'theme-cool' : tweaks.theme === 'dark' ? 'theme-dark' : '';
   const displayName = userName || (isEnglish ? 'Anonymous User' : 'Анонимен потребител');
@@ -144,11 +157,13 @@ export const UserProfilePage = () => {
             allergies={[]}
             dislikes={[]}
             lang={tweaks.lang}
-            isOwner={false}
+            isOwner={isOwnProfile}
             isFavorite={favoriteIds.includes(selectedRecipe.id)}
             showBackButton={false}
             onBack={() => setSelectedRecipe(null)}
             onToggleFavorite={() => toggleFavorite(selectedRecipe)}
+            onEdit={isOwnProfile ? () => navigate('/recipes') : undefined}
+            onDelete={isOwnProfile ? () => handleDeleteRecipe(selectedRecipe.id) : undefined}
           />
         )}
       </Modal>

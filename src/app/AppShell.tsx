@@ -114,6 +114,8 @@ export const AppShell = () => {
       onUpdateProductStatus={(productId, status) => setProducts(products.map(product => product.id === productId ? { ...product, status } : product))}
       communityFavoriteCounts={communityFavoriteCounts}
       onNavigateToUser={(userId) => navigate(`/user/${userId}`)}
+      onEditRecipe={(recipe) => { setPendingOpenRecipeId(recipe.id); setTab('recipes'); }}
+      onDeleteRecipe={removeRecipe}
     /></ErrorBoundary>,
     fridge: <ErrorBoundary><FridgeScreen fridge={fridge} addFridgeItem={addFridgeItem} removeFridgeItem={removeFridgeItem} removeProduct={removeProduct} addProduct={addProduct} addRecipe={addRecipe} removeRecipe={removeRecipe} updateRecipe={updateRecipe} profile={profile} recipes={recipes} products={products} lang={tweaks.lang} /></ErrorBoundary>,
     recipes: <ErrorBoundary><RecipesScreen recipes={recipes} addRecipe={addRecipe} removeRecipe={removeRecipe} updateRecipe={updateRecipe} favoriteRecipes={favoriteRecipes} favoriteIds={favoriteIds} onToggleFavorite={toggleFavorite} products={products} profile={profile} lang={tweaks.lang} userEmail={userEmail} fridge={fridge} openRecipeId={pendingOpenRecipeId} onRecipeOpened={handleRecipeOpened} /></ErrorBoundary>,

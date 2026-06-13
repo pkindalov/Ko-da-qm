@@ -784,46 +784,46 @@ describe('HomeScreen – safe recipe click to detail', () => {
     expect(screen.getByRole('button', { name: 'Рецепта две' })).toBeInTheDocument();
   });
 
-  it('author name is a clickable button in the detail view when authorId and onNavigateToUser are provided', async () => {
+  it('author name is not shown in the safe recipe detail because these are the user\'s own recipes', async () => {
     const user = userEvent.setup();
     const recipes = [makeRecipe({ id: 'r1', name: 'Пиле с ориз', authorName: 'Иван', authorId: 'user-42' })];
     const onNavigateToUser = vi.fn();
     render(<HomeScreen {...makeProps({ recipes, onNavigateToUser })} />);
     await user.click(screen.getByText('безопасни рецепти'));
     await user.click(screen.getByRole('button', { name: 'Пиле с ориз' }));
-    expect(screen.getByRole('button', { name: 'Иван' })).toBeInTheDocument();
+    expect(screen.queryByText('Иван')).not.toBeInTheDocument();
   });
 
-  it('clicking the author name in the detail calls onNavigateToUser with the authorId', async () => {
+  it('Edit button is shown in the safe recipe detail when onEditRecipe is provided', async () => {
     const user = userEvent.setup();
-    const recipes = [makeRecipe({ id: 'r1', name: 'Пиле с ориз', authorName: 'Иван', authorId: 'user-42' })];
-    const onNavigateToUser = vi.fn();
-    render(<HomeScreen {...makeProps({ recipes, onNavigateToUser })} />);
-    await user.click(screen.getByText('безопасни рецепти'));
-    await user.click(screen.getByRole('button', { name: 'Пиле с ориз' }));
-    await user.click(screen.getByRole('button', { name: 'Иван' }));
-    expect(onNavigateToUser).toHaveBeenCalledWith('user-42');
+    const recipes = [makeRecipe({ id: 'r1', name: 'Chicken rice', nameEn: 'Chicken rice' })];
+    const onEditRecipe = vi.fn();
+    render(<HomeScreen {...makeProps({ recipes, onEditRecipe, lang: 'en' })} />);
+    await user.click(screen.getByText('safe recipes'));
+    await user.click(screen.getByRole('button', { name: 'Chicken rice' }));
+    expect(screen.getByRole('button', { name: '✏ Edit' })).toBeInTheDocument();
   });
 
-  it('clicking the author name closes the detail modal', async () => {
+  it('clicking Edit in the safe recipe detail calls onEditRecipe with the recipe and closes the modal', async () => {
     const user = userEvent.setup();
-    const recipes = [makeRecipe({ id: 'r1', name: 'Пиле с ориз', authorName: 'Иван', authorId: 'user-42' })];
-    const onNavigateToUser = vi.fn();
-    render(<HomeScreen {...makeProps({ recipes, onNavigateToUser })} />);
-    await user.click(screen.getByText('безопасни рецепти'));
-    await user.click(screen.getByRole('button', { name: 'Пиле с ориз' }));
-    await user.click(screen.getByRole('button', { name: 'Иван' }));
+    const recipe = makeRecipe({ id: 'r1', name: 'Chicken rice', nameEn: 'Chicken rice' });
+    const onEditRecipe = vi.fn();
+    render(<HomeScreen {...makeProps({ recipes: [recipe], onEditRecipe, lang: 'en' })} />);
+    await user.click(screen.getByText('safe recipes'));
+    await user.click(screen.getByRole('button', { name: 'Chicken rice' }));
+    await user.click(screen.getByRole('button', { name: '✏ Edit' }));
+    expect(onEditRecipe).toHaveBeenCalledWith(expect.objectContaining({ id: 'r1' }));
     expect(screen.queryByRole('button', { name: '✕' })).not.toBeInTheDocument();
   });
 
-  it('author name is plain text (not a button) when onNavigateToUser is not provided', async () => {
+  it('Delete button is shown in the safe recipe detail when onDeleteRecipe is provided', async () => {
     const user = userEvent.setup();
-    const recipes = [makeRecipe({ id: 'r1', name: 'Пиле с ориз', authorName: 'Иван', authorId: 'user-42' })];
-    render(<HomeScreen {...makeProps({ recipes })} />);
-    await user.click(screen.getByText('безопасни рецепти'));
-    await user.click(screen.getByRole('button', { name: 'Пиле с ориз' }));
-    expect(screen.queryByRole('button', { name: 'Иван' })).not.toBeInTheDocument();
-    expect(screen.getByText('Иван')).toBeInTheDocument();
+    const recipes = [makeRecipe({ id: 'r1', name: 'Chicken rice', nameEn: 'Chicken rice' })];
+    const onDeleteRecipe = vi.fn();
+    render(<HomeScreen {...makeProps({ recipes, onDeleteRecipe, lang: 'en' })} />);
+    await user.click(screen.getByText('safe recipes'));
+    await user.click(screen.getByRole('button', { name: 'Chicken rice' }));
+    expect(screen.getByRole('button', { name: /delete/i })).toBeInTheDocument();
   });
 
   it('author name is not shown when recipe has no authorName', async () => {

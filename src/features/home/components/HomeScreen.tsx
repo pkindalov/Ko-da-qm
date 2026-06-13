@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { toast } from 'sonner';
 import { Badge } from '../../../shared/components/Badge';
 import { ConfirmDeleteModal } from '../../../shared/components/ConfirmDeleteModal';
 import { EmptyState } from '../../../shared/components/EmptyState';
@@ -34,12 +35,14 @@ interface HomeScreenProps {
   onUpdateProductStatus: (productId: string, status: ProductStatus) => void;
   communityFavoriteCounts?: Record<string, number>;
   onNavigateToUser?: (userId: string) => void;
+  onEditRecipe?: (recipe: Recipe) => void;
+  onDeleteRecipe?: (id: string) => void;
 }
 
 const RECIPES_PREVIEW_SIZE = 4;
 const COMMUNITY_PAGE_SIZE = 4;
 
-export const HomeScreen = ({ profile, recipes, fridge, publicRecipes, favoriteIds, onToggleFavorite, products, setTab, lang, onDeleteFridgeItem, onAddFridgeItem, onEditFridgeItem, onRemoveAllergy, onAddAllergy, onEditAllergy, onRemoveDislike, onAddDislike, onEditDislike, onUpdateProductStatus, communityFavoriteCounts = {}, onNavigateToUser }: HomeScreenProps) => {
+export const HomeScreen = ({ profile, recipes, fridge, publicRecipes, favoriteIds, onToggleFavorite, products, setTab, lang, onDeleteFridgeItem, onAddFridgeItem, onEditFridgeItem, onRemoveAllergy, onAddAllergy, onEditAllergy, onRemoveDislike, onAddDislike, onEditDislike, onUpdateProductStatus, communityFavoriteCounts = {}, onNavigateToUser, onEditRecipe, onDeleteRecipe }: HomeScreenProps) => {
   const isEnglish = lang === 'en';
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
   const [selectedSafeRecipe, setSelectedSafeRecipe] = useState<Recipe | null>(null);
@@ -717,13 +720,12 @@ export const HomeScreen = ({ profile, recipes, fridge, publicRecipes, favoriteId
             allergies={allergies}
             dislikes={dislikes}
             lang={lang}
-            isOwner={false}
+            isOwner={true}
             fridge={fridge}
             showBackButton={false}
             onBack={() => setSelectedSafeRecipe(null)}
-            onAuthorClick={selectedSafeRecipe.authorId && onNavigateToUser
-              ? () => { setSelectedSafeRecipe(null); onNavigateToUser(selectedSafeRecipe.authorId!); }
-              : undefined}
+            onEdit={onEditRecipe ? () => { onEditRecipe(selectedSafeRecipe); setSelectedSafeRecipe(null); } : undefined}
+            onDelete={onDeleteRecipe ? () => { onDeleteRecipe(selectedSafeRecipe.id); toast.success(lang === 'en' ? 'Recipe deleted' : 'Рецептата е изтрита'); setSelectedSafeRecipe(null); } : undefined}
           />
         )}
       </Modal>
