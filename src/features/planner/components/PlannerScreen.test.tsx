@@ -847,6 +847,62 @@ describe('PlannerScreen – Gemini meal scope', () => {
   });
 });
 
+// ── Drawer delete confirmation ─────────────────────────────────────────────────
+
+describe('PlannerScreen – drawer delete confirmation', () => {
+  it('shows a delete button in the drawer when onDeleteRecipe is provided', () => {
+    const onDeleteRecipe = vi.fn();
+    renderPlanner({
+      recipes: [makeRecipe({ id: 'r1', nameEn: 'Pasta' })],
+      onDeleteRecipe,
+    });
+    expect(screen.getByTitle('Delete')).toBeInTheDocument();
+  });
+
+  it('does not show a delete button in the drawer when onDeleteRecipe is absent', () => {
+    renderPlanner({ recipes: [makeRecipe({ id: 'r1', nameEn: 'Pasta' })] });
+    expect(screen.queryByTitle('Delete')).not.toBeInTheDocument();
+  });
+
+  it('clicking the drawer delete button opens a confirmation dialog, not immediately deletes', async () => {
+    const user = userEvent.setup();
+    const onDeleteRecipe = vi.fn();
+    renderPlanner({
+      recipes: [makeRecipe({ id: 'r1', nameEn: 'Pasta' })],
+      onDeleteRecipe,
+    });
+    await user.click(screen.getByTitle('Delete'));
+    expect(onDeleteRecipe).not.toHaveBeenCalled();
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+  });
+
+  it('confirming the delete dialog calls onDeleteRecipe with the recipe id', async () => {
+    const user = userEvent.setup();
+    const onDeleteRecipe = vi.fn();
+    renderPlanner({
+      recipes: [makeRecipe({ id: 'r1', nameEn: 'Pasta' })],
+      onDeleteRecipe,
+    });
+    await user.click(screen.getByTitle('Delete'));
+    await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: /^Confirm$/i }));
+    expect(onDeleteRecipe).toHaveBeenCalledWith('r1');
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  it('canceling the delete dialog does not call onDeleteRecipe', async () => {
+    const user = userEvent.setup();
+    const onDeleteRecipe = vi.fn();
+    renderPlanner({
+      recipes: [makeRecipe({ id: 'r1', nameEn: 'Pasta' })],
+      onDeleteRecipe,
+    });
+    await user.click(screen.getByTitle('Delete'));
+    await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: /^Cancel$/i }));
+    expect(onDeleteRecipe).not.toHaveBeenCalled();
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+});
+
 // ── Week navigation ────────────────────────────────────────────────────────────
 
 describe('PlannerScreen – week navigation', () => {
