@@ -982,3 +982,91 @@ describe('HomeScreen – dislikes modal add/edit', () => {
     expect(screen.queryByPlaceholderText(/Гъби/)).not.toBeInTheDocument();
   });
 });
+
+// ── Recipe card owner controls (card-level Edit / Delete) ─────────────────────
+
+describe('HomeScreen – recipe card owner controls', () => {
+  it('shows an Edit button on recipe cards when onEditRecipe is provided', () => {
+    const recipes = [makeRecipe({ id: 'r1', name: 'Пиле с ориз' })];
+    render(<HomeScreen {...makeProps({ recipes, onEditRecipe: vi.fn(), lang: 'en' })} />);
+    expect(screen.getByRole('button', { name: '✏ Edit' })).toBeInTheDocument();
+  });
+
+  it('does not show an Edit button on recipe cards when onEditRecipe is absent', () => {
+    const recipes = [makeRecipe({ id: 'r1', name: 'Пиле с ориз' })];
+    render(<HomeScreen {...makeProps({ recipes })} />);
+    expect(screen.queryByRole('button', { name: /✏/i })).not.toBeInTheDocument();
+  });
+
+  it('clicking Edit on a card calls onEditRecipe with the recipe', async () => {
+    const user = userEvent.setup();
+    const recipe = makeRecipe({ id: 'r1', name: 'Пиле с ориз' });
+    const onEditRecipe = vi.fn();
+    render(<HomeScreen {...makeProps({ recipes: [recipe], onEditRecipe, lang: 'en' })} />);
+    await user.click(screen.getByRole('button', { name: '✏ Edit' }));
+    expect(onEditRecipe).toHaveBeenCalledWith(expect.objectContaining({ id: 'r1' }));
+  });
+
+  it('clicking Edit on a card does not open the recipe detail modal', async () => {
+    const user = userEvent.setup();
+    const recipe = makeRecipe({ id: 'r1', name: 'Пиле с ориз' });
+    render(<HomeScreen {...makeProps({ recipes: [recipe], onEditRecipe: vi.fn(), lang: 'en' })} />);
+    await user.click(screen.getByRole('button', { name: '✏ Edit' }));
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  it('shows a Delete button on recipe cards when onDeleteRecipe is provided', () => {
+    const recipes = [makeRecipe({ id: 'r1', name: 'Пиле с ориз' })];
+    render(<HomeScreen {...makeProps({ recipes, onDeleteRecipe: vi.fn(), lang: 'en' })} />);
+    expect(screen.getByRole('button', { name: '🗑 Delete' })).toBeInTheDocument();
+  });
+
+  it('does not show a Delete button on recipe cards when onDeleteRecipe is absent', () => {
+    const recipes = [makeRecipe({ id: 'r1', name: 'Пиле с ориз' })];
+    render(<HomeScreen {...makeProps({ recipes })} />);
+    expect(screen.queryByRole('button', { name: /🗑/i })).not.toBeInTheDocument();
+  });
+
+  it('clicking Delete on a card opens a confirmation dialog, not immediately deletes', async () => {
+    const user = userEvent.setup();
+    const onDeleteRecipe = vi.fn();
+    const recipes = [makeRecipe({ id: 'r1', name: 'Пиле с ориз' })];
+    render(<HomeScreen {...makeProps({ recipes, onDeleteRecipe, lang: 'en' })} />);
+    await user.click(screen.getByRole('button', { name: '🗑 Delete' }));
+    expect(onDeleteRecipe).not.toHaveBeenCalled();
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+  });
+
+  it('confirming the delete dialog calls onDeleteRecipe with the recipe id', async () => {
+    const user = userEvent.setup();
+    const onDeleteRecipe = vi.fn();
+    const recipes = [makeRecipe({ id: 'r1', name: 'Пиле с ориз' })];
+    render(<HomeScreen {...makeProps({ recipes, onDeleteRecipe, lang: 'en' })} />);
+    await user.click(screen.getByRole('button', { name: '🗑 Delete' }));
+    await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: /^Confirm$/i }));
+    expect(onDeleteRecipe).toHaveBeenCalledWith('r1');
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  it('canceling the delete dialog does not call onDeleteRecipe', async () => {
+    const user = userEvent.setup();
+    const onDeleteRecipe = vi.fn();
+    const recipes = [makeRecipe({ id: 'r1', name: 'Пиле с ориз' })];
+    render(<HomeScreen {...makeProps({ recipes, onDeleteRecipe, lang: 'en' })} />);
+    await user.click(screen.getByRole('button', { name: '🗑 Delete' }));
+    await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: /^Cancel$/i }));
+    expect(onDeleteRecipe).not.toHaveBeenCalled();
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  it('clicking Delete on a card does not open the recipe detail modal', async () => {
+    const user = userEvent.setup();
+    const onDeleteRecipe = vi.fn();
+    const recipes = [makeRecipe({ id: 'r1', name: 'Пиле с ориз' })];
+    render(<HomeScreen {...makeProps({ recipes, onDeleteRecipe, lang: 'en' })} />);
+    await user.click(screen.getByRole('button', { name: '🗑 Delete' }));
+    // The confirm dialog opens, but it is for delete — not the recipe detail
+    const dialog = screen.getByRole('dialog');
+    expect(within(dialog).queryByText('Пиле с ориз', { selector: '.detail-recipe-name, h2' })).not.toBeInTheDocument();
+  });
+});
