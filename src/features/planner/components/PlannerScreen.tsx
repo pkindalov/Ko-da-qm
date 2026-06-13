@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback, type Dispatch, type SetStateAction } from 'react';
+import { toast } from 'sonner';
 import { ConfirmDeleteModal } from '../../../shared/components/ConfirmDeleteModal';
 import { Modal } from '../../../shared/components/Modal';
 import { RecipeDetailView } from '../../../shared/components/RecipeDetailView';
@@ -1089,7 +1090,7 @@ export const PlannerScreen = ({ recipes, fridge, products = [], profile, lang, p
         open={pendingDeleteRecipeId !== null}
         itemName={recipes.find(r => r.id === pendingDeleteRecipeId) ? recipeDisplayName(recipes.find(r => r.id === pendingDeleteRecipeId)!, lang) : ''}
         lang={lang}
-        onConfirm={() => { if (pendingDeleteRecipeId) { onDeleteRecipe?.(pendingDeleteRecipeId); removeIdsFromPlanner(new Set([pendingDeleteRecipeId])); } setPendingDeleteRecipeId(null); }}
+        onConfirm={() => { if (pendingDeleteRecipeId) { onDeleteRecipe?.(pendingDeleteRecipeId); removeIdsFromPlanner(new Set([pendingDeleteRecipeId])); toast.success(isEn ? 'Recipe deleted' : 'Рецептата е изтрита'); } setPendingDeleteRecipeId(null); }}
         onCancel={() => setPendingDeleteRecipeId(null)}
       />
 

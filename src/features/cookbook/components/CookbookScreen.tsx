@@ -1,4 +1,5 @@
 import { useState, lazy, Suspense } from 'react';
+import { toast } from 'sonner';
 import { useLocalStorage } from '../../../shared/hooks/useLocalStorage';
 import { recipeDisplayName, localizeMealTag } from '../../../shared/utils/recipeDisplayName';
 import { ConfirmDeleteModal } from '../../../shared/components/ConfirmDeleteModal';
@@ -260,7 +261,7 @@ export const CookbookScreen = ({ recipes, favoriteIds, profile, lang, onEditReci
         open={pendingDeleteId !== null}
         itemName={recipes.find(r => r.id === pendingDeleteId) ? recipeDisplayName(recipes.find(r => r.id === pendingDeleteId)!, lang) : ''}
         lang={lang}
-        onConfirm={() => { if (pendingDeleteId) { onDeleteRecipe?.(pendingDeleteId); setSelected(s => s.filter(id => id !== pendingDeleteId)); } setPendingDeleteId(null); }}
+        onConfirm={() => { if (pendingDeleteId) { onDeleteRecipe?.(pendingDeleteId); setSelected(s => s.filter(id => id !== pendingDeleteId)); toast.success(isEnglish ? 'Recipe deleted' : 'Рецептата е изтрита'); } setPendingDeleteId(null); }}
         onCancel={() => setPendingDeleteId(null)}
       />
     </div>
