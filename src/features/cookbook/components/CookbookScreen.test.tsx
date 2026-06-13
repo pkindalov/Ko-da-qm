@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { CookbookScreen } from './CookbookScreen';
 import type { Recipe, Profile } from '../../../shared/types';
@@ -182,5 +182,83 @@ describe('CookbookScreen – filter tabs', () => {
     const supaCard = cards.find(c => c.textContent?.includes('Супа'));
     expect(salataCard).not.toHaveClass('selected');
     expect(supaCard).toHaveClass('selected');
+  });
+});
+
+// ── Owner controls (edit / delete) ────────────────────────────────────────────
+
+describe('CookbookScreen – owner controls', () => {
+  beforeEach(() => localStorage.clear());
+
+  it('shows an Edit button when onEditRecipe is provided', () => {
+    renderScreen({ recipes: [makeRecipe({ id: 'r1' })], onEditRecipe: vi.fn() });
+    expect(screen.getByRole('button', { name: /Редактирай/i })).toBeInTheDocument();
+  });
+
+  it('does not show an Edit button when onEditRecipe is absent', () => {
+    renderScreen({ recipes: [makeRecipe({ id: 'r1' })] });
+    expect(screen.queryByRole('button', { name: /Редактирай/i })).not.toBeInTheDocument();
+  });
+
+  it('clicking Edit calls onEditRecipe with the recipe', async () => {
+    const user = userEvent.setup();
+    const recipe = makeRecipe({ id: 'r1', name: 'Салата' });
+    const onEditRecipe = vi.fn();
+    renderScreen({ recipes: [recipe], onEditRecipe });
+    await user.click(screen.getByRole('button', { name: /Редактирай/i }));
+    expect(onEditRecipe).toHaveBeenCalledWith(expect.objectContaining({ id: 'r1' }));
+  });
+
+  it('clicking Edit does not toggle card selection', async () => {
+    const user = userEvent.setup();
+    renderScreen({ recipes: [makeRecipe({ id: 'r1' })], onEditRecipe: vi.fn() });
+    await user.click(screen.getByRole('button', { name: /Редактирай/i }));
+    expect(screen.getByRole('article')).not.toHaveClass('selected');
+  });
+
+  it('shows a Delete button when onDeleteRecipe is provided', () => {
+    renderScreen({ recipes: [makeRecipe({ id: 'r1' })], onDeleteRecipe: vi.fn() });
+    expect(screen.getByRole('button', { name: /Изтрий/i })).toBeInTheDocument();
+  });
+
+  it('does not show a Delete button when onDeleteRecipe is absent', () => {
+    renderScreen({ recipes: [makeRecipe({ id: 'r1' })] });
+    expect(screen.queryByRole('button', { name: /Изтрий/i })).not.toBeInTheDocument();
+  });
+
+  it('clicking Delete opens a confirmation dialog, not immediately deletes', async () => {
+    const user = userEvent.setup();
+    const onDeleteRecipe = vi.fn();
+    renderScreen({ recipes: [makeRecipe({ id: 'r1' })], onDeleteRecipe });
+    await user.click(screen.getByRole('button', { name: /Изтрий/i }));
+    expect(onDeleteRecipe).not.toHaveBeenCalled();
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+  });
+
+  it('confirming the delete dialog calls onDeleteRecipe with the recipe id', async () => {
+    const user = userEvent.setup();
+    const onDeleteRecipe = vi.fn();
+    renderScreen({ recipes: [makeRecipe({ id: 'r1' })], onDeleteRecipe });
+    await user.click(screen.getByRole('button', { name: /Изтрий/i }));
+    await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: /Потвърди/i }));
+    expect(onDeleteRecipe).toHaveBeenCalledWith('r1');
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  it('canceling the delete dialog does not call onDeleteRecipe', async () => {
+    const user = userEvent.setup();
+    const onDeleteRecipe = vi.fn();
+    renderScreen({ recipes: [makeRecipe({ id: 'r1' })], onDeleteRecipe });
+    await user.click(screen.getByRole('button', { name: /Изтрий/i }));
+    await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: /Отказ/i }));
+    expect(onDeleteRecipe).not.toHaveBeenCalled();
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  it('clicking Delete does not toggle card selection', async () => {
+    const user = userEvent.setup();
+    renderScreen({ recipes: [makeRecipe({ id: 'r1' })], onDeleteRecipe: vi.fn() });
+    await user.click(screen.getByRole('button', { name: /Изтрий/i }));
+    expect(screen.getByRole('article')).not.toHaveClass('selected');
   });
 });
