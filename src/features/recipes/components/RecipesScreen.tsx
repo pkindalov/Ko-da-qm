@@ -73,6 +73,7 @@ export const RecipesScreen = ({ recipes, addRecipe, removeRecipe, updateRecipe, 
   const [myPage, setMyPage] = useState(1);
   const [dbPage, setDbPage] = useState(1);
   const [form, setForm] = useState<RecipeFormState>(EMPTY_FORM);
+  const [showImageHelp, setShowImageHelp] = useState(false);
   const [productFilter, setProductFilter] = useState('');
   const [favoriteDetail, setFavoriteDetail] = useState<Recipe | null>(null);
   const [favoritesOpen, setFavoritesOpen] = useState(true);
@@ -92,6 +93,7 @@ export const RecipesScreen = ({ recipes, addRecipe, removeRecipe, updateRecipe, 
     setEditingId(null);
     setForm(EMPTY_FORM);
     setProductFilter('');
+    setShowImageHelp(false);
   };
 
   const closeDbModal = () => {
@@ -476,14 +478,33 @@ export const RecipesScreen = ({ recipes, addRecipe, removeRecipe, updateRecipe, 
               >×</button>
             </div>
           ))}
-          {form.imageUrls.length < 5 && (
+          <div className="recipe-form-image-footer">
+            {form.imageUrls.length < 5 && (
+              <button
+                className="btn btn-ghost btn-sm"
+                onClick={() => setForm({ ...form, imageUrls: [...form.imageUrls, ''] })}
+                type="button"
+              >
+                + {lang === 'en' ? 'Add photo' : 'Добави снимка'}
+              </button>
+            )}
             <button
-              className="btn btn-ghost btn-sm"
-              onClick={() => setForm({ ...form, imageUrls: [...form.imageUrls, ''] })}
+              className="recipe-form-info-btn"
               type="button"
+              onClick={() => setShowImageHelp(prev => !prev)}
+              aria-label={lang === 'en' ? 'Where to host images' : 'Къде да хостнеш снимки'}
             >
-              + {lang === 'en' ? 'Add photo' : 'Добави снимка'}
+              i
             </button>
+          </div>
+          {showImageHelp && (
+            <div className="recipe-form-image-help">
+              <span className="recipe-form-image-help__label">
+                {lang === 'en' ? 'Upload free at:' : 'Качи безплатно в:'}
+              </span>
+              <a href="https://imgur.com" target="_blank" rel="noopener noreferrer" className="recipe-form-image-help__link">Imgur</a>
+              <a href="https://imgbb.com" target="_blank" rel="noopener noreferrer" className="recipe-form-image-help__link">ImgBB</a>
+            </div>
           )}
         </div>
         <div className="toggle-wrap recipe-form-toggle">
