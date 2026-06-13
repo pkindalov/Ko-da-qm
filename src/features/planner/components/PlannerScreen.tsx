@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback, type Dispatch, type SetStateAction } from 'react';
+import { ConfirmDeleteModal } from '../../../shared/components/ConfirmDeleteModal';
 import { Modal } from '../../../shared/components/Modal';
 import { RecipeDetailView } from '../../../shared/components/RecipeDetailView';
 import type { Recipe, FridgeItem, Product, Profile, Language } from '../../../shared/types';
@@ -399,6 +400,7 @@ export const PlannerScreen = ({ recipes, fridge, products = [], profile, lang, p
   const [drawerFilter, setDrawerFilter] = useState<DrawerFilter>('all');
   const [sourceFilter, setSourceFilter] = useState<RecipeSource>('mine');
   const [previewSuggestion, setPreviewSuggestion] = useState<Recipe | null>(null);
+  const [pendingDeleteRecipeId, setPendingDeleteRecipeId] = useState<string | null>(null);
   const [planScope, setPlanScope] = useState<DrawerFilter>('all');
 
   // Recipes the user can pick from: their own recipes + favorites (deduped).
@@ -916,7 +918,7 @@ export const PlannerScreen = ({ recipes, fridge, products = [], profile, lang, p
                         <button className="drawer-recipe-action-btn" title={isEn ? 'Edit' : 'Редактирай'} onClick={(e) => { e.stopPropagation(); onViewRecipe(r.id); }}>✏</button>
                       )}
                       {onDeleteRecipe && (
-                        <button className="drawer-recipe-action-btn drawer-recipe-action-btn--danger" title={isEn ? 'Delete' : 'Изтрий'} onClick={(e) => { e.stopPropagation(); onDeleteRecipe(r.id); }}>🗑</button>
+                        <button className="drawer-recipe-action-btn drawer-recipe-action-btn--danger" title={isEn ? 'Delete' : 'Изтрий'} onClick={(e) => { e.stopPropagation(); setPendingDeleteRecipeId(r.id); }}>🗑</button>
                       )}
                       <div className="drawer-recipe-grip">::</div>
                     </div>
@@ -1082,6 +1084,14 @@ export const PlannerScreen = ({ recipes, fridge, products = [], profile, lang, p
           onClose={() => setShopOpen(false)}
         />
       )}
+
+      <ConfirmDeleteModal
+        open={pendingDeleteRecipeId !== null}
+        itemName={recipes.find(r => r.id === pendingDeleteRecipeId)?.name ?? ''}
+        lang={lang}
+        onConfirm={() => { if (pendingDeleteRecipeId) onDeleteRecipe?.(pendingDeleteRecipeId); setPendingDeleteRecipeId(null); }}
+        onCancel={() => setPendingDeleteRecipeId(null)}
+      />
 
       {overwriteConfirmOpen && (
         <Modal open onClose={() => setOverwriteConfirmOpen(false)}>
