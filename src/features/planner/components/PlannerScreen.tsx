@@ -914,10 +914,10 @@ export const PlannerScreen = ({ recipes, fridge, products = [], profile, lang, p
                       </div>
                     </div>
                     <div className="drawer-recipe-actions-row">
-                      {onViewRecipe && (
+                      {onViewRecipe && mineIds.has(r.id) && (
                         <button className="drawer-recipe-action-btn" title={isEn ? 'Edit' : 'Редактирай'} onClick={(e) => { e.stopPropagation(); onViewRecipe(r.id); }}>✏</button>
                       )}
-                      {onDeleteRecipe && (
+                      {onDeleteRecipe && mineIds.has(r.id) && (
                         <button className="drawer-recipe-action-btn drawer-recipe-action-btn--danger" title={isEn ? 'Delete' : 'Изтрий'} onClick={(e) => { e.stopPropagation(); setPendingDeleteRecipeId(r.id); }}>🗑</button>
                       )}
                       <div className="drawer-recipe-grip">::</div>
