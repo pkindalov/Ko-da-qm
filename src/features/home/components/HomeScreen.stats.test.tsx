@@ -829,6 +829,35 @@ describe('HomeScreen – safe recipe click to detail', () => {
     expect(within(dialog).getByRole('button', { name: /delete/i })).toBeInTheDocument();
   });
 
+  it('confirming Delete in the safe recipe detail calls onDeleteRecipe and closes the modal', async () => {
+    const user = userEvent.setup();
+    const recipe = makeRecipe({ id: 'r1', name: 'Chicken rice', nameEn: 'Chicken rice' });
+    const onDeleteRecipe = vi.fn();
+    render(<HomeScreen {...makeProps({ recipes: [recipe], onDeleteRecipe, lang: 'en' })} />);
+    await user.click(screen.getByText('safe recipes'));
+    await user.click(screen.getByRole('button', { name: 'Chicken rice' }));
+    // Click the Delete button inside the detail dialog (no emoji prefix, unlike card-level "🗑 Delete")
+    await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: /^Delete$/i }));
+    // RecipeDetailView's own ConfirmDeleteModal opens — Confirm only exists there
+    await user.click(screen.getByRole('button', { name: /^Confirm$/i }));
+    expect(onDeleteRecipe).toHaveBeenCalledWith('r1');
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  it('canceling Delete in the safe recipe detail does not call onDeleteRecipe', async () => {
+    const user = userEvent.setup();
+    const recipe = makeRecipe({ id: 'r1', name: 'Chicken rice', nameEn: 'Chicken rice' });
+    const onDeleteRecipe = vi.fn();
+    render(<HomeScreen {...makeProps({ recipes: [recipe], onDeleteRecipe, lang: 'en' })} />);
+    await user.click(screen.getByText('safe recipes'));
+    await user.click(screen.getByRole('button', { name: 'Chicken rice' }));
+    await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: /^Delete$/i }));
+    await user.click(screen.getByRole('button', { name: /^Cancel$/i }));
+    expect(onDeleteRecipe).not.toHaveBeenCalled();
+    // Only the ConfirmDeleteModal closes; detail modal stays open
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+  });
+
   it('author name is not shown when recipe has no authorName', async () => {
     const user = userEvent.setup();
     const recipes = [makeRecipe({ id: 'r1', name: 'Пиле с ориз', authorId: 'user-42' })];
