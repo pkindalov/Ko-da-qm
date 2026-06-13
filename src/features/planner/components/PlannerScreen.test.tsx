@@ -921,6 +921,23 @@ describe('PlannerScreen – drawer delete confirmation', () => {
     });
     expect(screen.queryByTitle('Edit')).not.toBeInTheDocument();
   });
+
+  it('confirming the delete dialog also removes the recipe from planner slots', async () => {
+    const user = userEvent.setup();
+    const onDeleteRecipe = vi.fn();
+    const setPlanner = vi.fn();
+    renderPlanner({
+      recipes: [makeRecipe({ id: 'r1', nameEn: 'Pasta' })],
+      planner: { [WEEK_KEY]: { '0_breakfast': 'r1' } },
+      onDeleteRecipe,
+      setPlanner,
+    });
+    await user.click(screen.getByTitle('Delete'));
+    await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: /^Confirm$/i }));
+    // removeIdsFromPlanner passes a functional updater — apply it to assert
+    const updater = setPlanner.mock.calls[0][0] as (prev: Record<string, Record<string, string>>) => Record<string, Record<string, string>>;
+    expect(updater({ [WEEK_KEY]: { '0_breakfast': 'r1' } })[WEEK_KEY]).not.toHaveProperty('0_breakfast');
+  });
 });
 
 // ── Week navigation ────────────────────────────────────────────────────────────

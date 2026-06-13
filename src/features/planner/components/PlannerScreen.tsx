@@ -1089,7 +1089,7 @@ export const PlannerScreen = ({ recipes, fridge, products = [], profile, lang, p
         open={pendingDeleteRecipeId !== null}
         itemName={recipes.find(r => r.id === pendingDeleteRecipeId) ? recipeDisplayName(recipes.find(r => r.id === pendingDeleteRecipeId)!, lang) : ''}
         lang={lang}
-        onConfirm={() => { if (pendingDeleteRecipeId) onDeleteRecipe?.(pendingDeleteRecipeId); setPendingDeleteRecipeId(null); }}
+        onConfirm={() => { if (pendingDeleteRecipeId) { onDeleteRecipe?.(pendingDeleteRecipeId); removeIdsFromPlanner(new Set([pendingDeleteRecipeId])); } setPendingDeleteRecipeId(null); }}
         onCancel={() => setPendingDeleteRecipeId(null)}
       />
 
