@@ -297,8 +297,8 @@ export const HomeScreen = ({ profile, recipes, fridge, publicRecipes, favoriteId
               <div key={recipe.id} className={`recipe-card${risk === 'allergy' ? ' allergy' : ''}`} onClick={() => setSelectedSafeRecipe(recipe)}>
                 <div className="recipe-image">
                   <div className="recipe-image-stripes" />
-                  {recipe.imageUrl
-                    ? <img src={recipe.imageUrl} alt={name} className="recipe-card-img" />
+                  {(recipe.imageUrls?.[0] ?? recipe.imageUrl)
+                    ? <img src={recipe.imageUrls?.[0] ?? recipe.imageUrl} alt={name} className="recipe-card-img" />
                     : <div className="recipe-image-emoji">{recipe.emoji}</div>}
                   <div className="recipe-image-label">{tag} · {recipe.time}min</div>
                 </div>
@@ -334,8 +334,8 @@ export const HomeScreen = ({ profile, recipes, fridge, publicRecipes, favoriteId
                 <div key={recipe.id} className={`recipe-card${risk === 'allergy' ? ' allergy' : ''}`} onClick={() => setSelectedRecipe(recipe)}>
                   <div className="recipe-image">
                     <div className="recipe-image-stripes" />
-                    {recipe.imageUrl
-                      ? <img src={recipe.imageUrl} alt={name} className="recipe-card-img" />
+                    {(recipe.imageUrls?.[0] ?? recipe.imageUrl)
+                      ? <img src={recipe.imageUrls?.[0] ?? recipe.imageUrl} alt={name} className="recipe-card-img" />
                       : <div className="recipe-image-emoji">{recipe.emoji}</div>}
                     <div className="recipe-image-label">{tag} · {recipe.time}min</div>
                     <button

@@ -111,8 +111,8 @@ export const FeedScreen = ({ lang, allergies, dislikes }: FeedScreenProps) => {
             >
               <div className="recipe-image">
                 <div className="recipe-image-stripes" />
-                {recipe.imageUrl
-                  ? <img src={recipe.imageUrl} alt={name} className="recipe-card-img" />
+                {(recipe.imageUrls?.[0] ?? recipe.imageUrl)
+                  ? <img src={recipe.imageUrls?.[0] ?? recipe.imageUrl} alt={name} className="recipe-card-img" />
                   : <div className="recipe-image-emoji">{recipe.emoji}</div>}
                 <div className="recipe-image-label">{tag} · {recipe.time}min</div>
                 <button
