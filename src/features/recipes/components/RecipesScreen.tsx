@@ -283,7 +283,7 @@ export const RecipesScreen = ({ recipes, addRecipe, removeRecipe, updateRecipe, 
                           {(recipe.imageUrls?.[0] ?? recipe.imageUrl)
                             ? <img src={recipe.imageUrls?.[0] ?? recipe.imageUrl} alt={name} className="recipe-card-img" />
                             : <div className="recipe-image-emoji">{recipe.emoji}</div>}
-                          <div className="recipe-image-label">{tag} · {recipe.time}min</div>
+                          <div className="recipe-image-label">{tag} · {recipe.time} {lang === 'en' ? 'min' : 'мин'}</div>
                           <button
                             className="btn-favorite"
                             onClick={(e) => { e.stopPropagation(); onToggleFavorite(recipe); }}
@@ -331,7 +331,7 @@ export const RecipesScreen = ({ recipes, addRecipe, removeRecipe, updateRecipe, 
                       {(recipe.imageUrls?.[0] ?? recipe.imageUrl)
                         ? <img src={recipe.imageUrls?.[0] ?? recipe.imageUrl} alt={name} className="recipe-card-img" />
                         : <div className="recipe-image-emoji">{recipe.emoji}</div>}
-                      <div className="recipe-image-label">{tag} · {recipe.time}min</div>
+                      <div className="recipe-image-label">{tag} · {recipe.time} {lang === 'en' ? 'min' : 'мин'}</div>
                       {recipe.isAI && <span className="ai-badge"><Badge type="primary">✨ AI</Badge></span>}
                     </div>
                     <div className="recipe-body">

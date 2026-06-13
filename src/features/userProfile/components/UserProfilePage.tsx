@@ -121,7 +121,7 @@ export const UserProfilePage = () => {
                         ? <img src={recipe.imageUrls?.[0] ?? recipe.imageUrl} alt={name} className="recipe-card-img" />
                         : <div className="recipe-image-emoji">{recipe.emoji}</div>
                       }
-                      <div className="recipe-image-label">{tag} · {recipe.time}min</div>
+                      <div className="recipe-image-label">{tag} · {recipe.time} {isEnglish ? 'min' : 'мин'}</div>
                       <button
                         className="btn-favorite"
                         onClick={(e) => { e.stopPropagation(); toggleFavorite(recipe); }}
