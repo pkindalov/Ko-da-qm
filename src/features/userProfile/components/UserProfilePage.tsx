@@ -38,9 +38,8 @@ export const UserProfilePage = () => {
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
 
   const handleDeleteRecipe = async (id: string) => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session?.user) return;
-    const { error } = await supabase.from('recipes').delete().eq('id', id).eq('user_id', session.user.id);
+    if (!currentUserId) return;
+    const { error } = await supabase.from('recipes').delete().eq('id', id).eq('user_id', currentUserId);
     if (error) { toast.error(isEnglish ? 'Failed to delete recipe' : 'Грешка при изтриване'); return; }
     queryClient.invalidateQueries({ queryKey: ['userProfile', userId] });
     setSelectedRecipe(null);

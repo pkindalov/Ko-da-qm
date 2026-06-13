@@ -304,7 +304,7 @@ export const HomeScreen = ({ profile, recipes, fridge, publicRecipes, favoriteId
                   {(recipe.imageUrls?.[0] ?? recipe.imageUrl)
                     ? <img src={recipe.imageUrls?.[0] ?? recipe.imageUrl} alt={name} className="recipe-card-img" />
                     : <div className="recipe-image-emoji">{recipe.emoji}</div>}
-                  <div className="recipe-image-label">{tag} · {recipe.time}min</div>
+                  <div className="recipe-image-label">{tag} · {recipe.time} {isEnglish ? 'min' : 'мин'}</div>
                 </div>
                 <div className="recipe-body">
                   <div className="recipe-name italic">{name}</div>
@@ -355,7 +355,7 @@ export const HomeScreen = ({ profile, recipes, fridge, publicRecipes, favoriteId
                     {(recipe.imageUrls?.[0] ?? recipe.imageUrl)
                       ? <img src={recipe.imageUrls?.[0] ?? recipe.imageUrl} alt={name} className="recipe-card-img" />
                       : <div className="recipe-image-emoji">{recipe.emoji}</div>}
-                    <div className="recipe-image-label">{tag} · {recipe.time}min</div>
+                    <div className="recipe-image-label">{tag} · {recipe.time} {isEnglish ? 'min' : 'мин'}</div>
                     <button
                       className="btn-favorite"
                       onClick={(e) => { e.stopPropagation(); onToggleFavorite(recipe); }}
