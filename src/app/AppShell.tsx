@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback, lazy, Suspense } from 'react';
-import { useNavigate, useParams, Navigate } from 'react-router-dom';
+import { useNavigate, useParams, useLocation, Navigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Sidebar } from './layout/Sidebar';
 import { BottomNav } from './layout/BottomNav';
@@ -35,6 +35,7 @@ const PlannerScreen = lazy(() => import('../features/planner/components/PlannerS
 export const AppShell = () => {
   const { tab: tabParam } = useParams<{ tab: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const isValidTab = tabParam != null && VALID_TABS.has(tabParam);
   const tab: Tab = (isValidTab ? tabParam : 'home') as Tab;
   const setTab = useCallback((newTab: Tab) => navigate(`/${newTab}`), [navigate]);
@@ -50,7 +51,9 @@ export const AppShell = () => {
   const { changePassword, isChanging: isChangingPassword } = useChangePassword(tweaks.lang);
   const [planner, setPlanner] = useLocalStorage<Record<string, Record<string, string>>>('kdq_planner', {});
   const [tweaksOpen, setTweaksOpen] = useState(false);
-  const [pendingOpenRecipeId, setPendingOpenRecipeId] = useState<string | null>(null);
+  const [pendingOpenRecipeId, setPendingOpenRecipeId] = useState<string | null>(
+    (location.state as { openRecipeId?: string } | null)?.openRecipeId ?? null
+  );
 
   const handleEntityClick = useCallback((entityType: string, entityId: string) => {
     if (entityType === 'recipe') {

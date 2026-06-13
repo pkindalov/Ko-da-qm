@@ -163,7 +163,7 @@ export const UserProfilePage = () => {
             showBackButton={false}
             onBack={() => setSelectedRecipe(null)}
             onToggleFavorite={() => toggleFavorite(selectedRecipe)}
-            onEdit={isOwnProfile ? () => navigate('/recipes') : undefined}
+            onEdit={isOwnProfile ? () => navigate('/recipes', { state: { openRecipeId: selectedRecipe.id } }) : undefined}
             onDelete={isOwnProfile ? () => handleDeleteRecipe(selectedRecipe.id) : undefined}
           />
         )}
