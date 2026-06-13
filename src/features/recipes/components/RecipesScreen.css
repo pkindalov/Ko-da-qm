@@ -41,6 +41,15 @@
 .recipe-form-toggle {
   margin-bottom: 20px;
 }
+.recipe-form-image-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 6px;
+}
+.recipe-form-image-row .input-field {
+  flex: 1;
+}
 .recipe-form-hint {
   font-size: 12px;
   color: var(--ink-3);

@@ -54,6 +54,8 @@ export const RecipeDetailView = ({
   const [saveTranslationOpen, setSaveTranslationOpen] = useState(false);
   const [shopOpen, setShopOpen] = useState(false);
   const [cooking, setCooking] = useState(false);
+  const [activeImgIndex, setActiveImgIndex] = useState(0);
+  const heroUrl = recipe.imageUrls?.[activeImgIndex] ?? recipe.imageUrl;
 
   const missingCount = useMemo(() => {
     if (fridge == null || recipe.requiredIngredients.length === 0) return 0;
@@ -144,12 +146,28 @@ export const RecipeDetailView = ({
       )}
 
       <div className="detail-hero">
-        <div className="detail-image">
-          <div className="recipe-image-stripes" />
-          {recipe.imageUrl
-            ? <img src={recipe.imageUrl} alt={displayName} />
-            : <span className="detail-image-emoji">{recipe.emoji}</span>
-          }
+        <div className="detail-image-col">
+          <div className="detail-image">
+            <div className="recipe-image-stripes" />
+            {heroUrl
+              ? <img src={heroUrl} alt={displayName} />
+              : <span className="detail-image-emoji">{recipe.emoji}</span>
+            }
+          </div>
+          {(recipe.imageUrls?.length ?? 0) > 1 && (
+            <div className="detail-gallery-thumbs">
+              {recipe.imageUrls!.map((url, i) => (
+                <button
+                  key={i}
+                  className={`detail-gallery-thumb${activeImgIndex === i ? ' detail-gallery-thumb--active' : ''}`}
+                  onClick={() => setActiveImgIndex(i)}
+                  aria-label={`Photo ${i + 1}`}
+                >
+                  <img src={url} alt={`Photo ${i + 1}`} />
+                </button>
+              ))}
+            </div>
+          )}
         </div>
         <div className="detail-head">
           <div className="eyebrow">

@@ -40,9 +40,10 @@ interface RecipeFormState {
   isPublic: boolean;
   meals: MealType[];
   difficulty?: Difficulty;
+  imageUrls: string[];
 }
 
-const EMPTY_FORM: RecipeFormState = { name: '', emoji: '🍽', time: '', ingredients: '', steps: '', isPublic: false, meals: [] };
+const EMPTY_FORM: RecipeFormState = { name: '', emoji: '🍽', time: '', ingredients: '', steps: '', isPublic: false, meals: [], imageUrls: [] };
 const PAGE_SIZE = 5;
 
 const MEAL_OPTIONS: { id: MealType; en: string; bg: string }[] = [
@@ -112,6 +113,7 @@ export const RecipesScreen = ({ recipes, addRecipe, removeRecipe, updateRecipe, 
       isPublic: recipe.isPublic,
       meals: mealsFromTags(recipe.tags),
       difficulty: recipe.difficulty,
+      imageUrls: recipe.imageUrls ?? [],
     });
     setEditingId(recipe.id);
     setAddOpen(true);
@@ -276,8 +278,8 @@ export const RecipesScreen = ({ recipes, addRecipe, removeRecipe, updateRecipe, 
                       <div key={recipe.id} className={`recipe-card${risk === 'allergy' ? ' allergy' : ''}`} onClick={() => setFavoriteDetail(recipe)}>
                         <div className="recipe-image">
                           <div className="recipe-image-stripes" />
-                          {recipe.imageUrl
-                            ? <img src={recipe.imageUrl} alt={name} className="recipe-card-img" />
+                          {(recipe.imageUrls?.[0] ?? recipe.imageUrl)
+                            ? <img src={recipe.imageUrls?.[0] ?? recipe.imageUrl} alt={name} className="recipe-card-img" />
                             : <div className="recipe-image-emoji">{recipe.emoji}</div>}
                           <div className="recipe-image-label">{tag} · {recipe.time}min</div>
                           <button
@@ -324,8 +326,8 @@ export const RecipesScreen = ({ recipes, addRecipe, removeRecipe, updateRecipe, 
                   <div key={recipe.id} className={`recipe-card${risk === 'allergy' ? ' allergy' : ''}`} onClick={() => setDetail(recipe.id)}>
                     <div className="recipe-image">
                       <div className="recipe-image-stripes" />
-                      {recipe.imageUrl
-                        ? <img src={recipe.imageUrl} alt={name} className="recipe-card-img" />
+                      {(recipe.imageUrls?.[0] ?? recipe.imageUrl)
+                        ? <img src={recipe.imageUrls?.[0] ?? recipe.imageUrl} alt={name} className="recipe-card-img" />
                         : <div className="recipe-image-emoji">{recipe.emoji}</div>}
                       <div className="recipe-image-label">{tag} · {recipe.time}min</div>
                       {recipe.isAI && <span className="ai-badge"><Badge type="primary">✨ AI</Badge></span>}
@@ -451,6 +453,38 @@ export const RecipesScreen = ({ recipes, addRecipe, removeRecipe, updateRecipe, 
           <label className="input-label">{lang === 'en' ? 'Steps (one per line)' : 'Стъпки (по един ред)'}</label>
           <textarea className="input-field" rows={4} value={form.steps} onChange={(e) => setForm({ ...form, steps: e.target.value })}
             placeholder={lang === 'en' ? 'Beat the eggs\nHeat the pan' : 'Разбий яйцата\nЗагрей тигана'} />
+        </div>
+        <div className="recipe-form-mb">
+          <label className="input-label">{lang === 'en' ? 'Photos — up to 5 image URLs' : 'Снимки — до 5 URL адреса'}</label>
+          {form.imageUrls.map((url, i) => (
+            <div key={i} className="recipe-form-image-row">
+              <input
+                className="input-field"
+                value={url}
+                onChange={(e) => {
+                  const updated = [...form.imageUrls];
+                  updated[i] = e.target.value;
+                  setForm({ ...form, imageUrls: updated });
+                }}
+                placeholder="https://..."
+              />
+              <button
+                className="btn btn-ghost btn-sm"
+                onClick={() => setForm({ ...form, imageUrls: form.imageUrls.filter((_, idx) => idx !== i) })}
+                type="button"
+                aria-label={lang === 'en' ? 'Remove photo' : 'Премахни снимка'}
+              >×</button>
+            </div>
+          ))}
+          {form.imageUrls.length < 5 && (
+            <button
+              className="btn btn-ghost btn-sm"
+              onClick={() => setForm({ ...form, imageUrls: [...form.imageUrls, ''] })}
+              type="button"
+            >
+              + {lang === 'en' ? 'Add photo' : 'Добави снимка'}
+            </button>
+          )}
         </div>
         <div className="toggle-wrap recipe-form-toggle">
           <label className="toggle">

@@ -28,7 +28,7 @@ export const useAppData = (lang: Language = 'bg') => {
     const [profileRes, fridgeRes, recipesRes, productsRes] = await Promise.all([
       supabase.from('users').select('name, allergies, dislikes, dietary_prefs, disabled_at').eq('id', user.id).single(),
       supabase.from('fridge_items').select('id, name, emoji, category').eq('user_id', user.id),
-      supabase.from('recipes').select('id, user_id, name, name_en, name_translated, source_lang, emoji, image_url, ingredients, steps, ingredients_translated, steps_translated, time, tags, difficulty, required_ingredients, is_ai, is_public, author_name, author_email').eq('user_id', user.id),
+      supabase.from('recipes').select('id, user_id, name, name_en, name_translated, source_lang, emoji, image_url, image_urls, ingredients, steps, ingredients_translated, steps_translated, time, tags, difficulty, required_ingredients, is_ai, is_public, author_name, author_email').eq('user_id', user.id),
       supabase.from('products').select('id, name, name_en, category, status, emoji').eq('user_id', user.id),
     ]);
 
@@ -78,6 +78,7 @@ export const useAppData = (lang: Language = 'bg') => {
         sourceLang: recipeRow.source_lang ?? undefined,
         emoji: recipeRow.emoji,
         imageUrl: recipeRow.image_url ?? undefined,
+        imageUrls: (recipeRow.image_urls as string[] | null)?.length ? (recipeRow.image_urls as string[]) : undefined,
         ingredients: recipeRow.ingredients ?? [],
         steps: recipeRow.steps ?? [],
         ingredientsTranslated: recipeRow.ingredients_translated?.length ? recipeRow.ingredients_translated : undefined,
@@ -188,6 +189,7 @@ export const useAppData = (lang: Language = 'bg') => {
       source_lang: recipe.sourceLang ?? null,
       emoji: recipe.emoji,
       image_url: recipe.imageUrl ?? null,
+      image_urls: recipe.imageUrls ?? [],
       ingredients: recipe.ingredients,
       steps: recipe.steps,
       ingredients_translated: recipe.ingredientsTranslated ?? [],
@@ -228,6 +230,7 @@ export const useAppData = (lang: Language = 'bg') => {
         source_lang: recipe.sourceLang ?? null,
         emoji: recipe.emoji,
         image_url: recipe.imageUrl ?? null,
+        image_urls: recipe.imageUrls ?? [],
         ingredients: recipe.ingredients,
         steps: recipe.steps,
         ingredients_translated: recipe.ingredientsTranslated ?? [],

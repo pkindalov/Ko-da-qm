@@ -242,7 +242,7 @@ describe('useAppData – loadAll recipe select fields', () => {
     await act(async () => {});
 
     expect(mockSelect).toHaveBeenCalledWith(
-      'id, user_id, name, name_en, name_translated, source_lang, emoji, image_url, ingredients, steps, ingredients_translated, steps_translated, time, tags, difficulty, required_ingredients, is_ai, is_public, author_name, author_email',
+      'id, user_id, name, name_en, name_translated, source_lang, emoji, image_url, image_urls, ingredients, steps, ingredients_translated, steps_translated, time, tags, difficulty, required_ingredients, is_ai, is_public, author_name, author_email',
     );
   });
 });
@@ -397,6 +397,141 @@ describe('useAppData – loadAll recipe imageUrl', () => {
     await act(async () => {});
 
     expect(result.current.recipes[0].imageUrl).toBeUndefined();
+  });
+});
+
+describe('useAppData – addRecipe imageUrls', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('saves imageUrls array to DB as image_urls', async () => {
+    setupLoadAllMocks();
+    mockInsert.mockResolvedValue({ data: null, error: null });
+
+    const { result } = renderHook(() => useAppData());
+    await act(async () => {});
+
+    const imageUrls = ['https://example.com/a.jpg', 'https://example.com/b.jpg'];
+    await act(async () => { await result.current.addRecipe(makeRecipe({ imageUrls })); });
+
+    expect(mockInsert).toHaveBeenCalledWith(
+      expect.objectContaining({ image_urls: imageUrls }),
+    );
+  });
+
+  it('saves empty array to DB when imageUrls is undefined', async () => {
+    setupLoadAllMocks();
+    mockInsert.mockResolvedValue({ data: null, error: null });
+
+    const { result } = renderHook(() => useAppData());
+    await act(async () => {});
+
+    await act(async () => { await result.current.addRecipe(makeRecipe({ imageUrls: undefined })); });
+
+    expect(mockInsert).toHaveBeenCalledWith(
+      expect.objectContaining({ image_urls: [] }),
+    );
+  });
+});
+
+describe('useAppData – updateRecipe imageUrls', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('saves imageUrls array to DB as image_urls on update', async () => {
+    setupLoadAllMocks();
+    mockEq.mockReturnValue({ eq: mockEq });
+
+    const { result } = renderHook(() => useAppData());
+    await act(async () => {});
+
+    const imageUrls = ['https://example.com/photo.jpg'];
+    await act(async () => { await result.current.updateRecipe(makeRecipe({ imageUrls })); });
+
+    expect(mockUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({ image_urls: imageUrls }),
+    );
+  });
+
+  it('saves empty array to DB when imageUrls is undefined on update', async () => {
+    setupLoadAllMocks();
+    mockEq.mockReturnValue({ eq: mockEq });
+
+    const { result } = renderHook(() => useAppData());
+    await act(async () => {});
+
+    await act(async () => { await result.current.updateRecipe(makeRecipe({ imageUrls: undefined })); });
+
+    expect(mockUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({ image_urls: [] }),
+    );
+  });
+});
+
+describe('useAppData – loadAll recipe imageUrls', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  const setupWithImageUrls = (imageUrls: string[] | null) => {
+    mockGetSession.mockResolvedValue({ data: { session: { user: { id: 'user-1', user_metadata: {} } } } });
+    mockFrom.mockImplementation((table: string) => {
+      if (table === 'users') {
+        return {
+          select: () => ({ eq: () => ({ single: () => Promise.resolve({ data: { name: 'Alice', allergies: [], dislikes: [], dietary_prefs: [] }, error: null }) }) }),
+          insert: mockInsert,
+        };
+      }
+      if (table === 'recipes') {
+        return {
+          select: () => ({
+            eq: () => Promise.resolve({
+              data: [{
+                id: 'r1', user_id: 'user-1', name: 'Chicken', name_en: null, emoji: '🍗',
+                image_url: null, image_urls: imageUrls,
+                ingredients: [], steps: [], time: 20, tags: [], required_ingredients: [],
+                is_ai: false, is_public: false, author_name: null, author_email: null,
+              }],
+              error: null,
+            }),
+          }),
+          insert: mockInsert,
+          delete: mockDelete,
+          update: mockUpdate,
+        };
+      }
+      return { select: () => ({ eq: () => Promise.resolve({ data: [], error: null }) }) };
+    });
+  };
+
+  it('maps image_urls array to imageUrls when present', async () => {
+    const imageUrls = ['https://example.com/a.jpg', 'https://example.com/b.jpg'];
+    setupWithImageUrls(imageUrls);
+
+    const { result } = renderHook(() => useAppData());
+    await act(async () => {});
+
+    expect(result.current.recipes[0].imageUrls).toEqual(imageUrls);
+  });
+
+  it('sets imageUrls to undefined when image_urls is an empty array', async () => {
+    setupWithImageUrls([]);
+
+    const { result } = renderHook(() => useAppData());
+    await act(async () => {});
+
+    expect(result.current.recipes[0].imageUrls).toBeUndefined();
+  });
+
+  it('sets imageUrls to undefined when image_urls is null', async () => {
+    setupWithImageUrls(null);
+
+    const { result } = renderHook(() => useAppData());
+    await act(async () => {});
+
+    expect(result.current.recipes[0].imageUrls).toBeUndefined();
   });
 });
 

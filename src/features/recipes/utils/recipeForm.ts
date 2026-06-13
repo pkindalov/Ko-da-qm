@@ -52,6 +52,7 @@ export interface RecipeFormData {
   isPublic?: boolean;
   meals?: MealType[];
   difficulty?: Difficulty;
+  imageUrls?: string[];
 }
 
 export const DEFAULT_RECIPE_TIME_MIN = 15;
@@ -62,9 +63,11 @@ export const parseRecipeForm = (form: RecipeFormData): Omit<Recipe, 'id' | 'auth
   const stepLines = form.steps.split('\n').filter(Boolean);
   const selectedMeals = form.meals ?? [];
   const time = parseInt(form.time) || DEFAULT_RECIPE_TIME_MIN;
+  const imageUrls = (form.imageUrls ?? []).map(url => url.trim()).filter(Boolean);
   return {
     name: form.name,
     emoji: form.emoji || '🍽',
+    imageUrls: imageUrls.length > 0 ? imageUrls : undefined,
     ingredients: ingredientLines,
     steps: stepLines,
     time,
