@@ -64,6 +64,7 @@ export const CookbookScreen = ({ recipes, favoriteIds, profile, lang, onEditReci
   const selectedRecipes = recipes.filter(r => selectedSet.has(r.id));
   const favCount = recipes.filter(r => favSet.has(r.id)).length;
   const blocked = [...profile.allergies, ...profile.dislikes];
+  const pendingDeleteRecipe = recipes.find(r => r.id === pendingDeleteId);
 
   return (
     <div className="fade-in">
@@ -259,7 +260,7 @@ export const CookbookScreen = ({ recipes, favoriteIds, profile, lang, onEditReci
       )}
       <ConfirmDeleteModal
         open={pendingDeleteId !== null}
-        itemName={recipes.find(r => r.id === pendingDeleteId) ? recipeDisplayName(recipes.find(r => r.id === pendingDeleteId)!, lang) : ''}
+        itemName={pendingDeleteRecipe ? recipeDisplayName(pendingDeleteRecipe, lang) : ''}
         lang={lang}
         onConfirm={() => { if (pendingDeleteId) { onDeleteRecipe?.(pendingDeleteId); setSelected(s => s.filter(id => id !== pendingDeleteId)); toast.success(isEnglish ? 'Recipe deleted' : 'Рецептата е изтрита'); } setPendingDeleteId(null); }}
         onCancel={() => setPendingDeleteId(null)}

@@ -61,6 +61,7 @@ export const HomeScreen = ({ profile, recipes, fridge, publicRecipes, favoriteId
   const [dislikeFormOriginal, setDislikeFormOriginal] = useState('');
   const [dislikeFormValue, setDislikeFormValue] = useState('');
   const [pendingDeleteRecipeId, setPendingDeleteRecipeId] = useState<string | null>(null);
+  const pendingDeleteRecipe = recipes.find(r => r.id === pendingDeleteRecipeId);
 
   const [pendingDeleteFridgeId, setPendingDeleteFridgeId] = useState<string | null>(null);
   const [pendingDeleteAllergyName, setPendingDeleteAllergyName] = useState<string | null>(null);
@@ -770,7 +771,7 @@ export const HomeScreen = ({ profile, recipes, fridge, publicRecipes, favoriteId
 
       <ConfirmDeleteModal
         open={pendingDeleteRecipeId !== null}
-        itemName={recipes.find(r => r.id === pendingDeleteRecipeId) ? recipeDisplayName(recipes.find(r => r.id === pendingDeleteRecipeId)!, lang) : ''}
+        itemName={pendingDeleteRecipe ? recipeDisplayName(pendingDeleteRecipe, lang) : ''}
         lang={lang}
         onConfirm={() => {
           if (pendingDeleteRecipeId) {

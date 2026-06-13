@@ -402,6 +402,7 @@ export const PlannerScreen = ({ recipes, fridge, products = [], profile, lang, p
   const [sourceFilter, setSourceFilter] = useState<RecipeSource>('mine');
   const [previewSuggestion, setPreviewSuggestion] = useState<Recipe | null>(null);
   const [pendingDeleteRecipeId, setPendingDeleteRecipeId] = useState<string | null>(null);
+  const pendingDeleteRecipe = recipes.find(r => r.id === pendingDeleteRecipeId);
   const [planScope, setPlanScope] = useState<DrawerFilter>('all');
 
   // Recipes the user can pick from: their own recipes + favorites (deduped).
@@ -1088,7 +1089,7 @@ export const PlannerScreen = ({ recipes, fridge, products = [], profile, lang, p
 
       <ConfirmDeleteModal
         open={pendingDeleteRecipeId !== null}
-        itemName={recipes.find(r => r.id === pendingDeleteRecipeId) ? recipeDisplayName(recipes.find(r => r.id === pendingDeleteRecipeId)!, lang) : ''}
+        itemName={pendingDeleteRecipe ? recipeDisplayName(pendingDeleteRecipe, lang) : ''}
         lang={lang}
         onConfirm={() => { if (pendingDeleteRecipeId) { onDeleteRecipe?.(pendingDeleteRecipeId); removeIdsFromPlanner(new Set([pendingDeleteRecipeId])); toast.success(isEn ? 'Recipe deleted' : 'Рецептата е изтрита'); } setPendingDeleteRecipeId(null); }}
         onCancel={() => setPendingDeleteRecipeId(null)}
