@@ -5,7 +5,7 @@ import { RecipeDetailView } from '../../../shared/components/RecipeDetailView';
 import type { Recipe, FridgeItem, Product, Profile, Language } from '../../../shared/types';
 import { planWithGemini } from '../utils/planWithGemini';
 import { useLocalStorage } from '../../../shared/hooks/useLocalStorage';
-import { localizeMealTag } from '../../../shared/utils/recipeDisplayName';
+import { recipeDisplayName, localizeMealTag } from '../../../shared/utils/recipeDisplayName';
 import './PlannerScreen.css';
 
 type PlannerData = Record<string, Record<string, string>>;
@@ -1087,7 +1087,7 @@ export const PlannerScreen = ({ recipes, fridge, products = [], profile, lang, p
 
       <ConfirmDeleteModal
         open={pendingDeleteRecipeId !== null}
-        itemName={recipes.find(r => r.id === pendingDeleteRecipeId)?.name ?? ''}
+        itemName={recipes.find(r => r.id === pendingDeleteRecipeId) ? recipeDisplayName(recipes.find(r => r.id === pendingDeleteRecipeId)!, lang) : ''}
         lang={lang}
         onConfirm={() => { if (pendingDeleteRecipeId) onDeleteRecipe?.(pendingDeleteRecipeId); setPendingDeleteRecipeId(null); }}
         onCancel={() => setPendingDeleteRecipeId(null)}

@@ -770,7 +770,7 @@ export const HomeScreen = ({ profile, recipes, fridge, publicRecipes, favoriteId
 
       <ConfirmDeleteModal
         open={pendingDeleteRecipeId !== null}
-        itemName={recipes.find(r => r.id === pendingDeleteRecipeId)?.name ?? ''}
+        itemName={recipes.find(r => r.id === pendingDeleteRecipeId) ? recipeDisplayName(recipes.find(r => r.id === pendingDeleteRecipeId)!, lang) : ''}
         lang={lang}
         onConfirm={() => {
           if (pendingDeleteRecipeId) {

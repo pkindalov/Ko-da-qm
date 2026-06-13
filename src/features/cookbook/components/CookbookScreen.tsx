@@ -258,7 +258,7 @@ export const CookbookScreen = ({ recipes, favoriteIds, profile, lang, onEditReci
       )}
       <ConfirmDeleteModal
         open={pendingDeleteId !== null}
-        itemName={recipes.find(r => r.id === pendingDeleteId)?.name ?? ''}
+        itemName={recipes.find(r => r.id === pendingDeleteId) ? recipeDisplayName(recipes.find(r => r.id === pendingDeleteId)!, lang) : ''}
         lang={lang}
         onConfirm={() => { if (pendingDeleteId) onDeleteRecipe?.(pendingDeleteId); setPendingDeleteId(null); }}
         onCancel={() => setPendingDeleteId(null)}
