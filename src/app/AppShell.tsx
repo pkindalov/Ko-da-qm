@@ -55,6 +55,13 @@ export const AppShell = () => {
     (location.state as { openRecipeId?: string } | null)?.openRecipeId ?? null
   );
 
+  useEffect(() => {
+    const state = location.state as { openRecipeId?: string } | null;
+    if (state?.openRecipeId != null) {
+      navigate(location.pathname, { replace: true, state: null });
+    }
+  }, [location, navigate]);
+
   const handleEntityClick = useCallback((entityType: string, entityId: string) => {
     if (entityType === 'recipe') {
       setTab('recipes');
