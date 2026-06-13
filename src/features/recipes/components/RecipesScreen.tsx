@@ -464,15 +464,18 @@ export const RecipesScreen = ({ recipes, addRecipe, removeRecipe, updateRecipe, 
                 className="input-field"
                 value={url}
                 onChange={(e) => {
-                  const updated = [...form.imageUrls];
-                  updated[i] = e.target.value;
-                  setForm({ ...form, imageUrls: updated });
+                  const val = e.target.value;
+                  setForm(prev => {
+                    const updated = [...prev.imageUrls];
+                    updated[i] = val;
+                    return { ...prev, imageUrls: updated };
+                  });
                 }}
                 placeholder="https://..."
               />
               <button
                 className="btn btn-ghost btn-sm"
-                onClick={() => setForm({ ...form, imageUrls: form.imageUrls.filter((_, idx) => idx !== i) })}
+                onClick={() => setForm(prev => ({ ...prev, imageUrls: prev.imageUrls.filter((_, idx) => idx !== i) }))}
                 type="button"
                 aria-label={lang === 'en' ? 'Remove photo' : 'Премахни снимка'}
               >×</button>
@@ -482,7 +485,7 @@ export const RecipesScreen = ({ recipes, addRecipe, removeRecipe, updateRecipe, 
             {form.imageUrls.length < 5 && (
               <button
                 className="btn btn-ghost btn-sm"
-                onClick={() => setForm({ ...form, imageUrls: [...form.imageUrls, ''] })}
+                onClick={() => setForm(prev => ({ ...prev, imageUrls: [...prev.imageUrls, ''] }))}
                 type="button"
               >
                 + {lang === 'en' ? 'Add photo' : 'Добави снимка'}
@@ -502,7 +505,7 @@ export const RecipesScreen = ({ recipes, addRecipe, removeRecipe, updateRecipe, 
               <span className="recipe-form-image-help__label">
                 {lang === 'en' ? 'Upload free at:' : 'Качи безплатно в:'}
               </span>
-              <a href="https://imgur.com" target="_blank" rel="noopener noreferrer" className="recipe-form-image-help__link">Imgur</a>
+              <a href="https://postimages.org" target="_blank" rel="noopener noreferrer" className="recipe-form-image-help__link">PostImages</a>
               <a href="https://imgbb.com" target="_blank" rel="noopener noreferrer" className="recipe-form-image-help__link">ImgBB</a>
             </div>
           )}
