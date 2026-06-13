@@ -901,6 +901,26 @@ describe('PlannerScreen – drawer delete confirmation', () => {
     expect(onDeleteRecipe).not.toHaveBeenCalled();
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
+
+  it('does not show a Delete button for a favorited community recipe', () => {
+    const communityRecipe = makeRecipe({ id: 'community-1', nameEn: 'Community Pasta' });
+    renderPlanner({
+      recipes: [],
+      favoriteRecipes: [communityRecipe],
+      onDeleteRecipe: vi.fn(),
+    });
+    expect(screen.queryByTitle('Delete')).not.toBeInTheDocument();
+  });
+
+  it('does not show an Edit button for a favorited community recipe', () => {
+    const communityRecipe = makeRecipe({ id: 'community-1', nameEn: 'Community Pasta' });
+    renderPlanner({
+      recipes: [],
+      favoriteRecipes: [communityRecipe],
+      onViewRecipe: vi.fn(),
+    });
+    expect(screen.queryByTitle('Edit')).not.toBeInTheDocument();
+  });
 });
 
 // ── Week navigation ────────────────────────────────────────────────────────────
