@@ -3,6 +3,7 @@ import { toast } from 'sonner';
 import { Modal } from '../../../shared/components/Modal';
 import { Badge } from '../../../shared/components/Badge';
 import { ConfirmDeleteModal } from '../../../shared/components/ConfirmDeleteModal';
+import { toImgurThumbnail } from '../../../shared/utils/imageUrl';
 import './RecipesScreen.css';
 import { EmptyState } from '../../../shared/components/EmptyState';
 import { RecipeDetailView } from '../../../shared/components/RecipeDetailView';
@@ -281,7 +282,7 @@ export const RecipesScreen = ({ recipes, addRecipe, removeRecipe, updateRecipe, 
                         <div className="recipe-image">
                           <div className="recipe-image-stripes" />
                           {(recipe.imageUrls?.[0] ?? recipe.imageUrl)
-                            ? <img src={recipe.imageUrls?.[0] ?? recipe.imageUrl} alt={name} className="recipe-card-img" loading="lazy" />
+                            ? <img src={toImgurThumbnail(recipe.imageUrls?.[0] ?? recipe.imageUrl ?? '')} alt={name} className="recipe-card-img" loading="lazy" />
                             : <div className="recipe-image-emoji">{recipe.emoji}</div>}
                           <div className="recipe-image-label">{tag} · {recipe.time} {lang === 'en' ? 'min' : 'мин'}</div>
                           <button
@@ -329,7 +330,7 @@ export const RecipesScreen = ({ recipes, addRecipe, removeRecipe, updateRecipe, 
                     <div className="recipe-image">
                       <div className="recipe-image-stripes" />
                       {(recipe.imageUrls?.[0] ?? recipe.imageUrl)
-                        ? <img src={recipe.imageUrls?.[0] ?? recipe.imageUrl} alt={name} className="recipe-card-img" loading="lazy" />
+                        ? <img src={toImgurThumbnail(recipe.imageUrls?.[0] ?? recipe.imageUrl ?? '')} alt={name} className="recipe-card-img" loading="lazy" />
                         : <div className="recipe-image-emoji">{recipe.emoji}</div>}
                       <div className="recipe-image-label">{tag} · {recipe.time} {lang === 'en' ? 'min' : 'мин'}</div>
                       {recipe.isAI && <span className="ai-badge"><Badge type="primary">✨ AI</Badge></span>}

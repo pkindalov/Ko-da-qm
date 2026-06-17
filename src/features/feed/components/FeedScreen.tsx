@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Badge } from '../../../shared/components/Badge';
 import { EmptyState } from '../../../shared/components/EmptyState';
 import { Modal } from '../../../shared/components/Modal';
+import { toImgurThumbnail } from '../../../shared/utils/imageUrl';
 import './FeedScreen.css';
 import { RecipeDetailView } from '../../../shared/components/RecipeDetailView';
 import { recipeRisk } from '../../../shared/utils/recipeUtils';
@@ -112,7 +113,7 @@ export const FeedScreen = ({ lang, allergies, dislikes }: FeedScreenProps) => {
               <div className="recipe-image">
                 <div className="recipe-image-stripes" />
                 {(recipe.imageUrls?.[0] ?? recipe.imageUrl)
-                  ? <img src={recipe.imageUrls?.[0] ?? recipe.imageUrl} alt={name} className="recipe-card-img" loading="lazy" />
+                  ? <img src={toImgurThumbnail(recipe.imageUrls?.[0] ?? recipe.imageUrl ?? '')} alt={name} className="recipe-card-img" loading="lazy" />
                   : <div className="recipe-image-emoji">{recipe.emoji}</div>}
                 <div className="recipe-image-label">{tag} · {recipe.time}min</div>
                 <button

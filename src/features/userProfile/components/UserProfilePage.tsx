@@ -4,6 +4,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Modal } from '../../../shared/components/Modal';
 import { RecipeDetailView } from '../../../shared/components/RecipeDetailView';
+import { toImgurThumbnail } from '../../../shared/utils/imageUrl';
 import { EmptyState } from '../../../shared/components/EmptyState';
 import './UserProfilePage.css';
 import { Badge } from '../../../shared/components/Badge';
@@ -118,7 +119,7 @@ export const UserProfilePage = () => {
                     <div className="recipe-image">
                       <div className="recipe-image-stripes" />
                       {(recipe.imageUrls?.[0] ?? recipe.imageUrl)
-                        ? <img src={recipe.imageUrls?.[0] ?? recipe.imageUrl} alt={name} className="recipe-card-img" loading="lazy" />
+                        ? <img src={toImgurThumbnail(recipe.imageUrls?.[0] ?? recipe.imageUrl ?? '')} alt={name} className="recipe-card-img" loading="lazy" />
                         : <div className="recipe-image-emoji">{recipe.emoji}</div>
                       }
                       <div className="recipe-image-label">{tag} · {recipe.time} {isEnglish ? 'min' : 'мин'}</div>

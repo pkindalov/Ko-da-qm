@@ -2,6 +2,7 @@ import { useState, lazy, Suspense } from 'react';
 import { toast } from 'sonner';
 import { useLocalStorage } from '../../../shared/hooks/useLocalStorage';
 import { recipeDisplayName, localizeMealTag } from '../../../shared/utils/recipeDisplayName';
+import { toImgurThumbnail } from '../../../shared/utils/imageUrl';
 import { ConfirmDeleteModal } from '../../../shared/components/ConfirmDeleteModal';
 import type { Recipe, Profile, Language } from '../../../shared/types';
 import './CookbookScreen.css';
@@ -176,7 +177,7 @@ export const CookbookScreen = ({ recipes, favoriteIds, profile, lang, onEditReci
                 <div className="recipe-image">
                   <div className="recipe-image-stripes" />
                   {(r.imageUrls?.[0] ?? r.imageUrl)
-                    ? <img src={r.imageUrls?.[0] ?? r.imageUrl} alt={displayName} className="recipe-card-img" loading="lazy" />
+                    ? <img src={toImgurThumbnail(r.imageUrls?.[0] ?? r.imageUrl ?? '')} alt={displayName} className="recipe-card-img" loading="lazy" />
                     : <div className="recipe-image-emoji">{r.emoji}</div>}
                   <div className="recipe-image-label">{localizeMealTag(r.tags?.[0], isEnglish, isEnglish ? 'recipe' : 'рецепта')} · {r.time} {isEnglish ? 'min' : 'мин'}</div>
                 </div>

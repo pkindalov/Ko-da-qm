@@ -8,6 +8,7 @@ import './HomeScreen.css';
 import { RecipeDetailView } from '../../../shared/components/RecipeDetailView';
 import { isSafe, recipeRisk } from '../../../shared/utils/recipeUtils';
 import { recipeDisplayName, localizeMealTag } from '../../../shared/utils/recipeDisplayName';
+import { toImgurThumbnail } from '../../../shared/utils/imageUrl';
 import { getGreeting } from '../../../shared/utils/greeting';
 import type { Profile, Recipe, FridgeItem, Language, Tab, Product, ProductStatus } from '../../../shared/types';
 
@@ -303,7 +304,7 @@ export const HomeScreen = ({ profile, recipes, fridge, publicRecipes, favoriteId
                 <div className="recipe-image">
                   <div className="recipe-image-stripes" />
                   {(recipe.imageUrls?.[0] ?? recipe.imageUrl)
-                    ? <img src={recipe.imageUrls?.[0] ?? recipe.imageUrl} alt={name} className="recipe-card-img" />
+                    ? <img src={toImgurThumbnail(recipe.imageUrls?.[0] ?? recipe.imageUrl ?? '')} alt={name} className="recipe-card-img" />
                     : <div className="recipe-image-emoji">{recipe.emoji}</div>}
                   <div className="recipe-image-label">{tag} · {recipe.time} {isEnglish ? 'min' : 'мин'}</div>
                 </div>
@@ -354,7 +355,7 @@ export const HomeScreen = ({ profile, recipes, fridge, publicRecipes, favoriteId
                   <div className="recipe-image">
                     <div className="recipe-image-stripes" />
                     {(recipe.imageUrls?.[0] ?? recipe.imageUrl)
-                      ? <img src={recipe.imageUrls?.[0] ?? recipe.imageUrl} alt={name} className="recipe-card-img" />
+                      ? <img src={toImgurThumbnail(recipe.imageUrls?.[0] ?? recipe.imageUrl ?? '')} alt={name} className="recipe-card-img" />
                       : <div className="recipe-image-emoji">{recipe.emoji}</div>}
                     <div className="recipe-image-label">{tag} · {recipe.time} {isEnglish ? 'min' : 'мин'}</div>
                     <button
