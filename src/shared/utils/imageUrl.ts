@@ -9,5 +9,8 @@
 export function toImgurThumbnail(url: string): string {
   const match = url.match(/^(https?:\/\/i\.imgur\.com\/)([A-Za-z0-9]+)\.[a-z]+$/i);
   if (!match) return url;
-  return `${match[1]}${match[2]}l.jpg`;
+  const [, base, id] = match;
+  // Already the large-thumbnail variant — return unchanged to avoid double-suffix.
+  if (id.endsWith('l')) return url;
+  return `${base}${id}l.jpg`;
 }
