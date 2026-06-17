@@ -118,7 +118,7 @@ export const UserProfilePage = () => {
                     <div className="recipe-image">
                       <div className="recipe-image-stripes" />
                       {(recipe.imageUrls?.[0] ?? recipe.imageUrl)
-                        ? <img src={recipe.imageUrls?.[0] ?? recipe.imageUrl} alt={name} className="recipe-card-img" />
+                        ? <img src={recipe.imageUrls?.[0] ?? recipe.imageUrl} alt={name} className="recipe-card-img" loading="lazy" />
                         : <div className="recipe-image-emoji">{recipe.emoji}</div>
                       }
                       <div className="recipe-image-label">{tag} · {recipe.time} {isEnglish ? 'min' : 'мин'}</div>

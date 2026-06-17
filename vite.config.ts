@@ -4,11 +4,6 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   build: {
-    // The PDF engine (@react-pdf/renderer, ~1.4 MB) is irreducibly large but
-    // lives in its own vendor chunk and is only fetched when the lazy-loaded
-    // cookbook editor opens — so it never weighs on first paint. Lift the limit
-    // just above it so this expected chunk doesn't trip the warning, while real
-    // regressions in app chunks still do.
     chunkSizeWarningLimit: 1500,
     rollupOptions: {
       output: {
@@ -22,9 +17,10 @@ export default defineConfig({
           if (id.includes('node_modules/@tanstack/')) {
             return 'vendor-query';
           }
-          if (id.includes('node_modules/@react-pdf/')) {
-            return 'vendor-pdf';
-          }
+          // @react-pdf/renderer is only used by the lazily-imported CookbookEditorPanel.
+          // Omitting it from manualChunks means Rollup bundles it into that lazy chunk
+          // naturally, so Vite does NOT add a <link rel="modulepreload"> for it in the
+          // HTML — preventing the 1.4 MB PDF library from being fetched on every page.
         },
       },
     },

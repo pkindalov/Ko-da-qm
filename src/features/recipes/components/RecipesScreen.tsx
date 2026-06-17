@@ -281,7 +281,7 @@ export const RecipesScreen = ({ recipes, addRecipe, removeRecipe, updateRecipe, 
                         <div className="recipe-image">
                           <div className="recipe-image-stripes" />
                           {(recipe.imageUrls?.[0] ?? recipe.imageUrl)
-                            ? <img src={recipe.imageUrls?.[0] ?? recipe.imageUrl} alt={name} className="recipe-card-img" />
+                            ? <img src={recipe.imageUrls?.[0] ?? recipe.imageUrl} alt={name} className="recipe-card-img" loading="lazy" />
                             : <div className="recipe-image-emoji">{recipe.emoji}</div>}
                           <div className="recipe-image-label">{tag} · {recipe.time} {lang === 'en' ? 'min' : 'мин'}</div>
                           <button
@@ -329,7 +329,7 @@ export const RecipesScreen = ({ recipes, addRecipe, removeRecipe, updateRecipe, 
                     <div className="recipe-image">
                       <div className="recipe-image-stripes" />
                       {(recipe.imageUrls?.[0] ?? recipe.imageUrl)
-                        ? <img src={recipe.imageUrls?.[0] ?? recipe.imageUrl} alt={name} className="recipe-card-img" />
+                        ? <img src={recipe.imageUrls?.[0] ?? recipe.imageUrl} alt={name} className="recipe-card-img" loading="lazy" />
                         : <div className="recipe-image-emoji">{recipe.emoji}</div>}
                       <div className="recipe-image-label">{tag} · {recipe.time} {lang === 'en' ? 'min' : 'мин'}</div>
                       {recipe.isAI && <span className="ai-badge"><Badge type="primary">✨ AI</Badge></span>}

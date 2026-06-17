@@ -142,7 +142,9 @@ export const AppShell = () => {
         <div className="mobile-notif-bar">
           <NotificationBell notifications={notifications} unreadCount={unreadCount} onMarkAsRead={markAsRead} onMarkAllAsRead={markAllAsRead} onMarkAsUnread={markAsUnread} onMarkAllAsUnread={markAllAsUnread} onDeleteNotification={deleteNotification} onDeleteAll={deleteAllNotifications} onEntityClick={handleEntityClick} lang={tweaks.lang} />
         </div>
-        <Suspense fallback={null}>{screens[tab]}</Suspense>
+        <div className="main-content__body">
+          <Suspense fallback={null}>{screens[tab]}</Suspense>
+        </div>
         <AppFooter lang={tweaks.lang} onLangToggle={() => setTweaks({ ...tweaks, lang: tweaks.lang === 'bg' ? 'en' : 'bg' })} />
       </main>
       <BottomNav tab={tab} setTab={setTab} lang={tweaks.lang} />

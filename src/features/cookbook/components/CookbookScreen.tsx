@@ -176,7 +176,7 @@ export const CookbookScreen = ({ recipes, favoriteIds, profile, lang, onEditReci
                 <div className="recipe-image">
                   <div className="recipe-image-stripes" />
                   {(r.imageUrls?.[0] ?? r.imageUrl)
-                    ? <img src={r.imageUrls?.[0] ?? r.imageUrl} alt={displayName} className="recipe-card-img" />
+                    ? <img src={r.imageUrls?.[0] ?? r.imageUrl} alt={displayName} className="recipe-card-img" loading="lazy" />
                     : <div className="recipe-image-emoji">{r.emoji}</div>}
                   <div className="recipe-image-label">{localizeMealTag(r.tags?.[0], isEnglish, isEnglish ? 'recipe' : 'рецепта')} · {r.time} {isEnglish ? 'min' : 'мин'}</div>
                 </div>
