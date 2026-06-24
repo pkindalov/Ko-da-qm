@@ -81,6 +81,16 @@ export const AppShell = () => {
     return () => window.removeEventListener('message', handler);
   }, []);
 
+  useEffect(() => {
+    const suffix = tweaks.lang === 'en' ? 'EN' : 'BG';
+    const favicon = document.querySelector<HTMLLinkElement>('link[rel="icon"]');
+    const appleIcon = document.querySelector<HTMLLinkElement>('link[rel="apple-touch-icon"]');
+    const ogImage = document.querySelector<HTMLMetaElement>('meta[property="og:image"]');
+    if (favicon) favicon.href = `/favicon${suffix}.ico`;
+    if (appleIcon) appleIcon.href = `/apple-touch-icon${suffix}.png`;
+    if (ogImage) ogImage.content = `/logo${suffix}.png`;
+  }, [tweaks.lang]);
+
   const themeClass =
     tweaks.theme === 'cool' ? 'theme-cool' :
     tweaks.theme === 'dark' ? 'theme-dark' : '';
