@@ -142,13 +142,28 @@ a {
 .brand {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  align-items: flex-start;
+  gap: 8px;
   line-height: 1;
   background: none;
   border: none;
   padding: 0;
   cursor: pointer;
   text-align: left;
+  width: 100%;
+}
+.brand-logo {
+  width: 96px;
+  height: 96px;
+  border-radius: 18px;
+  flex-shrink: 0;
+  align-self: center;
+}
+.brand-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
 }
 .brand-mark {
   font-family: var(--serif);

@@ -52,8 +52,17 @@ export const Sidebar = ({ tab, setTab, lang, profile, tweaksOpen, onTweaksToggle
   return (
     <aside className="sidebar">
       <button className="brand" onClick={() => setTab('home')}>
-        <span className="brand-mark">Ко-да-ям</span>
-        <span className="brand-sub">{lang === 'en' ? 'for picky eaters' : 'за капризни хора'}</span>
+        <img
+          className="brand-logo"
+          src={lang === 'en' ? '/logoEN.png' : '/logoBG.png'}
+          alt="Ко-да-ям"
+          width={44}
+          height={44}
+        />
+        <span className="brand-text">
+          <span className="brand-mark">Ко-да-ям</span>
+          <span className="brand-sub">{lang === 'en' ? 'for picky eaters' : 'за капризни хора'}</span>
+        </span>
       </button>
 
       <nav className="nav">
