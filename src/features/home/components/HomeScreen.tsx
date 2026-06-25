@@ -222,54 +222,9 @@ export const HomeScreen = ({ profile, recipes, fridge, publicRecipes, favoriteId
         </div>
       </div>
 
-      {/* Hero */}
-      <section className="hero-grid">
-        <div>
-          <div className="eyebrow">
-            {greeting}{profile.name ? `, ${profile.name}` : ''}
-          </div>
-          <h1 className="h-display">
-            {isEnglish ? 'What can we ' : 'Какво да '}
-            <span className="it">{isEnglish ? 'cook' : 'сготвим'}</span>
-            <br />{isEnglish ? 'today?' : 'днес?'}
-          </h1>
-          <p className="h-sub">
-            {isEnglish
-              ? 'A quiet cookbook that already knows what you cannot eat. Pick something safe, or stretch a little.'
-              : 'Тиха готварска книга, която вече знае какво не можеш да ядеш. Избери нещо безопасно — или излез от зоната.'}
-          </p>
-          <div className="hero-cta">
-            <button className="btn btn-primary" onClick={() => setTab('recipes')}>
-              {isEnglish ? 'Browse recipes' : 'Към рецептите'} <span className="dim">→</span>
-            </button>
-            <button className="btn btn-secondary" onClick={() => setTab('profile')}>
-              {isEnglish ? 'Edit restrictions' : 'Промени ограниченията'}
-            </button>
-          </div>
-        </div>
-        <div className="hero-stats">
-          <div className="hero-stat-card" onClick={() => setOpenStatModal('safeRecipes')}>
-            <div className="hero-stat-num italic clay">{safeRecipes.length}</div>
-            <div className="hero-stat-label">{isEnglish ? 'safe recipes' : 'безопасни рецепти'}</div>
-          </div>
-          <div className="hero-stat-card" onClick={() => setOpenStatModal('allergies')}>
-            <div className="hero-stat-num italic rust">{allergies.length}</div>
-            <div className="hero-stat-label">{isEnglish ? 'allergies' : 'алергии'}</div>
-          </div>
-          <div className="hero-stat-card" onClick={() => setOpenStatModal('dislikes')}>
-            <div className="hero-stat-num italic amber">{dislikes.length}</div>
-            <div className="hero-stat-label">{isEnglish ? 'dislikes' : 'нелюбими'}</div>
-          </div>
-          <div className="hero-stat-card" onClick={() => setOpenStatModal('fridge')}>
-            <div className="hero-stat-num italic moss">{fridge.length}</div>
-            <div className="hero-stat-label">{isEnglish ? 'in your fridge' : 'в хладилника'}</div>
-          </div>
-        </div>
-      </section>
-
       {/* Alert banner */}
       {allergies.length > 0 && (
-        <div className="alert-banner">
+        <div className="alert-banner" role="alert">
           <span className="dot dot-danger" />
           <div className="alert-banner-text">
             <strong>{isEnglish ? 'Active allergies' : 'Активни алергии'}.</strong>{' '}
@@ -281,60 +236,122 @@ export const HomeScreen = ({ profile, recipes, fridge, publicRecipes, favoriteId
         </div>
       )}
 
-      {/* Safe recipes section */}
+      {/* Hero */}
+      <section className="hero-grid">
+        <div>
+          <div className="eyebrow">
+            {greeting}{profile.name ? `, ${profile.name}` : ''}
+          </div>
+          <h1 className="h-display">
+            {isEnglish ? 'What can we ' : 'Какво да '}
+            <span className="it">{isEnglish ? 'cook' : 'сготвим'}</span>
+            {' '}{isEnglish ? 'today?' : 'днес?'}
+          </h1>
+          <p className="h-sub">
+            {isEnglish
+              ? 'A quiet cookbook that already knows what you cannot eat. Pick something safe, or stretch a little.'
+              : 'Тиха готварска книга, която вече знае какво не можеш да ядеш. Избери нещо безопасно — или излез от зоната.'}
+          </p>
+          <div className="hero-cta">
+            <button className="btn btn-primary" onClick={() => setTab('recipes')}>
+              {isEnglish ? 'Browse recipes' : 'Към рецептите'} <span className="dim">→</span>
+            </button>
+            <button className="btn btn-secondary" onClick={() => setTab('profile')}>
+              {isEnglish ? 'Set up my profile' : 'Настрой профила'}
+            </button>
+          </div>
+        </div>
+        <div className="hero-stats">
+          <button className="hero-stat-card" onClick={() => setOpenStatModal('safeRecipes')} aria-label={isEnglish ? `${safeRecipes.length} safe recipes — view list` : `${safeRecipes.length} безопасни рецепти — виж списъка`}>
+            <div className="hero-stat-num italic clay">{safeRecipes.length}</div>
+            <div className="hero-stat-label">{isEnglish ? 'safe recipes' : 'безопасни рецепти'}</div>
+            <span className="hero-stat-arrow" aria-hidden="true">›</span>
+          </button>
+          <button className="hero-stat-card" onClick={() => setOpenStatModal('allergies')} aria-label={isEnglish ? `${allergies.length} allergies — manage` : `${allergies.length} алергии — управлявай`}>
+            <div className="hero-stat-num italic rust">{allergies.length}</div>
+            <div className="hero-stat-label">{isEnglish ? 'allergies' : 'алергии'}</div>
+            <span className="hero-stat-arrow" aria-hidden="true">›</span>
+          </button>
+          <button className="hero-stat-card" onClick={() => setOpenStatModal('dislikes')} aria-label={isEnglish ? `${dislikes.length} dislikes — manage` : `${dislikes.length} нелюбими — управлявай`}>
+            <div className="hero-stat-num italic amber">{dislikes.length}</div>
+            <div className="hero-stat-label">{isEnglish ? 'dislikes' : 'нелюбими'}</div>
+            <span className="hero-stat-arrow" aria-hidden="true">›</span>
+          </button>
+          <button className="hero-stat-card" onClick={() => setOpenStatModal('fridge')} aria-label={isEnglish ? `${fridge.length} items in fridge — manage` : `${fridge.length} продукта в хладилника — управлявай`}>
+            <div className="hero-stat-num italic moss">{fridge.length}</div>
+            <div className="hero-stat-label">{isEnglish ? 'in your fridge' : 'в хладилника'}</div>
+            <span className="hero-stat-arrow" aria-hidden="true">›</span>
+          </button>
+        </div>
+      </section>
+
+      {/* Your recipes section */}
       <div className="section-eyebrow">
-        <span className="label">{isEnglish ? 'Quiet ideas — safe for you' : 'Тихи идеи — безопасни за теб'}</span>
-        <span className="label">{safeRecipes.length} {isEnglish ? 'matches' : 'броя'}</span>
+        <span className="label">{isEnglish ? 'Your recipes' : 'Твоите рецепти'}</span>
+        <span className="label">{recipes.length} {isEnglish ? 'total' : 'общо'}</span>
       </div>
 
       {recipes.length === 0 ? (
-        <EmptyState
-          icon="😔"
-          title={isEnglish ? 'No recipes yet' : 'Все още няма рецепти'}
-          subtitle={isEnglish ? 'Add recipes or update your restrictions' : 'Добави рецепти или промени ограниченията си'}
-        />
+        <>
+          <EmptyState
+            icon="😔"
+            title={isEnglish ? 'No recipes yet' : 'Все още няма рецепти'}
+            subtitle={isEnglish ? 'Add recipes or update your restrictions' : 'Добави рецепти или промени ограниченията си'}
+          />
+          <div className="flex-center mt-4">
+            <button className="btn btn-primary" onClick={() => setTab('recipes')}>
+              {isEnglish ? 'Add your first recipe →' : 'Добави рецепта →'}
+            </button>
+          </div>
+        </>
       ) : (
-        <div className="grid-3">
-          {recipes.slice(0, RECIPES_PREVIEW_SIZE).map((recipe) => {
-            const risk = recipeRisk(recipe, allergies, dislikes);
-            const name = recipeDisplayName(recipe, lang);
-            const tag = localizeMealTag(recipe.tags?.[0], isEnglish, isEnglish ? 'recipe' : 'рецепта');
-            return (
-              <div key={recipe.id} className={`recipe-card${risk === 'allergy' ? ' allergy' : ''}`} onClick={() => setSelectedSafeRecipe(recipe)}>
-                <div className="recipe-image">
-                  <div className="recipe-image-stripes" />
-                  {(recipe.imageUrls?.[0] ?? recipe.imageUrl)
-                    ? <img src={toImgurThumbnail(recipe.imageUrls?.[0] ?? recipe.imageUrl ?? '')} alt={name} className="recipe-card-img" />
-                    : <div className="recipe-image-emoji">{recipe.emoji}</div>}
-                  <div className="recipe-image-label">{tag} · {recipe.time} {isEnglish ? 'min' : 'мин'}</div>
-                </div>
-                <div className="recipe-body">
-                  <div className="recipe-name italic">{name}</div>
-                  <div className="recipe-meta">⏱ {recipe.time} {isEnglish ? 'min' : 'мин'}</div>
-                  <div className="recipe-tags">
-                    {risk === 'safe'    && <Badge type="safe"><span className="dot dot-safe" /> {isEnglish ? 'safe' : 'безопасно'}</Badge>}
-                    {risk === 'dislike' && <Badge type="dislike"><span className="dot dot-warn" /> {isEnglish ? 'check' : 'провери'}</Badge>}
-                    {risk === 'allergy' && <Badge type="allergy"><span className="dot dot-danger" /> {isEnglish ? 'allergy' : 'алергия'}</Badge>}
+        <>
+          <div className="grid-3">
+            {recipes.slice(0, RECIPES_PREVIEW_SIZE).map((recipe) => {
+              const risk = recipeRisk(recipe, allergies, dislikes);
+              const name = recipeDisplayName(recipe, lang);
+              const tag = localizeMealTag(recipe.tags?.[0], isEnglish, isEnglish ? 'recipe' : 'рецепта');
+              return (
+                <div key={recipe.id} className={`recipe-card${risk === 'allergy' ? ' allergy' : ''}`} onClick={() => setSelectedSafeRecipe(recipe)}>
+                  <div className="recipe-image">
+                    <div className="recipe-image-stripes" />
+                    {(recipe.imageUrls?.[0] ?? recipe.imageUrl)
+                      ? <img src={toImgurThumbnail(recipe.imageUrls?.[0] ?? recipe.imageUrl ?? '')} alt={name} className="recipe-card-img" />
+                      : <div className="recipe-image-emoji">{recipe.emoji}</div>}
+                    <div className="recipe-image-label">{tag} · {recipe.time} {isEnglish ? 'min' : 'мин'}</div>
                   </div>
-                  {(onEditRecipe || onDeleteRecipe) && (
-                    <div className="recipe-card-actions">
-                      {onEditRecipe && (
-                        <button className="btn btn-secondary btn-sm" onClick={(e) => { e.stopPropagation(); onEditRecipe(recipe); }}>
-                          ✏ {isEnglish ? 'Edit' : 'Редактирай'}
-                        </button>
-                      )}
-                      {onDeleteRecipe && (
-                        <button className="btn btn-danger btn-sm" onClick={(e) => { e.stopPropagation(); setPendingDeleteRecipeId(recipe.id); }}>
-                          🗑 {isEnglish ? 'Delete' : 'Изтрий'}
-                        </button>
-                      )}
+                  <div className="recipe-body">
+                    <div className="recipe-name italic">{name}</div>
+                    <div className="recipe-tags">
+                      {risk === 'safe'    && <Badge type="safe"><span className="dot dot-safe" /> {isEnglish ? 'safe' : 'безопасно'}</Badge>}
+                      {risk === 'dislike' && <Badge type="dislike"><span className="dot dot-warn" /> {isEnglish ? 'check' : 'провери'}</Badge>}
+                      {risk === 'allergy' && <Badge type="allergy"><span className="dot dot-danger" /> {isEnglish ? 'allergy' : 'алергия'}</Badge>}
                     </div>
-                  )}
+                    {(onEditRecipe || onDeleteRecipe) && (
+                      <div className="recipe-card-actions">
+                        {onEditRecipe && (
+                          <button className="btn btn-secondary btn-sm" onClick={(e) => { e.stopPropagation(); onEditRecipe(recipe); }}>
+                            ✏ {isEnglish ? 'Edit' : 'Редактирай'}
+                          </button>
+                        )}
+                        {onDeleteRecipe && (
+                          <button className="btn btn-danger btn-sm" onClick={(e) => { e.stopPropagation(); setPendingDeleteRecipeId(recipe.id); }}>
+                            🗑 {isEnglish ? 'Delete' : 'Изтрий'}
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+          {recipes.length > RECIPES_PREVIEW_SIZE && (
+            <button className="btn btn-ghost btn-full mt-4" onClick={() => setTab('recipes')}>
+              {isEnglish ? `See all recipes (${recipes.length} total) →` : `Виж всички рецепти (${recipes.length} общо) →`}
+            </button>
+          )}
+        </>
       )}
 
       {/* Community recipes */}
