@@ -300,7 +300,7 @@ export const HomeScreen = ({ profile, recipes, fridge, publicRecipes, favoriteId
           />
           <div className="flex-center mt-4">
             <button className="btn btn-primary" onClick={() => setTab('recipes')}>
-              {isEnglish ? 'Add your first recipe →' : 'Добави рецепта →'}
+              {isEnglish ? 'Add your first recipe →' : 'Добави първата си рецепта →'}
             </button>
           </div>
         </>

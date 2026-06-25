@@ -88,7 +88,7 @@ export const AppShell = () => {
     const ogImage = document.querySelector<HTMLMetaElement>('meta[property="og:image"]');
     if (favicon) favicon.href = `/favicon${suffix}.ico`;
     if (appleIcon) appleIcon.href = `/apple-touch-icon${suffix}.png`;
-    if (ogImage) ogImage.content = `/logo${suffix}.png`;
+    if (ogImage) ogImage.content = `${window.location.origin}/logo${suffix}.png`;
   }, [tweaks.lang]);
 
   const themeClass =

@@ -463,14 +463,14 @@ describe('HomeScreen – fridge modal add/edit', () => {
     const user = userEvent.setup();
     render(<HomeScreen {...makeProps()} />);
     await user.click(screen.getByText('в хладилника'));
-    expect(screen.getByRole('button', { name: /Добави/ })).toBeInTheDocument();
+    expect(within(screen.getByRole('dialog')).getByRole('button', { name: /Добави/ })).toBeInTheDocument();
   });
 
   it('clicking add button shows the name input form', async () => {
     const user = userEvent.setup();
     render(<HomeScreen {...makeProps()} />);
     await user.click(screen.getByText('в хладилника'));
-    await user.click(screen.getByRole('button', { name: /Добави/ }));
+    await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: /Добави/ }));
     expect(screen.getByPlaceholderText(/Домати/)).toBeInTheDocument();
   });
 
@@ -479,7 +479,7 @@ describe('HomeScreen – fridge modal add/edit', () => {
     const onAddFridgeItem = vi.fn();
     render(<HomeScreen {...makeProps({ onAddFridgeItem })} />);
     await user.click(screen.getByText('в хладилника'));
-    await user.click(screen.getByRole('button', { name: /Добави/ }));
+    await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: /Добави/ }));
     await user.type(screen.getByPlaceholderText(/Домати/), 'Картофи');
     await user.click(screen.getByRole('button', { name: 'Запази' }));
     expect(onAddFridgeItem).toHaveBeenCalledWith({ name: 'Картофи', emoji: '📦', category: 'other' });
@@ -490,7 +490,7 @@ describe('HomeScreen – fridge modal add/edit', () => {
     const onAddFridgeItem = vi.fn();
     render(<HomeScreen {...makeProps({ onAddFridgeItem })} />);
     await user.click(screen.getByText('в хладилника'));
-    await user.click(screen.getByRole('button', { name: /Добави/ }));
+    await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: /Добави/ }));
     await user.click(screen.getByRole('button', { name: 'Запази' }));
     expect(onAddFridgeItem).not.toHaveBeenCalled();
   });
@@ -499,7 +499,7 @@ describe('HomeScreen – fridge modal add/edit', () => {
     const user = userEvent.setup();
     render(<HomeScreen {...makeProps()} />);
     await user.click(screen.getByText('в хладилника'));
-    await user.click(screen.getByRole('button', { name: /Добави/ }));
+    await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: /Добави/ }));
     await user.click(screen.getByRole('button', { name: 'Отказ' }));
     expect(screen.queryByPlaceholderText(/Домати/)).not.toBeInTheDocument();
   });
@@ -561,7 +561,7 @@ describe('HomeScreen – fridge modal add/edit', () => {
     const user = userEvent.setup();
     render(<HomeScreen {...makeProps()} />);
     await user.click(screen.getByText('в хладилника'));
-    await user.click(screen.getByRole('button', { name: /Добави/ }));
+    await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: /Добави/ }));
     expect(screen.getByPlaceholderText(/Домати/)).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: '✕' }));
     await user.click(screen.getByText('в хладилника'));
@@ -572,7 +572,7 @@ describe('HomeScreen – fridge modal add/edit', () => {
     const user = userEvent.setup();
     render(<HomeScreen {...makeProps()} />);
     await user.click(screen.getByText('в хладилника'));
-    await user.click(screen.getByRole('button', { name: /Добави/ }));
+    await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: /Добави/ }));
     expect(screen.getByRole('textbox', { name: 'Персонален емоджи' })).toBeInTheDocument();
   });
 
@@ -581,7 +581,7 @@ describe('HomeScreen – fridge modal add/edit', () => {
     const onAddFridgeItem = vi.fn();
     render(<HomeScreen {...makeProps({ onAddFridgeItem })} />);
     await user.click(screen.getByText('в хладилника'));
-    await user.click(screen.getByRole('button', { name: /Добави/ }));
+    await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: /Добави/ }));
     await user.type(screen.getByPlaceholderText(/Домати/), 'Картофи');
     const emojiInput = screen.getByRole('textbox', { name: 'Персонален емоджи' });
     await user.clear(emojiInput);
