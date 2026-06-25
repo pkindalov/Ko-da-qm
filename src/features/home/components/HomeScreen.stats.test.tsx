@@ -1099,3 +1099,54 @@ describe('HomeScreen – recipe card owner controls', () => {
     expect(within(dialog).queryByText('Пиле с ориз', { selector: '.detail-recipe-name, h2' })).not.toBeInTheDocument();
   });
 });
+
+describe('HomeScreen – your recipes section', () => {
+  it('shows empty-state CTA when recipes is empty', () => {
+    render(<HomeScreen {...makeProps()} />);
+    expect(screen.getByRole('button', { name: /Добави първата си рецепта/ })).toBeInTheDocument();
+  });
+
+  it('empty-state CTA calls setTab with recipes', async () => {
+    const user = userEvent.setup();
+    const setTab = vi.fn();
+    render(<HomeScreen {...makeProps({ setTab })} />);
+    await user.click(screen.getByRole('button', { name: /Добави първата си рецепта/ }));
+    expect(setTab).toHaveBeenCalledWith('recipes');
+  });
+
+  it('does not show empty-state CTA when recipes exist', () => {
+    const recipes = [makeRecipe({ id: 'r1' })];
+    render(<HomeScreen {...makeProps({ recipes })} />);
+    expect(screen.queryByRole('button', { name: /Добави първата си рецепта/ })).not.toBeInTheDocument();
+  });
+
+  it('does not show "see all" button when recipe count is within the 4-card preview limit', () => {
+    const recipes = [
+      makeRecipe({ id: 'r1' }), makeRecipe({ id: 'r2' }),
+      makeRecipe({ id: 'r3' }), makeRecipe({ id: 'r4' }),
+    ];
+    render(<HomeScreen {...makeProps({ recipes })} />);
+    expect(screen.queryByRole('button', { name: /Виж всички рецепти/ })).not.toBeInTheDocument();
+  });
+
+  it('shows "see all" button when recipes exceed the 4-card preview', () => {
+    const recipes = [
+      makeRecipe({ id: 'r1' }), makeRecipe({ id: 'r2' }),
+      makeRecipe({ id: 'r3' }), makeRecipe({ id: 'r4' }), makeRecipe({ id: 'r5' }),
+    ];
+    render(<HomeScreen {...makeProps({ recipes })} />);
+    expect(screen.getByRole('button', { name: /Виж всички рецепти/ })).toBeInTheDocument();
+  });
+
+  it('"see all" button calls setTab with recipes', async () => {
+    const user = userEvent.setup();
+    const setTab = vi.fn();
+    const recipes = [
+      makeRecipe({ id: 'r1' }), makeRecipe({ id: 'r2' }),
+      makeRecipe({ id: 'r3' }), makeRecipe({ id: 'r4' }), makeRecipe({ id: 'r5' }),
+    ];
+    render(<HomeScreen {...makeProps({ recipes, setTab })} />);
+    await user.click(screen.getByRole('button', { name: /Виж всички рецепти/ }));
+    expect(setTab).toHaveBeenCalledWith('recipes');
+  });
+});
