@@ -141,9 +141,9 @@ a {
 
 .brand {
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 8px;
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
   line-height: 1;
   background: none;
   border: none;
@@ -151,35 +151,41 @@ a {
   cursor: pointer;
   text-align: left;
   width: 100%;
+  transition: transform 0.15s;
+}
+.brand:active {
+  transform: scale(0.98);
 }
 .brand-logo {
-  width: 96px;
-  height: 96px;
-  border-radius: 18px;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--r-sm);
   flex-shrink: 0;
-  align-self: center;
 }
 .brand-text {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 2px;
+  gap: 3px;
 }
 .brand-mark {
   font-family: var(--serif);
   font-style: italic;
-  font-size: 34px;
-  letter-spacing: -1.5px;
+  font-size: 22px;
+  letter-spacing: -0.8px;
   color: var(--ink);
   font-weight: 400;
+  transition: color 0.15s;
+}
+.brand:hover .brand-mark {
+  color: var(--clay);
 }
 .brand-sub {
   font-family: var(--mono);
-  font-size: 10.5px;
+  font-size: 10px;
   letter-spacing: 0.5px;
   color: var(--ink-3);
   text-transform: uppercase;
-  margin-top: 4px;
 }
 
 .nav {
